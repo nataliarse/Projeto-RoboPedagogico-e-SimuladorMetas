@@ -38,3 +38,7 @@ Streamlit: Para criar uma interface visual rápida e limpa onde o usuário digit
 
 Ponto de Atenção: Performance
 Como você vai ler o histórico na hora em que o usuário pedir, a busca deve ser indexada. Se o histórico estiver em arquivos PDF, você precisará de uma etapa de OCR ou leitura de PDF (como o PyMuPDF) integrada antes da análise.
+*************************************************************************************************************************************
+
+Sugestões: Python - biblioteca ollama - biblioteca selenium - biblioteca playwright (gratuito)
+
