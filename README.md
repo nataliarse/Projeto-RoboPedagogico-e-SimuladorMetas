@@ -1,5 +1,5 @@
 # Projeto-RoboPedagogico-e-SimuladorMetas
-Repositório para colocar os andamentos/arquivos relacionados à criação do robô pedagógico (Letícia/Natália/Simone/Giuliano/Leonardo) e simulador de metas (Letícia/Natália/Simone/Mateus/Nicole).
+Repositório para colocar os andamentos/arquivos relacionados à criação do robô pedagógico (Letícia/Natália/Simone/Giuliano/Leonardo/Filipe) e simulador de metas (Letícia/Natália/Simone/Mateus/Nicole).
 
 Para o RoboPedagogico atenção à lógica abaixo:
 1. Arquitetura do Sistema (Pipeline de Execução)
