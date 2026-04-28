@@ -42,3 +42,5 @@ Como você vai ler o histórico na hora em que o usuário pedir, a busca deve se
 
 Sugestões: Python - biblioteca ollama - biblioteca selenium - biblioteca playwright (gratuito)
 
+Para pensar: construir uma base por trás.
+
