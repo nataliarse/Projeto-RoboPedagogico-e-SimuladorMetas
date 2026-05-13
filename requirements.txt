@@ -1,0 +1,4 @@
+ddddocr
+numpy
+opencv-python
+playwright
