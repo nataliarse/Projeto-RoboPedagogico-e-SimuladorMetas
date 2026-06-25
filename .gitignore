@@ -1,0 +1,82 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+.Python
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+ENV/
+
+# Dependencias, builds e pacotes
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+wheelhouse/
+
+# Testes, cobertura e caches de ferramentas
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.hypothesis/
+.pyre/
+.pytype/
+.ipynb_checkpoints/
+
+# Variaveis de ambiente e segredos locais
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+
+# Dados reais/sensiveis e arquivos gerados pelo chatbot
+chatbot_processual_ai/data/*
+!chatbot_processual_ai/data/
+!chatbot_processual_ai/data/sample_processes.json
+!chatbot_processual_ai/data/README.md
+
+# Logs e arquivos temporarios
+logs/
+*.log
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Saidas locais, modelos e artefatos grandes
+outputs/
+artifacts/
+models/
+checkpoints/
+*.sqlite
+*.sqlite3
+*.db
+
+# IDEs, sistema operacional e ferramentas locais
+.vscode/
+.idea/
+.agents/
+.codex/
+.DS_Store
+Thumbs.db
+desktop.ini

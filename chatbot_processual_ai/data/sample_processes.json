@@ -1,0 +1,100 @@
+[
+  {
+    "processo": {
+      "numero": "0011000-82.1981.5.18.0051",
+      "numero_normalizado": "00110008219815180051",
+      "classe_judicial": "Ação Trabalhista - Rito Ordinário",
+      "assunto": "Verbas Rescisórias",
+      "orgao_julgador": "1ª Vara do Trabalho de Anápolis",
+      "unidade": null,
+      "jurisdicao": "Anápolis",
+      "grau": "1º Grau",
+      "data_autuacao": "1981-03-12",
+      "valor_causa": 15430.75,
+      "situacao": "BAIXADO"
+    },
+    "partes_interessadas": [
+      {
+        "polo": "ATIVO",
+        "nome": "JOÃO DA SILVA",
+        "tipo": "Reclamante",
+        "documento": "12345678900",
+        "representantes": [
+          "Dra. Maria Souza"
+        ]
+      },
+      {
+        "polo": "PASSIVO",
+        "nome": "INDÚSTRIA EXEMPLO LTDA",
+        "tipo": "Reclamado",
+        "documento": "12345678000199",
+        "representantes": [
+          "Dr. Carlos Lima"
+        ]
+      }
+    ],
+    "movimentacoes": [
+      {
+        "ordem": 1,
+        "data": "1981-03-12T14:30:00",
+        "descricao": "Distribuído por dependência",
+        "complemento": null,
+        "referencia": null
+      },
+      {
+        "ordem": 2,
+        "data": "1981-05-20T00:00:00",
+        "descricao": "Audiência designada",
+        "complemento": null,
+        "referencia": null
+      },
+      {
+        "ordem": 3,
+        "data": "1982-08-15T00:00:00",
+        "descricao": "Sentença proferida",
+        "complemento": null,
+        "referencia": null
+      },
+      {
+        "ordem": 4,
+        "data": "1983-10-10T00:00:00",
+        "descricao": "Trânsito em julgado",
+        "complemento": "Sem recursos",
+        "referencia": null
+      },
+      {
+        "ordem": 5,
+        "data": "1984-02-05T00:00:00",
+        "descricao": "Arquivado definitivamente",
+        "complemento": null,
+        "referencia": null
+      }
+    ],
+    "documentos": [
+      {
+        "data": "1981-03-12T00:00:00",
+        "titulo": "Petição Inicial",
+        "tipo": "Petição",
+        "id_documento": "DOC-1"
+      },
+      {
+        "data": "1982-08-15T00:00:00",
+        "titulo": "Sentença",
+        "tipo": "Decisão",
+        "id_documento": "DOC-2"
+      }
+    ],
+    "pendencias": [],
+    "coleta": {
+      "fonte": "https://pje.trt18.jus.br/consultaprocessual/",
+      "coletado_em": "2026-06-02T10:15:00",
+      "versao_coletor": "1.0.0",
+      "tempo_execucao_seg": 7.42,
+      "status_coleta": "SUCESSO",
+      "tentativas_captcha": 2,
+      "status_cnj_planilha": "Pendente",
+      "warnings": [],
+      "erros": []
+    }
+  }
+]
