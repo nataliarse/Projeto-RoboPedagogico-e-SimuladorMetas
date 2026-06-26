@@ -1,5 +1,7 @@
 import argparse
 import json
+import re
+import unicodedata
 
 from rich.console import Console
 from rich.syntax import Syntax
@@ -17,6 +19,8 @@ from agents.agent3_process_analysis import (
     cpf_cnpj_removed_from_model_context,
 )
 from agents.agent4_response import create_user_response
+from config import OLLAMA_MODEL, OLLAMA_MODEL_SELECTION
+from model_selector import select_runtime_model
 from ollama_client import (
     OllamaConnectionError,
     OllamaHTTPError,
@@ -25,8 +29,10 @@ from ollama_client import (
     OllamaTimeoutError,
     check_ollama_availability,
     generate_text,
+    set_runtime_model,
 )
 from session_state import create_session_state
+from system_resources import get_system_resources
 
 
 CHAT_EXIT_COMMANDS = {"sair", "exit", "quit"}
@@ -54,15 +60,12 @@ AGENT3_SEQUENCE_MESSAGES = [
 
 
 AGENT4_SEQUENCE_MESSAGES = [
-    "Oi",
     "Consulte o processo 0011000-82.1981.5.18.0051",
-    "Quem são as partes?",
-    "Quando ele foi arquivado?",
-    "Existem pendências?",
-    "O que a sentença decidiu?",
-    "O que significa trânsito em julgado?",
-    "Me ajuda a escolher uma placa de vídeo",
-    "me fala disso",
+    "poderia me resumir o que está acontecendo nesse processo?",
+    "Esse processo ainda está aberto?",
+    "O que aconteceu antes do arquivamento?",
+    "O que quer dizer trânsito em julgado nesse caso?",
+    "Então a sentença foi favorável para quem?",
 ]
 
 
@@ -141,6 +144,98 @@ def _print_connection_error() -> None:
     )
 
 
+def _get_runtime_policy_context() -> dict:
+    resources = get_system_resources()
+    availability = None
+    ollama_error = None
+
+    try:
+        availability = check_ollama_availability()
+    except (
+        OllamaConnectionError,
+        OllamaTimeoutError,
+        OllamaHTTPError,
+        OllamaInvalidJSONError,
+        OllamaMissingFieldError,
+    ) as exc:
+        ollama_error = exc
+
+    configured_model = availability.configured_model if availability else OLLAMA_MODEL
+    installed_models = availability.installed_models if availability else []
+    selection = select_runtime_model(
+        resources,
+        installed_models,
+        configured_model,
+        OLLAMA_MODEL_SELECTION,
+    )
+
+    return {
+        "resources": resources,
+        "ollama": {
+            "reachable": availability is not None,
+            "base_url": availability.base_url if availability else None,
+            "configured_model": configured_model,
+            "model_selection": OLLAMA_MODEL_SELECTION,
+            "configured_model_available": (
+                availability.model_available if availability else False
+            ),
+            "installed_models": installed_models,
+            "error": str(ollama_error) if ollama_error else None,
+        },
+        "selection": selection,
+    }
+
+
+def _apply_runtime_model_selection(runtime_context: dict) -> bool:
+    selection = runtime_context.get("selection", {})
+    selected_model = selection.get("selected_model")
+
+    if selection.get("safe_mode") or not isinstance(selected_model, str):
+        set_runtime_model(None, None)
+        return False
+
+    set_runtime_model(selected_model, selection.get("num_ctx"))
+    return True
+
+
+def _print_runtime_selection_error(runtime_context: dict) -> None:
+    selection = runtime_context.get("selection", {})
+    ollama = runtime_context.get("ollama", {})
+
+    _print_error("Nao foi possivel selecionar um modelo local para esta execucao.")
+    if ollama.get("error"):
+        _print_error(str(ollama.get("error")))
+    _print_error(
+        f"Motivo: {_format_missing(selection.get('selection_reason'), 'indisponivel')}"
+    )
+
+
+def _format_missing(value: object, fallback: str = "nenhum") -> str:
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return fallback
+
+
+def _format_context_tokens(value: object) -> str:
+    if isinstance(value, int) and value > 0:
+        return str(value)
+    return "0"
+
+
+def _format_vram_available(resources: dict) -> str:
+    gpu = resources.get("gpu") if isinstance(resources, dict) else None
+    vram_available = None
+
+    if isinstance(gpu, dict):
+        vram_available = gpu.get("vram_available_gb")
+    elif isinstance(resources, dict):
+        vram_available = resources.get("vram_available_gb")
+
+    if isinstance(vram_available, (int, float)):
+        return f"{_format_gb(vram_available)} GB"
+    return "n\u00e3o detectada"
+
+
 def _check_ollama(verbose: bool = True) -> bool:
     try:
         availability = check_ollama_availability()
@@ -167,7 +262,9 @@ def _check_ollama(verbose: bool = True) -> bool:
 
 
 def _smoke_ollama() -> None:
-    if not _check_ollama(verbose=False):
+    runtime_context = _get_runtime_policy_context()
+    if not _apply_runtime_model_selection(runtime_context):
+        _print_runtime_selection_error(runtime_context)
         return
 
     try:
@@ -182,6 +279,255 @@ def _smoke_ollama() -> None:
 
     _print_success("Teste do Ollama concluído.")
     _print_agent(f"Resposta do modelo: {response}")
+
+
+def _format_gb(value: object) -> str:
+    if isinstance(value, (int, float)):
+        return f"{float(value):.2f}"
+    return "não detectada"
+
+
+def _format_yes_no(value: object) -> str:
+    return "sim" if value else "não"
+
+
+def _print_runtime_diagnostics() -> None:
+    runtime_context = _get_runtime_policy_context()
+    resources = runtime_context.get("resources", {})
+    gpu = resources.get("gpu", {})
+    ollama = runtime_context.get("ollama", {})
+    selection = runtime_context.get("selection", {})
+
+    _print_info("Diagnóstico local")
+    _print_info("")
+    _print_info(f"RAM total: {_format_gb(resources.get('ram_total_gb'))} GB")
+    _print_info(
+        f"RAM disponível: {_format_gb(resources.get('ram_available_gb'))} GB"
+    )
+    _print_info("")
+
+    if gpu.get("detected"):
+        _print_info(f"GPU: {gpu.get('name') or 'detectada'}")
+        _print_info(f"VRAM total: {_format_gb(gpu.get('vram_total_gb'))} GB")
+        _print_info(
+            f"VRAM disponível: {_format_gb(gpu.get('vram_available_gb'))} GB"
+        )
+        _print_info(
+            f"Método de detecção: {gpu.get('detection_method') or 'none'}"
+        )
+        if gpu.get("note"):
+            _print_info(f"Observação: {gpu.get('note')}")
+    else:
+        _print_warning("GPU/VRAM: não disponível para detecção neste ambiente.")
+        if gpu.get("note"):
+            _print_info(f"Observação: {gpu.get('note')}")
+        _print_info(
+            "Observação: o chatbot continuará usando RAM e a política futura "
+            "poderá operar em modo CPU."
+        )
+
+    _print_info("")
+    _print_info(
+        f"Ollama: {'acessível' if ollama.get('reachable') else 'inacessível'}"
+    )
+    _print_info(
+        f"Modelo configurado: {ollama.get('configured_model') or 'não configurado'}"
+    )
+    _print_info(f"Modo de selecao: {selection.get('selection_mode') or 'auto'}")
+    _print_info(
+        "Modelo instalado: "
+        f"{_format_yes_no(ollama.get('configured_model_available'))}"
+    )
+    _print_info("")
+    _print_info("Selecao de modelo:")
+    _print_info(
+        "Modelo recomendado/selecionado: "
+        f"{_format_missing(selection.get('selected_model'))}"
+    )
+    _print_info(f"Perfil: {_format_missing(selection.get('tier'))}")
+    _print_info(
+        f"Contexto: {_format_context_tokens(selection.get('num_ctx'))} tokens"
+    )
+    _print_info(
+        f"Motivo: {_format_missing(selection.get('selection_reason'), 'indisponível')}"
+    )
+    _print_info(f"Modelo forcado: {_format_yes_no(selection.get('forced_model'))}")
+    _print_info(f"Modo seguro: {_format_yes_no(selection.get('safe_mode'))}")
+
+
+def _print_trace_environment_summary(runtime_context: dict) -> None:
+    resources = runtime_context.get("resources", {})
+    gpu = resources.get("gpu", {})
+    ollama = runtime_context.get("ollama", {})
+
+    vram_available = gpu.get("vram_available_gb")
+    vram_text = (
+        f"{_format_gb(vram_available)} GB"
+        if isinstance(vram_available, (int, float))
+        else "não detectada"
+    )
+
+    _print_trace("[Trace de ambiente]")
+    _print_trace(f"RAM disponível: {_format_gb(resources.get('ram_available_gb'))} GB")
+    _print_trace(f"GPU detectada: {_format_yes_no(gpu.get('detected'))}")
+    _print_trace(f"VRAM disponível: {vram_text}")
+    _print_trace(
+        f"Modelo configurado: {ollama.get('configured_model') or 'não configurado'}"
+    )
+    _print_trace(f"Modo de selecao: {OLLAMA_MODEL_SELECTION}")
+    _print_trace(f"Ollama acessível: {_format_yes_no(ollama.get('reachable'))}")
+
+
+def _print_model_trace(runtime_context: dict) -> None:
+    resources = runtime_context.get("resources", {})
+    selection = runtime_context.get("selection", {})
+
+    _print_trace("[Trace de modelo]")
+    _print_trace(
+        f"Modelo selecionado: {_format_missing(selection.get('selected_model'))}"
+    )
+    _print_trace(f"Modo de selecao: {selection.get('selection_mode') or 'auto'}")
+    _print_trace(f"Modelo forcado: {_format_yes_no(selection.get('forced_model'))}")
+    _print_trace(f"Perfil: {_format_missing(selection.get('tier'))}")
+    _print_trace(f"RAM disponível: {_format_gb(resources.get('ram_available_gb'))} GB")
+    _print_trace(f"VRAM disponível: {_format_vram_available(resources)}")
+    _print_trace(
+        f"Status de VRAM: {_format_missing(selection.get('vram_status'), 'unknown')}"
+    )
+    _print_trace(
+        "Contexto configurado: "
+        f"{_format_context_tokens(selection.get('num_ctx'))} tokens"
+    )
+    _print_trace(
+        f"Motivo: {_format_missing(selection.get('selection_reason'), 'indisponível')}"
+    )
+
+
+def _run_model_policy_tests() -> None:
+    scenarios = [
+        {
+            "ram_available_gb": 2.6,
+            "installed_models": ["llama3.2:1b", "qwen3:4b-instruct"],
+            "expected_model": "llama3.2:1b",
+            "expected_tier": "minimum",
+            "expected_safe_mode": False,
+        },
+        {
+            "ram_available_gb": 5.0,
+            "installed_models": [
+                "llama3.2:1b",
+                "qwen3:1.7b",
+                "qwen3:4b-instruct",
+            ],
+            "expected_model": "qwen3:1.7b",
+            "expected_tier": "compact",
+            "expected_safe_mode": False,
+        },
+        {
+            "ram_available_gb": 9.0,
+            "installed_models": [
+                "llama3.2:1b",
+                "qwen3:1.7b",
+                "qwen3:4b-instruct",
+                "qwen3:8b",
+            ],
+            "expected_model": "qwen3:4b-instruct",
+            "expected_tier": "standard",
+            "expected_safe_mode": False,
+        },
+        {
+            "ram_available_gb": 14.0,
+            "installed_models": ["qwen3:4b-instruct", "qwen3:8b", "qwen3:14b"],
+            "expected_model": "qwen3:8b",
+            "expected_tier": "strong",
+            "expected_safe_mode": False,
+        },
+        {
+            "ram_available_gb": 21.0,
+            "installed_models": ["qwen3:4b-instruct", "qwen3:8b", "qwen3:14b"],
+            "expected_model": "qwen3:14b",
+            "expected_tier": "advanced",
+            "expected_safe_mode": False,
+        },
+        {
+            "ram_available_gb": 1.8,
+            "installed_models": ["llama3.2:1b"],
+            "expected_model": None,
+            "expected_tier": None,
+            "expected_safe_mode": True,
+        },
+        {
+            "ram_available_gb": 1.8,
+            "installed_models": ["qwen3:8b"],
+            "configured_model": "qwen3:8b",
+            "selection_mode": "force",
+            "expected_model": "qwen3:8b",
+            "expected_tier": "strong",
+            "expected_safe_mode": False,
+        },
+        {
+            "ram_available_gb": 16.0,
+            "installed_models": ["custom-local:latest"],
+            "configured_model": "custom-local:latest",
+            "selection_mode": "force",
+            "expected_model": "custom-local:latest",
+            "expected_tier": "forced",
+            "expected_safe_mode": False,
+        },
+        {
+            "ram_available_gb": 16.0,
+            "installed_models": ["llama3.2:1b"],
+            "configured_model": "qwen3:8b",
+            "selection_mode": "force",
+            "expected_model": None,
+            "expected_tier": None,
+            "expected_safe_mode": True,
+        },
+    ]
+
+    all_passed = True
+    _print_info("Teste de politica de modelo")
+
+    for index, scenario in enumerate(scenarios, start=1):
+        resources = {
+            "ram_available_gb": scenario["ram_available_gb"],
+            "gpu": {
+                "detected": False,
+                "vram_available_gb": None,
+            },
+        }
+        result = select_runtime_model(
+            resources,
+            scenario["installed_models"],
+            scenario.get("configured_model", "llama3.2:1b"),
+            scenario.get("selection_mode", "auto"),
+        )
+        passed = (
+            result.get("selected_model") == scenario["expected_model"]
+            and result.get("tier") == scenario["expected_tier"]
+            and bool(result.get("safe_mode")) == scenario["expected_safe_mode"]
+        )
+        all_passed = all_passed and passed
+
+        status = "PASS" if passed else "FAIL"
+        message = (
+            f"Cenario {index}: {status} | "
+            f"modelo retornado: {_format_missing(result.get('selected_model'))} | "
+            f"tier: {_format_missing(result.get('tier'))} | "
+            f"safe_mode: {_format_yes_no(result.get('safe_mode'))}"
+        )
+        if passed:
+            _print_success(message)
+        else:
+            _print_error(
+                f"{message} | esperado: "
+                f"{_format_missing(scenario['expected_model'])}/"
+                f"{_format_missing(scenario['expected_tier'])}/"
+                f"{_format_yes_no(scenario['expected_safe_mode'])}"
+            )
+
+    if not all_passed:
+        raise SystemExit(1)
 
 
 def _run_agent2_test(message: str, session_state: dict) -> dict:
@@ -215,7 +561,8 @@ def _run_agent2_sequence_step(
 def _run_agent3_test_step(message: str, session_state: dict) -> tuple[dict, dict]:
     intent_data = interpret_user_message(message)
     context_data = build_context_and_collect(message, intent_data, session_state)
-    analysis = analyze_process_context(message, context_data)
+    analysis_message = _message_for_process_analysis(message, intent_data)
+    analysis = analyze_process_context(analysis_message, context_data)
     return context_data, analysis
 
 
@@ -225,14 +572,21 @@ def _run_agent4_test_step(
 ) -> tuple[dict, dict, dict, str]:
     intent_data = interpret_user_message(message)
     context_data = build_context_and_collect(message, intent_data, session_state)
-    analysis = analyze_process_context(message, context_data)
+    analysis_message = _message_for_process_analysis(message, intent_data)
+    analysis = analyze_process_context(analysis_message, context_data)
     response = create_user_response(message, analysis)
     return intent_data, context_data, analysis, response
 
 
 def _run_chat() -> None:
+    runtime_context = _get_runtime_policy_context()
+    if not _apply_runtime_model_selection(runtime_context):
+        _print_runtime_selection_error(runtime_context)
+        return
+
     session_state = create_session_state()
     trace_enabled = False
+    model_trace_printed = False
 
     _print_success("Assistente Processual iniciado.")
     _print_info("Digite 'sair' para encerrar.")
@@ -260,6 +614,11 @@ def _run_chat() -> None:
             trace_enabled = not trace_enabled
             status = "ativado" if trace_enabled else "desativado"
             _print_success(f"Modo trace {status}.")
+            if trace_enabled:
+                _print_trace_environment_summary(runtime_context)
+                if not model_trace_printed:
+                    _print_model_trace(runtime_context)
+                    model_trace_printed = True
             continue
 
         intent_data, context_data, analysis, response, failed_stage = _run_chat_step(
@@ -293,13 +652,43 @@ def _run_chat_step(
         stage = "Agente 2"
         context_data = build_context_and_collect(message, intent_data, session_state)
         stage = "Agente 3"
-        analysis = analyze_process_context(message, context_data)
+        analysis_message = _message_for_process_analysis(message, intent_data)
+        analysis = analyze_process_context(analysis_message, context_data)
         stage = "Agente 4"
         response = create_user_response(message, analysis)
     except Exception:
         return intent_data, context_data, analysis, SAFE_CHAT_ERROR_RESPONSE, stage
 
     return intent_data, context_data, analysis, response, None
+
+
+def _message_for_process_analysis(message: str, intent_data: dict) -> str:
+    if intent_data.get("intent") != "process_question":
+        return message
+
+    if _looks_like_party_name_question(message):
+        return "Quais sao as partes vinculadas a esse processo?"
+
+    return message
+
+
+def _looks_like_party_name_question(message: str) -> bool:
+    tokens = set(re.findall(r"[a-z0-9]+", _normalize_for_match(message)))
+    return (
+        bool(tokens & {"nome", "nomes"})
+        and bool(tokens & {"vinculada", "vinculadas", "vinculado", "vinculados"})
+        and "processo" in tokens
+    )
+
+
+def _normalize_for_match(text: str) -> str:
+    lowered = str(text).lower()
+    decomposed = unicodedata.normalize("NFD", lowered)
+    return "".join(
+        character
+        for character in decomposed
+        if unicodedata.category(character) != "Mn"
+    )
 
 
 def _register_assistant_message(response: str, session_state: dict) -> None:
@@ -452,6 +841,16 @@ def main() -> None:
         help="Executa uma geração mínima usando o Ollama local.",
     )
     parser.add_argument(
+        "--diagnose-runtime",
+        action="store_true",
+        help="Exibe diagnóstico local de RAM, GPU/VRAM e Ollama.",
+    )
+    parser.add_argument(
+        "--test-model-policy",
+        action="store_true",
+        help="Testa a politica de selecao de modelo sem baixar modelos.",
+    )
+    parser.add_argument(
         "--chat",
         action="store_true",
         help="Inicia uma conversa contínua no terminal.",
@@ -494,6 +893,14 @@ def main() -> None:
 
     if args.smoke_ollama:
         _smoke_ollama()
+        return
+
+    if args.diagnose_runtime:
+        _print_runtime_diagnostics()
+        return
+
+    if args.test_model_policy:
+        _run_model_policy_tests()
         return
 
     if args.chat:
@@ -553,8 +960,19 @@ def main() -> None:
                 message,
                 session_state,
             )
-            _print_user(message)
-            _print_agent(response)
+            target_event = analysis.get("target_event")
+            target_event_text = (
+                target_event.strip()
+                if isinstance(target_event, str) and target_event.strip()
+                else "null"
+            )
+            _print_info(f"Pergunta {index}: {message}")
+            _print_info(
+                f"question_focus: {_safe_trace_text(analysis.get('question_focus'))}"
+            )
+            _print_info(f"target_event: {target_event_text}")
+            _print_info(f"resposta final: {response}")
+            _print_info("")
             if args.trace:
                 _print_agent4_trace(index, intent_data, context_data, analysis)
 

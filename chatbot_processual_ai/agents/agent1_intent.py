@@ -18,6 +18,7 @@ ALLOWED_INTENTS = {
 ALLOWED_CONFIDENCES = {"high", "medium", "low"}
 FALLBACK_GOAL = "Nao foi possivel interpretar a mensagem automaticamente."
 LIMITED_GOAL = "Necessidade do usuario identificada de forma limitada."
+THANKS_GOAL = "Agradecimento ou encerramento positivo da interação."
 MAX_USER_GOAL_LENGTH = 180
 
 _PROCESS_NUMBER_CANDIDATE_RE = re.compile(r"\d(?:[\d\s.\-/]*\d)?")
@@ -74,6 +75,33 @@ _GREETING_ANCHORS = {
     "tchau",
     "valeu",
 }
+_THANKS_TOKENS = {
+    "a",
+    "agradeco",
+    "agradecida",
+    "agradecido",
+    "ajuda",
+    "demais",
+    "grata",
+    "grato",
+    "muito",
+    "obrigada",
+    "obrigado",
+    "pela",
+    "pelo",
+    "perfeito",
+    "valeu",
+}
+_THANKS_ANCHORS = {
+    "agradeco",
+    "agradecida",
+    "agradecido",
+    "grata",
+    "grato",
+    "obrigada",
+    "obrigado",
+    "valeu",
+}
 _PROCESS_LOOKUP_CONTEXT = {
     "andamento",
     "autos",
@@ -109,6 +137,8 @@ _PROCESS_QUESTION_TERMS = {
     "encerrado",
     "movimentacao",
     "movimentacoes",
+    "nome",
+    "nomes",
     "partes",
     "pendencia",
     "pendencias",
@@ -117,6 +147,10 @@ _PROCESS_QUESTION_TERMS = {
     "reclamante",
     "sentenca",
     "situacao",
+    "vinculada",
+    "vinculadas",
+    "vinculado",
+    "vinculados",
 }
 _PROCESS_QUESTION_PHRASES = {
     "situacao atual",
@@ -202,7 +236,7 @@ def interpret_user_message(message: str) -> dict:
     inferred_intent = _infer_intent(message, process_number)
 
     if inferred_intent is not None:
-        return _build_response(inferred_intent, process_number)
+        return _build_response(inferred_intent, process_number, message)
 
     try:
         prompt = build_agent1_prompt(message, process_number)
@@ -251,7 +285,7 @@ def _validate_model_response(
     user_goal = user_goal.strip()
     if intent == "greeting":
         if _is_greeting_message(message):
-            user_goal = _default_goal(intent, process_number)
+            user_goal = _default_goal(intent, process_number, message)
             confidence = "high"
         else:
             intent = "unclear"
@@ -299,12 +333,16 @@ def _validate_final_response(response: dict, process_number: str | None) -> dict
     }
 
 
-def _build_response(intent: str, process_number: str | None) -> dict:
+def _build_response(
+    intent: str,
+    process_number: str | None,
+    message: str = "",
+) -> dict:
     return _validate_final_response(
         {
             "intent": intent,
             "process_number": process_number,
-            "user_goal": _default_goal(intent, process_number),
+            "user_goal": _default_goal(intent, process_number, message),
             "confidence": _default_confidence(intent),
         },
         process_number,
@@ -323,7 +361,7 @@ def _infer_intent(message: str, process_number: str | None) -> str | None:
     if process_number is not None:
         return "process_lookup"
 
-    if _is_short_greeting(token_list):
+    if _is_greeting_message(message):
         return "greeting"
 
     if _is_process_lookup(normalized, token_list, tokens):
@@ -365,7 +403,19 @@ def _is_short_greeting(tokens: list[str]) -> bool:
 
 
 def _is_greeting_message(message: str) -> bool:
-    return _is_short_greeting(_tokenize(_normalize_text(message)))
+    return _is_thanks_message(message) or _is_short_greeting(
+        _tokenize(_normalize_text(message))
+    )
+
+
+def _is_thanks_message(message: str) -> bool:
+    tokens = _tokenize(_normalize_text(message))
+    token_set = set(tokens)
+    return (
+        0 < len(tokens) <= 7
+        and token_set <= _THANKS_TOKENS
+        and bool(token_set & _THANKS_ANCHORS)
+    )
 
 
 def _is_process_lookup(
@@ -457,8 +507,14 @@ def _meaningful_tokens(text: str) -> set[str]:
     }
 
 
-def _default_goal(intent: str, process_number: str | None) -> str:
+def _default_goal(
+    intent: str,
+    process_number: str | None,
+    message: str = "",
+) -> str:
     if intent == "greeting":
+        if _is_thanks_message(message):
+            return THANKS_GOAL
         return "Saudacao informal ou abertura de conversa."
     if intent == "process_lookup" and process_number is not None:
         return "Consultar ou acompanhar o processo informado."

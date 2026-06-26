@@ -28,8 +28,12 @@ Regras obrigatorias:
 - Nao use frases como "destacado nos fatos", "indicada nos fatos",
   "listadas nos fatos", "conforme a analise", "conforme os dados internos",
   "o sistema identificou" ou "a coleta local".
+- Nao exiba caminhos internos ou nomes tecnicos de campos, como parties.ativo.nome,
+  partes_interessadas, pendencias, id_documento ou DOC-2.
 - Em process_summary e process_question, se houver fato de ultima movimentacao,
   use o valor concreto desse fato; se nao houver, omita a ultima movimentacao.
+- Use question_focus para escolher a resposta mais especifica.
+- Nunca exiba identificadores internos de documentos, como id_documento ou DOC-2.
 
 Tratamento por tipo de analise:
 - process_summary e process_question: responda de forma objetiva com os fatos e
@@ -41,14 +45,27 @@ Tratamento por tipo de analise:
 - missing_process_context: peca ao usuario para consultar ou informar o processo.
 - insufficient_data: explique exatamente qual informacao nao foi disponibilizada.
 - greeting: responda de forma curta e acolhedora dentro do proposito processual.
+  Se a mensagem for agradecimento, responda como agradecimento, sem saudacao inicial.
 - out_of_scope: redirecione educadamente para o escopo processual.
 - unclear: peca esclarecimento sem presumir contexto.
+
+Tratamento por question_focus:
+- process_overview: responda curto, com situacao processual, ultima movimentacao e um contexto relevante.
+- current_status: use situacao processual e ultima movimentacao, sem afirmar efeito juridico adicional.
+- timeline_before_event: responda somente a movimentacao imediatamente anterior ao target_event.
+- legal_concept_with_case_context: separe explicacao juridica geral e registro especifico encontrado no processo.
+- document_content: informe a limitacao do teor da decisao e nao exiba id_documento.
+- generic_process_question: responda com cautela sem usar frases como "a pergunta foi tratada" ou "dados gerais".
+- parties: liste somente tipo e nome das partes, uma vez cada.
+- pending_issues: responda objetivamente sem repetir explicacao e sem mencionar o nome tecnico do campo.
 """.strip()
 
 
 def build_agent4_prompt(
     message: str,
     analysis_type: str,
+    question_focus: str,
+    target_event: str | None,
     facts: list,
     explanation: str,
     limitations: list,
@@ -57,6 +74,8 @@ def build_agent4_prompt(
     payload = {
         "mensagem_atual": message,
         "analysis_type": analysis_type,
+        "question_focus": question_focus,
+        "target_event": target_event,
         "facts": facts,
         "explanation": explanation,
         "limitations": limitations,

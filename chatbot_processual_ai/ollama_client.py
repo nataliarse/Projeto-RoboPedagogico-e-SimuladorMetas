@@ -43,8 +43,34 @@ class OllamaAvailability:
     model_available: bool
 
 
+_runtime_model: str | None = None
+_runtime_num_ctx: int | None = None
+
+
 def _base_url() -> str:
     return OLLAMA_BASE_URL.rstrip("/")
+
+
+def set_runtime_model(model_name: str | None, num_ctx: int | None = None) -> None:
+    global _runtime_model, _runtime_num_ctx
+
+    if isinstance(model_name, str) and model_name.strip():
+        _runtime_model = model_name.strip()
+    else:
+        _runtime_model = None
+
+    if isinstance(num_ctx, int) and num_ctx > 0:
+        _runtime_num_ctx = num_ctx
+    else:
+        _runtime_num_ctx = None
+
+
+def get_runtime_model() -> str:
+    return _runtime_model or OLLAMA_MODEL
+
+
+def _get_runtime_num_ctx() -> int | None:
+    return _runtime_num_ctx
 
 
 def _request_json(method: str, endpoint: str, **kwargs: Any) -> dict[str, Any]:
@@ -119,13 +145,18 @@ def check_ollama_availability() -> OllamaAvailability:
 
 
 def generate_text(prompt: str, system_prompt: str | None = None) -> str:
+    options: dict[str, Any] = {
+        "temperature": OLLAMA_TEMPERATURE,
+    }
+    runtime_num_ctx = _get_runtime_num_ctx()
+    if runtime_num_ctx is not None:
+        options["num_ctx"] = runtime_num_ctx
+
     payload: dict[str, Any] = {
-        "model": OLLAMA_MODEL,
+        "model": get_runtime_model(),
         "prompt": prompt,
         "stream": False,
-        "options": {
-            "temperature": OLLAMA_TEMPERATURE,
-        },
+        "options": options,
     }
 
     if system_prompt is not None:

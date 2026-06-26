@@ -18,6 +18,18 @@ ALLOWED_ANALYSIS_TYPES = {
     "out_of_scope",
     "unclear",
 }
+ALLOWED_QUESTION_FOCUS = {
+    "process_overview",
+    "current_status",
+    "parties",
+    "pending_issues",
+    "timeline_before_event",
+    "latest_movement",
+    "document_content",
+    "legal_concept_with_case_context",
+    "generic_process_question",
+}
+DEFAULT_QUESTION_FOCUS = "generic_process_question"
 MODEL_BACKED_INTENTS = {
     "process_lookup",
     "process_question",
@@ -59,6 +71,7 @@ def analyze_process_context(message: str, context_data: dict) -> dict:
         context_data,
         sanitized_process,
     )
+    fallback = _normalize_analysis_output(fallback)
 
     if intent not in MODEL_BACKED_INTENTS or analysis_type in NON_MODEL_ANALYSIS_TYPES:
         return fallback
@@ -75,7 +88,7 @@ def analyze_process_context(message: str, context_data: dict) -> dict:
         model_analysis = _parse_model_json(response)
         validated = _validate_model_analysis(model_analysis)
         _reject_unsafe_model_analysis(validated, active_process)
-        return validated
+        return _normalize_analysis_output(validated)
     except (OllamaError, ValueError, TypeError, json.JSONDecodeError):
         return fallback
 
@@ -125,6 +138,11 @@ def _target_analysis_type(
     if intent == "legal_general_question":
         return "legal_general_explanation"
 
+    if _has_active_process(active_process) and _looks_like_active_process_question(
+        context_data.get("message")
+    ):
+        return "process_question"
+
     if intent == "greeting":
         return "greeting"
 
@@ -144,7 +162,11 @@ def _build_deterministic_analysis(
         return _process_summary_analysis(process)
 
     if analysis_type == "process_question":
-        return _process_question_analysis(message, process)
+        return _process_question_analysis(
+            message,
+            process,
+            _recent_conversation(context_data),
+        )
 
     if analysis_type == "legal_general_explanation":
         return _legal_general_analysis(message, process)
@@ -202,12 +224,6 @@ def _process_summary_analysis(process: dict) -> dict:
     facts: list[dict[str, str]] = []
 
     _add_fact(facts, "Número do processo", process_data.get("numero"), "processo.numero")
-    _add_fact(
-        facts,
-        "Classe judicial",
-        process_data.get("classe_judicial"),
-        "processo.classe_judicial",
-    )
     _add_fact(facts, "Assunto", process_data.get("assunto"), "processo.assunto")
     _add_fact(
         facts,
@@ -217,36 +233,9 @@ def _process_summary_analysis(process: dict) -> dict:
     )
     _add_fact(
         facts,
-        "Jurisdição",
-        process_data.get("jurisdicao"),
-        "processo.jurisdicao",
-    )
-    _add_fact(facts, "Grau", process_data.get("grau"), "processo.grau")
-    _add_fact(
-        facts,
         "Situação processual",
         process_data.get("situacao"),
         "processo.situacao",
-    )
-    _add_fact(
-        facts,
-        "Data de autuação",
-        _format_date(process_data.get("data_autuacao")),
-        "processo.data_autuacao",
-    )
-    _add_fact(
-        facts,
-        "Valor da causa",
-        process_data.get("valor_causa"),
-        "processo.valor_causa",
-    )
-
-    parties = _list_value(process.get("partes_interessadas"))
-    _add_fact(
-        facts,
-        "Quantidade de partes",
-        str(len(parties)),
-        "partes_interessadas",
     )
 
     latest = _latest_movement(process)
@@ -259,37 +248,48 @@ def _process_summary_analysis(process: dict) -> dict:
             f"movimentacoes[{index}]",
         )
 
-    collection = _dict_value(process.get("coleta"))
-    _add_fact(
-        facts,
-        "Situação da coleta",
-        collection.get("status_coleta"),
-        "coleta.status_coleta",
-    )
-
     number = process_data.get("numero") or "o processo consultado"
     situation = process_data.get("situacao")
-    explanation = f"A coleta local encontrou dados estruturados para {number}."
+    explanation = f"Foram encontrados dados para {number}."
     if situation:
         explanation += f" A situação registrada é {situation}."
     if latest is not None:
-        explanation += " A movimentação mais recente na coleta foi destacada nos fatos."
+        explanation += " A movimentação mais recente disponível foi destacada nos fatos."
 
     limitations = _standard_limitations(process)
     if not facts:
-        limitations.append("A coleta não trouxe campos processuais suficientes para resumir o processo.")
+        limitations.append("Não há campos processuais suficientes para resumir o processo.")
 
     return {
         "analysis_type": "process_summary",
+        "question_focus": "process_overview",
+        "target_event": None,
         "facts": facts,
         "explanation": explanation,
         "limitations": limitations,
-        "response_focus": "Apresentar um resumo objetivo do processo com base apenas nos campos coletados.",
+        "response_focus": "Apresentar somente situação, última movimentação e um contexto relevante do processo.",
     }
 
 
-def _process_question_analysis(message: str, process: dict) -> dict:
+def _process_question_analysis(
+    message: str,
+    process: dict,
+    conversation: list | None = None,
+) -> dict:
     normalized = _normalize_text(message)
+
+    if _is_process_overview_question(normalized):
+        return _process_summary_analysis(process)
+
+    if _is_current_status_question(normalized):
+        return _situation_question_analysis(process)
+
+    if _is_timeline_before_event_question(normalized):
+        target_event = _target_event_from_message(message, conversation or [])
+        return _timeline_before_event_analysis(process, target_event)
+
+    if _is_legal_concept_with_case_context_question(normalized):
+        return _legal_general_analysis(message, process)
 
     if _has_any(normalized, {"parte", "partes", "reclamante", "reclamado"}):
         return _parties_question_analysis(process)
@@ -297,7 +297,7 @@ def _process_question_analysis(message: str, process: dict) -> dict:
     if _has_any(normalized, {"pendencia", "pendencias", "pendente"}):
         return _pending_question_analysis(process)
 
-    if _has_any(normalized, {"sentenca", "decisao", "decidiu"}):
+    if _is_document_content_question(normalized):
         return _sentence_question_analysis(process)
 
     if "arquiv" in normalized:
@@ -310,6 +310,123 @@ def _process_question_analysis(message: str, process: dict) -> dict:
         return _situation_question_analysis(process)
 
     return _generic_process_question_analysis(process)
+
+
+def _is_process_overview_question(normalized_message: str) -> bool:
+    return (
+        "resum" in normalized_message
+        or "o que esta acontecendo" in normalized_message
+        or "como esta esse processo" in normalized_message
+        or "como esta o processo" in normalized_message
+        or "situacao geral" in normalized_message
+        or "situacao do processo" in normalized_message
+    )
+
+
+def _looks_like_active_process_question(message: Any) -> bool:
+    normalized = _normalize_text(message)
+    if not normalized:
+        return False
+
+    if (
+        _is_process_overview_question(normalized)
+        or _is_current_status_question(normalized)
+        or _is_timeline_before_event_question(normalized)
+        or _is_legal_concept_with_case_context_question(normalized)
+        or _is_document_content_question(normalized)
+    ):
+        return True
+
+    return (
+        "processo" in normalized
+        or "arquiv" in normalized
+        or "moviment" in normalized
+        or "sentenc" in normalized
+        or ("transito" in normalized and "julgado" in normalized)
+        or _has_any(normalized, {"parte", "partes", "pendencia", "pendencias"})
+    )
+
+
+def _is_current_status_question(normalized_message: str) -> bool:
+    return (
+        "aberto" in normalized_message
+        or "em andamento" in normalized_message
+        or "situacao atual" in normalized_message
+        or "ja terminou" in normalized_message
+        or "terminou" in normalized_message
+        or "encerrado" in normalized_message
+        or "baixado" in normalized_message
+    )
+
+
+def _is_timeline_before_event_question(normalized_message: str) -> bool:
+    before_markers = (
+        "antes do",
+        "antes da",
+        "antes de",
+        "antes disso",
+        "veio antes",
+        "ocorreu antes",
+        "aconteceu antes",
+    )
+    return any(marker in normalized_message for marker in before_markers)
+
+
+def _is_legal_concept_with_case_context_question(normalized_message: str) -> bool:
+    if "transito" not in normalized_message or "julgado" not in normalized_message:
+        return False
+    return any(
+        marker in normalized_message
+        for marker in (
+            "nesse caso",
+            "neste caso",
+            "nesse processo",
+            "neste processo",
+            "desse processo",
+            "do processo",
+            "isso no processo",
+        )
+    )
+
+
+def _is_document_content_question(normalized_message: str) -> bool:
+    return (
+        _has_any(normalized_message, {"sentenca", "decisao", "decidiu"})
+        or "favoravel" in normalized_message
+        or "quem ganhou" in normalized_message
+        or "ganhou" in normalized_message
+    )
+
+
+def _target_event_from_message(message: str, conversation: list) -> str | None:
+    detected = _detect_target_event(_normalize_text(message))
+    if detected:
+        return detected
+
+    for entry in reversed(conversation[:-1]):
+        if not isinstance(entry, dict):
+            continue
+        if entry.get("role") != "user":
+            continue
+        detected = _detect_target_event(_normalize_text(entry.get("message")))
+        if detected:
+            return detected
+
+    return None
+
+
+def _detect_target_event(normalized_message: str) -> str | None:
+    if "transito" in normalized_message and "julgado" in normalized_message:
+        return "trânsito em julgado"
+    if "arquiv" in normalized_message:
+        return "arquivamento"
+    if "sentenc" in normalized_message:
+        return "sentença"
+    if "audienc" in normalized_message:
+        return "audiência"
+    if "distribu" in normalized_message:
+        return "distribuição"
+    return None
 
 
 def _parties_question_analysis(process: dict) -> dict:
@@ -342,6 +459,8 @@ def _parties_question_analysis(process: dict) -> dict:
 
     return {
         "analysis_type": "process_question",
+        "question_focus": "parties",
+        "target_event": None,
         "facts": facts,
         "explanation": explanation,
         "limitations": limitations,
@@ -377,6 +496,8 @@ def _pending_question_analysis(process: dict) -> dict:
 
     return {
         "analysis_type": "process_question",
+        "question_focus": "pending_issues",
+        "target_event": None,
         "facts": facts,
         "explanation": explanation,
         "limitations": limitations,
@@ -422,6 +543,8 @@ def _sentence_question_analysis(process: dict) -> dict:
 
     return {
         "analysis_type": "process_question",
+        "question_focus": "document_content",
+        "target_event": "sentença",
         "facts": facts,
         "explanation": explanation,
         "limitations": limitations,
@@ -453,10 +576,62 @@ def _archive_question_analysis(process: dict) -> dict:
 
     return {
         "analysis_type": "process_question",
+        "question_focus": "generic_process_question",
+        "target_event": "arquivamento",
         "facts": facts,
         "explanation": explanation,
         "limitations": limitations,
         "response_focus": "Indicar a movimentação de arquivamento encontrada, sem inferir encerramento definitivo por conta própria.",
+    }
+
+
+def _timeline_before_event_analysis(process: dict, target_event: str | None) -> dict:
+    facts: list[dict[str, str]] = []
+
+    if not target_event:
+        return {
+            "analysis_type": "process_question",
+            "question_focus": "timeline_before_event",
+            "target_event": None,
+            "facts": facts,
+            "explanation": "Não foi possível identificar o evento solicitado para localizar a movimentação anterior.",
+            "limitations": [
+                "A pergunta precisa indicar qual evento deve ser usado como referência."
+            ],
+            "response_focus": "Pedir que o usuário informe o evento de referência.",
+        }
+
+    previous = _movement_before_event(process, target_event)
+    if previous is not None:
+        index, movement = previous
+        _add_fact(
+            facts,
+            "Movimentação anterior",
+            _movement_summary(movement),
+            f"movimentacoes[{index}]",
+        )
+        explanation = (
+            f"Foi localizada a movimentação imediatamente anterior ao evento {target_event}."
+        )
+        limitations = [
+            "A análise usa a ordem das movimentações fornecidas nos dados disponíveis."
+        ]
+    else:
+        explanation = (
+            f"Não foi encontrada movimentação anterior ao evento {target_event} nos dados disponíveis."
+        )
+        limitations = [
+            "Sem uma movimentação anterior ordenada, não é possível informar o que ocorreu antes do evento."
+        ]
+
+    return {
+        "analysis_type": "process_question",
+        "question_focus": "timeline_before_event",
+        "target_event": target_event,
+        "facts": facts,
+        "explanation": explanation,
+        "limitations": limitations,
+        "response_focus": "Informar somente a movimentação imediatamente anterior ao evento solicitado.",
     }
 
 
@@ -482,6 +657,8 @@ def _latest_movement_question_analysis(process: dict) -> dict:
 
     return {
         "analysis_type": "process_question",
+        "question_focus": "latest_movement",
+        "target_event": None,
         "facts": facts,
         "explanation": explanation,
         "limitations": limitations,
@@ -521,6 +698,8 @@ def _situation_question_analysis(process: dict) -> dict:
 
     return {
         "analysis_type": "process_question",
+        "question_focus": "current_status",
+        "target_event": None,
         "facts": facts,
         "explanation": explanation,
         "limitations": limitations,
@@ -551,10 +730,12 @@ def _generic_process_question_analysis(process: dict) -> dict:
 
     return {
         "analysis_type": "process_question",
+        "question_focus": "generic_process_question",
+        "target_event": None,
         "facts": facts,
-        "explanation": "A pergunta foi tratada com os dados gerais mais diretamente disponíveis do processo ativo.",
+        "explanation": "Não foi identificado um detalhe processual específico para responder com precisão.",
         "limitations": [
-            "A pergunta não indicou com clareza um campo específico da coleta para analisar."
+            "A pergunta não indicou com clareza um campo específico para analisar."
         ],
         "response_focus": "Responder de forma conservadora e pedir reformulação se a dúvida específica não ficar clara.",
     }
@@ -565,6 +746,12 @@ def _legal_general_analysis(message: str, process: dict) -> dict:
     concept = _detect_legal_concept(normalized)
     explanation = _legal_concept_explanation(concept)
     facts = _related_process_facts_for_concept(concept, process)
+    question_focus = (
+        "legal_concept_with_case_context"
+        if facts
+        else DEFAULT_QUESTION_FOCUS
+    )
+    target_event = _target_event_for_concept(concept) if facts else None
 
     limitations = [
         "A explicação é geral e não define estratégia, prazo, risco ou resultado para um caso individual."
@@ -580,6 +767,8 @@ def _legal_general_analysis(message: str, process: dict) -> dict:
 
     return {
         "analysis_type": "legal_general_explanation",
+        "question_focus": question_focus,
+        "target_event": target_event,
         "facts": facts,
         "explanation": explanation,
         "limitations": limitations,
@@ -629,6 +818,12 @@ def _sanitize_process_for_model(process: dict) -> dict:
             if isinstance(party, dict):
                 party.pop("documento", None)
 
+    documents = sanitized.get("documentos")
+    if isinstance(documents, list):
+        for document in documents:
+            if isinstance(document, dict):
+                document.pop("id_documento", None)
+
     return sanitized
 
 
@@ -648,6 +843,36 @@ def _parse_model_json(response: str) -> dict[str, Any]:
         raise ValueError("Resposta do modelo nao e um objeto JSON.")
 
     return data
+
+
+def _normalize_analysis_output(analysis: dict) -> dict:
+    if not isinstance(analysis, dict):
+        analysis = {}
+
+    normalized = dict(analysis)
+    normalized["question_focus"] = _validated_question_focus(
+        normalized.get("question_focus")
+    )
+    normalized["target_event"] = _validated_target_event(
+        normalized.get("target_event")
+    )
+    return normalized
+
+
+def _validated_question_focus(value: Any) -> str:
+    if isinstance(value, str) and value.strip() in ALLOWED_QUESTION_FOCUS:
+        return value.strip()
+    return DEFAULT_QUESTION_FOCUS
+
+
+def _validated_target_event(value: Any) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        return None
+
+    text = value.strip()
+    return text or None
 
 
 def _validate_model_analysis(response: dict[str, Any]) -> dict:
@@ -697,6 +922,8 @@ def _validate_model_analysis(response: dict[str, Any]) -> dict:
 
     return {
         "analysis_type": analysis_type,
+        "question_focus": _validated_question_focus(response.get("question_focus")),
+        "target_event": _validated_target_event(response.get("target_event")),
         "facts": validated_facts,
         "explanation": explanation.strip(),
         "limitations": [item.strip() for item in limitations if item.strip()],
@@ -823,21 +1050,63 @@ def _document_summary(document: dict) -> str:
         _label_value("data", _format_date(document.get("data"))),
         _label_value("titulo", document.get("titulo")),
         _label_value("tipo", document.get("tipo")),
-        _label_value("id", document.get("id_documento")),
     ]
     return " | ".join(part for part in parts if part)
 
 
 def _latest_movement(process: dict) -> tuple[int, dict] | None:
+    movements = _ordered_movements(process)
+    if not movements:
+        return None
+
+    return movements[-1]
+
+
+def _ordered_movements(process: dict) -> list[tuple[int, dict]]:
     movements = [
         (index, movement)
         for index, movement in enumerate(_list_value(process.get("movimentacoes")))
         if isinstance(movement, dict)
     ]
-    if not movements:
+    return sorted(movements, key=lambda item: _movement_sort_key(item[1]))
+
+
+def _movement_before_event(process: dict, target_event: str) -> tuple[int, dict] | None:
+    movements = _ordered_movements(process)
+    event_position = None
+
+    for position, (_index, movement) in enumerate(movements):
+        if _movement_matches_event(movement, target_event):
+            event_position = position
+
+    if event_position is None or event_position == 0:
         return None
 
-    return max(movements, key=lambda item: _movement_sort_key(item[1]))
+    return movements[event_position - 1]
+
+
+def _movement_matches_event(movement: dict, target_event: str) -> bool:
+    normalized_event = _normalize_text(target_event)
+    searchable = _normalize_text(
+        " ".join(
+            _format_value(movement.get(field))
+            for field in ("descricao", "complemento", "referencia")
+        )
+    )
+
+    if normalized_event == "arquivamento":
+        return "arquiv" in searchable
+    if normalized_event == "transito em julgado":
+        return "transito" in searchable and "julgado" in searchable
+    if normalized_event == "sentenca":
+        return "sentenc" in searchable
+    if normalized_event == "audiencia":
+        return "audienc" in searchable
+    if normalized_event == "distribuicao":
+        return "distribu" in searchable
+
+    event_terms = [term for term in normalized_event.split() if term]
+    return bool(event_terms) and all(term in searchable for term in event_terms)
 
 
 def _movement_sort_key(movement: dict) -> tuple[int, str]:
@@ -919,9 +1188,7 @@ def _detect_legal_concept(normalized_message: str) -> str:
 def _legal_concept_explanation(concept: str) -> str:
     explanations = {
         "transito_julgado": (
-            "Trânsito em julgado é o momento processual em que uma decisão não "
-            "admite mais recurso naquele processo, conforme os dados e as regras "
-            "aplicáveis ao caso."
+            "Trânsito em julgado indica que não há mais recurso cabível dentro do prazo aplicável."
         ),
         "arquivamento": (
             "Arquivamento é o registro de que os autos foram guardados ou baixados "
@@ -946,6 +1213,16 @@ def _legal_concept_explanation(concept: str) -> str:
         ),
     }
     return explanations[concept]
+
+
+def _target_event_for_concept(concept: str) -> str | None:
+    events = {
+        "transito_julgado": "trânsito em julgado",
+        "arquivamento": "arquivamento",
+        "audiencia": "audiência",
+        "sentenca": "sentença",
+    }
+    return events.get(concept)
 
 
 def _related_process_facts_for_concept(concept: str, process: dict) -> list[dict[str, str]]:

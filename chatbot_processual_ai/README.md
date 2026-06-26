@@ -10,6 +10,8 @@ Base inicial para um chatbot processual local em Python, preparado para evoluir 
 chatbot_processual_ai/
   main.py
   config.py
+  model_selector.py
+  system_resources.py
   session_state.py
   PROJECT_CONTEXT.md
   README.md
@@ -56,6 +58,44 @@ python main.py --chat
 ```
 
 Use `sair`, `exit` ou `quit` para encerrar a conversa. Digite `--trace` durante o chat para ligar ou desligar o modo de depuração seguro.
+
+Ao iniciar o chat, o sistema consulta os modelos ja instalados no Ollama e escolhe um modelo local compativel com a RAM disponivel, sem baixar modelos e sem alterar `.env`. Detalhes tecnicos de modelo e recursos aparecem somente no diagnostico ou no modo `--trace`.
+
+## Selecao de modelo local
+
+Por padrao, `OLLAMA_MODEL_SELECTION=auto` faz o sistema escolher o melhor modelo instalado que caiba na politica conservadora de RAM disponivel.
+
+```env
+OLLAMA_MODEL=llama3.2:1b
+OLLAMA_MODEL_SELECTION=auto
+```
+
+Para testar um modelo maior manualmente, defina `force`. Nesse modo, o sistema usa `OLLAMA_MODEL` se ele estiver instalado no Ollama, ignorando a politica de RAM e o catalogo oficial.
+
+```env
+OLLAMA_MODEL=qwen3:8b
+OLLAMA_MODEL_SELECTION=force
+```
+
+Use `force` com cuidado: se faltar RAM, o sistema operacional pode ficar lento ou usar disco como memoria.
+
+## Diagnóstico de recursos locais
+
+```powershell
+python main.py --diagnose-runtime
+```
+
+Esse diagnóstico é voltado a desenvolvimento e exibe RAM, GPU/VRAM quando detectável, modelo configurado e disponibilidade do Ollama. No chat, essas informações aparecem somente quando `--trace` é ativado.
+
+O diagnostico tambem exibe a selecao automatica de modelo recomendada para a execucao atual.
+
+## Teste da politica de modelo
+
+```powershell
+python main.py --test-model-policy
+```
+
+Esse comando valida cenarios simulados da funcao pura de selecao de modelo. Ele nao chama `ollama pull`, nao baixa modelos e nao altera configuracoes persistentes.
 
 ## Validacao do Ollama local
 

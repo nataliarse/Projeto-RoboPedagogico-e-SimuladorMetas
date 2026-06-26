@@ -26,6 +26,8 @@ Regras obrigatorias:
 - Analise somente a mensagem atual.
 - Nao copie nem repita exemplos, textos de formato ou instrucoes do prompt.
 - user_goal deve refletir a mensagem recebida.
+- Para agradecimento claro ou encerramento positivo, use intent greeting e
+  descreva user_goal como agradecimento ou encerramento positivo.
 - Nao invente assunto, numero de processo, pergunta, pessoa, documento ou fase processual.
 - Use apenas uma das intencoes permitidas.
 - Se nenhum numero de processo extraido for informado, process_number deve ser null.

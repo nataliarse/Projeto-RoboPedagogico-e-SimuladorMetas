@@ -1,5 +1,6 @@
 import os
 import re
+import unicodedata
 from typing import Any
 
 from ollama_client import OllamaError, generate_text
@@ -16,6 +17,18 @@ ALLOWED_ANALYSIS_TYPES = {
     "out_of_scope",
     "unclear",
 }
+ALLOWED_QUESTION_FOCUS = {
+    "process_overview",
+    "current_status",
+    "parties",
+    "pending_issues",
+    "timeline_before_event",
+    "latest_movement",
+    "document_content",
+    "legal_concept_with_case_context",
+    "generic_process_question",
+}
+DEFAULT_QUESTION_FOCUS = "generic_process_question"
 INTERNAL_TERM_RE = re.compile(
     r"\b(agente|json|prompt|ollama|modelo|pipeline)\b|"
     r"coleta\s+(?:interna|local)|dados\s+estruturados|detalhes?\s+t[eé]cnicos?",
@@ -24,6 +37,14 @@ INTERNAL_TERM_RE = re.compile(
 PRIVATE_DOCUMENT_RE = re.compile(
     r"(?<!\d)(?:\d{3}\.?\d{3}\.?\d{3}-?\d{2}|\d{2}\.?\d{3}\.?\d{3}/?\d{4}-?\d{2})(?!\d)"
 )
+INTERNAL_FIELD_RE = re.compile(
+    r"\b(?:cpf_cnpj|id_documento|parties|partes_interessadas|pendencias)\b",
+    re.IGNORECASE,
+)
+INTERNAL_PATH_RE = re.compile(
+    r"\b[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*|\[[^\]]+\])+\b"
+)
+TECHNICAL_IDENTIFIER_RE = re.compile(r"\b[A-Z]{2,}-\d+\b")
 PROCESS_NUMBER_PATTERN = r"\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}"
 PROCESS_NUMBER_RE = re.compile(rf"(?<!\d){PROCESS_NUMBER_PATTERN}(?!\d)")
 COLLECTION_SUMMARY_RE = re.compile(
@@ -45,6 +66,10 @@ USER_INVISIBLE_SENTENCE_RE = re.compile(
 PRIVATE_FIELD_SEGMENT_RE = re.compile(
     r"(?:^|\s*[|;]\s*)\b(?:cpf|cnpj|cpf\s*/\s*cnpj|cpf_cnpj|"
     r"documento(?:\s+pessoal)?|documentos?)\b\s*:\s*(?:\[[^\]]*\]|[^|;\n]*)",
+    re.IGNORECASE,
+)
+DOCUMENT_ID_SEGMENT_RE = re.compile(
+    r"(?:^|\s*[|;]\s*)\b(?:id|id_documento|identificador)\b\s*:\s*[^|;\n]*",
     re.IGNORECASE,
 )
 PRIVACY_DETAIL_RE = re.compile(
@@ -95,14 +120,20 @@ def create_user_response(
     analysis_data: dict,
 ) -> str:
     normalized = _normalize_analysis(analysis_data)
+    safe_message = _string_value(message)
+
+    if _requires_deterministic_response(normalized):
+        return _fallback_response(normalized, safe_message)
 
     if not _ollama_rewrite_enabled():
-        return _fallback_response(normalized)
+        return _fallback_response(normalized, safe_message)
 
     try:
         prompt = build_agent4_prompt(
-            message=_string_value(message),
+            message=safe_message,
             analysis_type=normalized["analysis_type"],
+            question_focus=normalized["question_focus"],
+            target_event=normalized["target_event"],
             facts=_facts_for_prompt(normalized["facts"]),
             explanation=normalized["explanation"],
             limitations=normalized["limitations"],
@@ -111,7 +142,14 @@ def create_user_response(
         response = generate_text(prompt, system_prompt=AGENT4_SYSTEM_PROMPT)
         return _validate_model_response(response)
     except (OllamaError, ValueError, TypeError):
-        return _fallback_response(normalized)
+        return _fallback_response(normalized, safe_message)
+
+
+def _requires_deterministic_response(analysis: dict) -> bool:
+    return analysis["analysis_type"] == "greeting" or analysis["question_focus"] in {
+        "parties",
+        "pending_issues",
+    }
 
 
 def _ollama_rewrite_enabled() -> bool:
@@ -148,11 +186,28 @@ def _normalize_analysis(analysis_data: dict) -> dict:
 
     return {
         "analysis_type": analysis_type,
+        "question_focus": _normalize_question_focus(
+            analysis_data.get("question_focus")
+        ),
+        "target_event": _normalize_target_event(analysis_data.get("target_event")),
         "facts": facts,
         "explanation": _safe_text(analysis_data.get("explanation")),
         "limitations": limitations,
         "response_focus": _safe_text(analysis_data.get("response_focus")),
     }
+
+
+def _normalize_question_focus(value: Any) -> str:
+    if isinstance(value, str) and value.strip() in ALLOWED_QUESTION_FOCUS:
+        return value.strip()
+    return DEFAULT_QUESTION_FOCUS
+
+
+def _normalize_target_event(value: Any) -> str | None:
+    if value is None:
+        return None
+    text = _safe_text(value)
+    return text or None
 
 
 def _facts_for_prompt(facts: list[dict[str, str]]) -> list[dict[str, str]]:
@@ -195,10 +250,14 @@ def _validate_model_response(response: str) -> str:
     return text
 
 
-def _fallback_response(analysis: dict) -> str:
+def _fallback_response(analysis: dict, message: str = "") -> str:
     analysis_type = analysis["analysis_type"]
 
     if analysis_type == "greeting":
+        if _is_thanks_message(message):
+            return (
+                "De nada! Estou à disposição para ajudar com informações do processo."
+            )
         return (
             "Olá! Posso ajudar a consultar informações de um processo ou explicar "
             "termos processuais."
@@ -225,10 +284,218 @@ def _fallback_response(analysis: dict) -> str:
     if analysis_type == "insufficient_data":
         return _compose_insufficient_data_response(analysis)
 
+    question_focus = analysis["question_focus"]
+    if question_focus == "process_overview":
+        return _compose_process_overview_response(analysis)
+
+    if question_focus == "current_status":
+        return _compose_current_status_response(analysis)
+
+    if question_focus == "parties":
+        return _compose_parties_response(analysis)
+
+    if question_focus == "pending_issues":
+        return _compose_pending_issues_response(analysis)
+
+    if question_focus == "timeline_before_event":
+        return _compose_timeline_before_event_response(analysis)
+
+    if question_focus == "legal_concept_with_case_context":
+        return _compose_legal_concept_with_case_context_response(analysis)
+
+    if question_focus == "document_content":
+        return _compose_document_content_response(analysis)
+
+    if (
+        question_focus == "generic_process_question"
+        and analysis_type in {"process_summary", "process_question"}
+    ):
+        return _compose_generic_process_question_response(analysis)
+
     if analysis_type == "legal_general_explanation":
         return _compose_legal_general_response(analysis)
 
     return _compose_process_response(analysis)
+
+
+def _compose_process_overview_response(analysis: dict) -> str:
+    facts = analysis["facts"]
+    parts = []
+
+    situation = _fact_value_by_label(facts, "situacao", "processual")
+    if situation:
+        parts.append(f"O processo consta como {situation}.")
+
+    second_paragraph = []
+    latest = _movement_sentence(
+        _fact_by_label(facts, "ultima", "movimentacao"),
+        'A última movimentação registrada é',
+    )
+    if latest:
+        second_paragraph.append(latest)
+
+    context = _overview_context_sentence(facts)
+    if context:
+        second_paragraph.append(context)
+
+    if second_paragraph:
+        parts.append(" ".join(second_paragraph))
+
+    return _join_parts_or_default(parts)
+
+
+def _compose_current_status_response(analysis: dict) -> str:
+    facts = analysis["facts"]
+    parts = []
+
+    situation = _fact_value_by_label(facts, "situacao", "processual")
+    if situation:
+        parts.append(f"Nos dados consultados, o processo consta como {situation}.")
+
+    latest = _movement_sentence(
+        _fact_by_label(facts, "ultima", "movimentacao"),
+        'A última movimentação registrada é',
+    )
+    if latest:
+        parts.append(latest)
+
+    return _join_parts_or_default([" ".join(parts)])
+
+
+def _compose_parties_response(analysis: dict) -> str:
+    party_lines = []
+    for fact in analysis["facts"]:
+        party_lines.extend(_extract_party_lines(fact))
+
+    party_lines = _unique_lines(party_lines)
+    if party_lines:
+        return "As partes registradas são:\n\n" + "\n".join(party_lines)
+
+    return "Não há partes registradas nos dados consultados."
+
+
+def _compose_pending_issues_response(analysis: dict) -> str:
+    pending_lines = []
+    has_no_pending_record = False
+
+    for fact in analysis["facts"]:
+        value = _humanize_fact_value(fact["value"])
+        if not value:
+            continue
+
+        normalized_value = _normalize_for_match(value)
+        if _is_no_pending_text(normalized_value):
+            has_no_pending_record = True
+            continue
+
+        if "pendencia" in _normalize_for_match(fact["label"]) or "pendencia" in normalized_value:
+            pending_lines.append("- " + _ensure_sentence(value))
+
+    pending_lines = _unique_lines(pending_lines)
+    if pending_lines:
+        return "Pendências registradas:\n\n" + "\n".join(pending_lines)
+
+    if has_no_pending_record or not analysis["facts"]:
+        response = "Nos dados consultados, não há pendências registradas."
+        if analysis["limitations"]:
+            response += (
+                "\n\nIsso não confirma, por si só, a inexistência de qualquer "
+                "pendência fora das informações disponíveis."
+            )
+        return response
+
+    return "Não há informação suficiente disponível para responder sobre pendências."
+
+
+def _compose_timeline_before_event_response(analysis: dict) -> str:
+    fact = _fact_by_label(analysis["facts"], "movimentacao", "anterior")
+    movement = _parse_movement_fact(fact["value"]) if fact else {}
+    description = movement.get("description", "")
+    if not description:
+        return _join_parts_or_default([analysis["explanation"]])
+
+    target_event = analysis.get("target_event") or "evento solicitado"
+    prefix = _before_event_prefix(target_event)
+    sentence = f"{prefix}, há registro de \"{description}\""
+
+    date = movement.get("date", "")
+    if date:
+        sentence += f" em {date}"
+
+    complement = movement.get("complement", "")
+    if complement:
+        sentence += f", com o complemento \"{complement}\""
+
+    return _ensure_sentence(sentence)
+
+
+def _compose_legal_concept_with_case_context_response(analysis: dict) -> str:
+    parts = []
+    if analysis["explanation"]:
+        parts.append(f"De forma geral, {_lower_first(_ensure_sentence(analysis['explanation']))}")
+
+    fact = _fact_by_label(analysis["facts"], "movimentacao", "relacionada")
+    movement = _parse_movement_fact(fact["value"]) if fact else {}
+    description = movement.get("description", "")
+    if description:
+        sentence = f"Neste processo, há uma movimentação registrada como \"{description}\""
+        date = movement.get("date", "")
+        if date:
+            sentence += f" em {date}"
+        complement = movement.get("complement", "")
+        if complement:
+            sentence += f", com o complemento \"{complement}\""
+        parts.append(_ensure_sentence(sentence))
+    else:
+        fact_lines = _format_fact_lines(analysis["facts"])
+        if fact_lines:
+            parts.append("Neste processo, há estes dados relacionados:\n" + "\n".join(fact_lines))
+
+    return _join_parts_or_default(parts)
+
+
+def _compose_document_content_response(analysis: dict) -> str:
+    record = _document_record_sentence(analysis["facts"])
+    if not record:
+        record = _movement_record_sentence(
+            _fact_by_label(analysis["facts"], "movimentacao", "sentenca")
+        )
+
+    limitation = (
+        "mas o teor da decisão não foi disponibilizado. Por isso, não é possível "
+        "informar o que foi decidido ou para quem a sentença foi favorável."
+    )
+
+    if record:
+        return f"{record}, {limitation}"
+
+    return (
+        "O teor da decisão não foi disponibilizado. Por isso, não é possível "
+        "informar o que foi decidido ou para quem a sentença foi favorável."
+    )
+
+
+def _compose_generic_process_question_response(analysis: dict) -> str:
+    facts = analysis["facts"]
+    parts = []
+
+    situation = _fact_value_by_label(facts, "situacao", "processual")
+    if situation:
+        parts.append(f"Com as informações disponíveis, o processo consta como {situation}.")
+
+    latest = _movement_sentence(
+        _fact_by_label(facts, "ultima", "movimentacao"),
+        'A última movimentação registrada é',
+    )
+    if latest:
+        parts.append(latest)
+
+    if parts:
+        parts.append(
+            "Para detalhar melhor, indique se quer saber sobre partes, movimentações, pendências ou documentos."
+        )
+
+    return _join_parts_or_default(parts)
 
 
 def _compose_process_response(analysis: dict) -> str:
@@ -289,6 +556,121 @@ def _compose_insufficient_data_response(analysis: dict) -> str:
     return "\n\n".join(parts)
 
 
+def _fact_by_label(
+    facts: list[dict[str, str]],
+    *terms: str,
+) -> dict[str, str] | None:
+    normalized_terms = [_normalize_for_match(term) for term in terms if term]
+    for fact in facts:
+        label = _normalize_for_match(fact["label"])
+        if all(term in label for term in normalized_terms):
+            return fact
+    return None
+
+
+def _fact_value_by_label(
+    facts: list[dict[str, str]],
+    *terms: str,
+) -> str:
+    fact = _fact_by_label(facts, *terms)
+    if not fact:
+        return ""
+    return _sanitize_visible_text(fact["value"])
+
+
+def _overview_context_sentence(facts: list[dict[str, str]]) -> str:
+    subject = _fact_value_by_label(facts, "assunto")
+    if subject:
+        return f"O assunto registrado é {subject}."
+
+    court = _fact_value_by_label(facts, "orgao", "julgador")
+    if court:
+        return f"O órgão julgador registrado é {court}."
+
+    return ""
+
+
+def _movement_sentence(fact: dict[str, str] | None, prefix: str) -> str:
+    if not fact:
+        return ""
+
+    movement = _parse_movement_fact(fact["value"])
+    description = movement.get("description", "")
+    if not description:
+        return ""
+
+    sentence = f'{prefix} "{description}"'
+    date = movement.get("date", "")
+    if date:
+        sentence += f", em {date}"
+    return _ensure_sentence(sentence)
+
+
+def _before_event_prefix(target_event: str) -> str:
+    normalized = _normalize_for_match(target_event)
+    article = "da" if normalized in {"sentenca", "audiencia", "distribuicao"} else "do"
+    return f"Antes {article} {target_event}"
+
+
+def _document_record_sentence(facts: list[dict[str, str]]) -> str:
+    fact = _fact_by_label(facts, "documento")
+    if not fact:
+        return ""
+
+    fields = _parse_labeled_fields(fact["value"])
+    title = fields.get("titulo", "")
+    document_type = fields.get("tipo", "")
+    date = _movement_date(_sanitize_visible_text(fact["value"]))
+
+    parts = ["Há documento de sentença registrado"]
+    if date:
+        parts.append(f"em {date}")
+
+    details = []
+    if title:
+        details.append(f"título {title}")
+    if document_type:
+        details.append(f"tipo {document_type}")
+    if details:
+        parts.append("com " + " e ".join(details))
+
+    return " ".join(parts)
+
+
+def _movement_record_sentence(fact: dict[str, str] | None) -> str:
+    if not fact:
+        return ""
+
+    movement = _parse_movement_fact(fact["value"])
+    description = movement.get("description", "")
+    if not description:
+        return ""
+
+    sentence = f'Há movimentação de sentença registrada como "{description}"'
+    date = movement.get("date", "")
+    if date:
+        sentence += f", em {date}"
+    return sentence
+
+
+def _parse_labeled_fields(value: str) -> dict[str, str]:
+    fields: dict[str, str] = {}
+    text = _sanitize_visible_text(value)
+    for segment in re.split(r"\s*[|;]\s*", text):
+        segment = _clean_visible_text(segment)
+        if not segment:
+            continue
+
+        label_match = re.match(r"^([a-zA-ZÀ-ÿ_ ]+):\s*(.+)$", segment)
+        if not label_match:
+            continue
+
+        label = _normalize_for_match(label_match.group(1))
+        fields[label] = _clean_visible_text(label_match.group(2))
+
+    return fields
+
+
 def _format_fact_lines(
     facts: list[dict[str, str]],
     *,
@@ -333,8 +715,8 @@ def _latest_movement_text(facts: list[dict[str, str]]) -> str:
 
         date = movement.get("date", "")
         if date:
-            return f"A última movimentação disponível é “{description}”, em {date}."
-        return f"A última movimentação disponível é “{description}”."
+            return f'A última movimentação disponível é "{description}", em {date}.'
+        return f'A última movimentação disponível é "{description}".'
 
     return ""
 
@@ -348,6 +730,7 @@ def _parse_movement_fact(value: str) -> dict[str, str]:
     text = _sanitize_visible_text(value)
     date = _movement_date(text)
     description = ""
+    complement = ""
 
     for segment in re.split(r"\s*[|;]\s*", text):
         segment = _clean_visible_text(segment)
@@ -358,21 +741,26 @@ def _parse_movement_fact(value: str) -> dict[str, str]:
         if label_match:
             label = _normalize_for_match(label_match.group(1))
             content = _clean_visible_text(label_match.group(2))
-            if label in {"ordem", "data", "complemento", "referencia"}:
+            if label == "complemento":
+                complement = content
+                continue
+            if label in {"ordem", "data", "referencia"}:
                 continue
             if label == "descricao" and content:
-                description = content
-                break
+                if not description:
+                    description = content
+                continue
 
         if re.match(r"^(ordem|data|complemento|referencia)\s*:", segment, re.IGNORECASE):
             continue
 
-        description = segment
-        break
+        if not description:
+            description = segment
 
     return {
         "description": description,
         "date": date,
+        "complement": complement,
     }
 
 
@@ -421,7 +809,7 @@ def _extract_party_lines(fact: dict[str, str]) -> list[str]:
 
         party_type = fields.get("tipo") or fields.get("polo")
         if party_type:
-            parsed_lines.append(f"- {party_type}: {name}")
+            parsed_lines.append(f"- {_human_party_type(party_type)}: {name}")
 
     if parsed_lines:
         return parsed_lines
@@ -439,7 +827,7 @@ def _extract_party_lines(fact: dict[str, str]) -> list[str]:
         party_type = _sanitize_party_field(match.group(1))
         name = _sanitize_party_field(match.group(2))
         if party_type and name:
-            simple_lines.append(f"- {party_type}: {name}")
+            simple_lines.append(f"- {_human_party_type(party_type)}: {name}")
 
     return simple_lines
 
@@ -477,7 +865,10 @@ def _party_line_from_label_and_value(label: str, value: str) -> str:
 def _party_type_from_label(label: str) -> str:
     text = _sanitize_party_field(label)
     if SIMPLE_PARTY_LABEL_RE.match(text):
-        return text
+        return _human_party_type(text)
+    normalized = _normalize_for_match(text)
+    if normalized in {"ativo", "passivo"}:
+        return _human_party_type(text)
     return ""
 
 
@@ -491,6 +882,29 @@ def _sanitize_party_field(value: str) -> str:
     text = _sanitize_visible_text(value)
     text = re.sub(r"\s+", " ", text).strip(" -;,.")
     return text
+
+
+def _human_party_type(value: str) -> str:
+    text = _sanitize_party_field(value)
+    normalized = _normalize_for_match(text)
+    if normalized == "ativo":
+        return "Reclamante"
+    if normalized == "passivo":
+        return "Reclamado"
+    return text
+
+
+def _is_no_pending_text(normalized_text: str) -> bool:
+    return any(
+        phrase in normalized_text
+        for phrase in (
+            "nenhuma pendencia",
+            "nao ha pendencia",
+            "nao ha pendencias",
+            "nao registraram pendencias",
+            "sem pendencias",
+        )
+    )
 
 
 def _unique_lines(lines: list[str]) -> list[str]:
@@ -538,6 +952,41 @@ def _safe_text(value: Any) -> str:
     return text
 
 
+def _is_thanks_message(message: str) -> bool:
+    tokens = re.findall(r"[a-z0-9]+", _normalize_for_match(message))
+    token_set = set(tokens)
+    allowed_tokens = {
+        "a",
+        "agradeco",
+        "agradecida",
+        "agradecido",
+        "ajuda",
+        "demais",
+        "grata",
+        "grato",
+        "muito",
+        "obrigada",
+        "obrigado",
+        "pela",
+        "pelo",
+        "perfeito",
+        "valeu",
+    }
+    anchors = {
+        "agradeco",
+        "agradecida",
+        "agradecido",
+        "grata",
+        "grato",
+        "obrigada",
+        "obrigado",
+        "valeu",
+    }
+    return 0 < len(tokens) <= 7 and token_set <= allowed_tokens and bool(
+        token_set & anchors
+    )
+
+
 def _string_value(value: Any) -> str:
     if value is None:
         return ""
@@ -560,7 +1009,12 @@ def _lower_first(text: str) -> str:
 
 
 def _contains_internal_terms(text: str) -> bool:
-    return bool(INTERNAL_TERM_RE.search(text))
+    return bool(
+        INTERNAL_TERM_RE.search(text)
+        or INTERNAL_FIELD_RE.search(text)
+        or INTERNAL_PATH_RE.search(text)
+        or TECHNICAL_IDENTIFIER_RE.search(text)
+    )
 
 
 def _contains_user_invisible_reference(text: str) -> bool:
@@ -591,6 +1045,7 @@ def _sanitize_visible_text(text: str) -> str:
     )
     text = USER_INVISIBLE_SENTENCE_RE.sub("", text)
     text = PRIVATE_FIELD_SEGMENT_RE.sub("", text)
+    text = DOCUMENT_ID_SEGMENT_RE.sub("", text)
     text = PRIVACY_SENTENCE_RE.sub("", text)
     text = text.replace("[documento pessoal omitido]", "")
     text = re.sub(
@@ -638,34 +1093,10 @@ def _clean_visible_text(text: str) -> str:
 
 
 def _normalize_for_match(text: str) -> str:
-    replacements = str.maketrans(
-        {
-            "á": "a",
-            "à": "a",
-            "â": "a",
-            "ã": "a",
-            "é": "e",
-            "ê": "e",
-            "í": "i",
-            "ó": "o",
-            "ô": "o",
-            "õ": "o",
-            "ú": "u",
-            "ü": "u",
-            "ç": "c",
-            "Á": "a",
-            "À": "a",
-            "Â": "a",
-            "Ã": "a",
-            "É": "e",
-            "Ê": "e",
-            "Í": "i",
-            "Ó": "o",
-            "Ô": "o",
-            "Õ": "o",
-            "Ú": "u",
-            "Ü": "u",
-            "Ç": "c",
-        }
-    )
-    return text.translate(replacements).lower().strip()
+    lowered = _string_value(text).lower()
+    decomposed = unicodedata.normalize("NFD", lowered)
+    return "".join(
+        character
+        for character in decomposed
+        if unicodedata.category(character) != "Mn"
+    ).strip()

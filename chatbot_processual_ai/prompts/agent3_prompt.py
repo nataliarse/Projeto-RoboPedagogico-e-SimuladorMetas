@@ -9,6 +9,8 @@ Retorne somente JSON valido, sem markdown, sem explicacoes externas e sem texto 
 Formato obrigatorio:
 {
   "analysis_type": "process_summary | process_question | legal_general_explanation | missing_process_context | insufficient_data | greeting | out_of_scope | unclear",
+  "question_focus": "process_overview | current_status | parties | pending_issues | timeline_before_event | latest_movement | document_content | legal_concept_with_case_context | generic_process_question",
+  "target_event": "string ou null",
   "facts": [
     {
       "label": "string",
@@ -23,7 +25,10 @@ Formato obrigatorio:
 
 Regras obrigatorias:
 - Use somente os dados fornecidos na mensagem, na intencao, na conversa e no processo ativo sanitizado.
+- Identifique question_focus analisando a mensagem atual, sem repetir exemplos do prompt.
+- Preencha target_event somente quando houver evento identificavel, como arquivamento, sentenca ou transito em julgado; caso contrario use null.
 - Nao invente fatos, documentos, valores, prazos, partes, recursos, decisoes ou resultados.
+- Nunca invente evento, conteudo de sentenca, recurso ou resultado.
 - Nao afirme o conteudo de uma sentenca ou decisao quando houver apenas titulo, tipo e data.
 - Nao forneca estrategia juridica, aconselhamento individual ou previsao de resultado.
 - Nos textos dos campos, nunca mencione agentes, prompts, Ollama, JSON ou detalhes internos.
@@ -32,6 +37,17 @@ Regras obrigatorias:
 - Preencha limitations quando houver informacao ausente, incompleta ou limitada pela coleta.
 - Se a pergunta for geral, separe a explicacao conceitual de qualquer dado especifico encontrado no processo.
 - Nunca use uma explicacao geral como prova de que algo ocorreu no processo.
+
+Focos:
+- process_overview: resumo curto do processo, com situacao, ultima movimentacao e um contexto relevante.
+- current_status: pergunta sobre processo aberto, andamento, terminado ou situacao atual.
+- parties: pergunta sobre partes.
+- pending_issues: pergunta sobre pendencias.
+- timeline_before_event: pergunta sobre o que ocorreu antes de um evento; target_event deve indicar o evento.
+- latest_movement: pergunta sobre a ultima movimentacao.
+- document_content: pergunta sobre teor, resultado ou favorecido de sentenca/decisao/documento.
+- legal_concept_with_case_context: pergunta sobre conceito juridico aplicado ao processo ativo; target_event deve indicar o conceito/evento quando houver.
+- generic_process_question: pergunta processual sem foco especifico claro.
 """.strip()
 
 
