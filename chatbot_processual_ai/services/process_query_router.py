@@ -1,0 +1,142 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from services.text_normalization import normalize_text_for_match
+
+
+STRUCTURED_ROUTE = "structured"
+RAG_ROUTE = "rag"
+HYBRID_ROUTE = "hybrid"
+MISSING_PROCESS_ROUTE = "missing_process"
+OUT_OF_SCOPE_ROUTE = "out_of_scope"
+
+
+@dataclass(frozen=True)
+class ProcessQueryRoute:
+    route: str
+    reason: str
+    requires_rag: bool
+
+
+def route_process_query(
+    message: str,
+    intent: str | None,
+    has_active_process: bool,
+) -> ProcessQueryRoute:
+    if intent == "out_of_scope":
+        return ProcessQueryRoute(
+            route=OUT_OF_SCOPE_ROUTE,
+            reason="Mensagem fora do escopo processual.",
+            requires_rag=False,
+        )
+
+    if intent not in {"process_lookup", "process_question", "legal_general_question"}:
+        return ProcessQueryRoute(
+            route=STRUCTURED_ROUTE,
+            reason="Intencao nao exige recuperacao semantica.",
+            requires_rag=False,
+        )
+
+    if intent == "process_lookup":
+        return ProcessQueryRoute(
+            route=STRUCTURED_ROUTE,
+            reason="Consulta inicial usa dados estruturados do processo.",
+            requires_rag=False,
+        )
+
+    if intent == "legal_general_question" and not _mentions_case_context(message):
+        return ProcessQueryRoute(
+            route=STRUCTURED_ROUTE,
+            reason="Explicacao juridica geral nao precisa de chunks do processo.",
+            requires_rag=False,
+        )
+
+    if not has_active_process:
+        return ProcessQueryRoute(
+            route=MISSING_PROCESS_ROUTE,
+            reason="Pergunta depende de processo ativo.",
+            requires_rag=False,
+        )
+
+    normalized = normalize_text_for_match(message)
+
+    if _looks_like_structured_question(normalized):
+        return ProcessQueryRoute(
+            route=STRUCTURED_ROUTE,
+            reason="Pergunta respondida por campos estruturados.",
+            requires_rag=False,
+        )
+
+    if _looks_like_document_content_question(normalized):
+        return ProcessQueryRoute(
+            route=RAG_ROUTE,
+            reason="Pergunta busca teor ou conteudo textual de documento.",
+            requires_rag=True,
+        )
+
+    if _mentions_case_context(message):
+        return ProcessQueryRoute(
+            route=HYBRID_ROUTE,
+            reason="Pergunta combina conceito ou evento com contexto do processo.",
+            requires_rag=True,
+        )
+
+    return ProcessQueryRoute(
+        route=HYBRID_ROUTE,
+        reason="Pergunta aberta sobre processo pode se beneficiar de chunks.",
+        requires_rag=True,
+    )
+
+
+def _looks_like_structured_question(normalized: str) -> bool:
+    structured_markers = (
+        "situacao",
+        "aberto",
+        "baixado",
+        "encerrado",
+        "pendencia",
+        "pendencias",
+        "parte",
+        "partes",
+        "reclamante",
+        "reclamado",
+        "ultima movimentacao",
+        "antes do arquivamento",
+        "antes da sentenca",
+        "antes do transito",
+        "quando foi arquivado",
+        "quando ele foi arquivado",
+    )
+    return any(marker in normalized for marker in structured_markers)
+
+
+def _looks_like_document_content_question(normalized: str) -> bool:
+    document_markers = (
+        "teor",
+        "conteudo",
+        "documento",
+        "sentenca decidiu",
+        "decisao decidiu",
+        "o que a sentenca decidiu",
+        "favoravel",
+        "quem ganhou",
+        "ganhou",
+        "fundamento",
+        "fundamentacao",
+    )
+    return any(marker in normalized for marker in document_markers)
+
+
+def _mentions_case_context(message: str) -> bool:
+    normalized = normalize_text_for_match(message)
+    context_markers = (
+        "nesse caso",
+        "neste caso",
+        "nesse processo",
+        "neste processo",
+        "desse processo",
+        "do processo",
+        "isso no processo",
+    )
+    return any(marker in normalized for marker in context_markers)

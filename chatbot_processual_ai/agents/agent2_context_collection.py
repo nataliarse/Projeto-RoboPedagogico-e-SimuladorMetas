@@ -2,6 +2,8 @@ import re
 import unicodedata
 
 from collector_adapter import find_process_by_number
+from services.process_query_router import route_process_query
+from services.rag_retriever import retrieve_rag_context
 
 
 MAX_CONVERSATION_ENTRIES = 10
@@ -75,11 +77,29 @@ def build_context_and_collect(
         else:
             collection_status = _handle_process_lookup(process_number, session_state)
 
+    active_process = session_state.get("active_process") or {}
+    query_route = route_process_query(
+        message,
+        transported_intent_data.get("intent"),
+        bool(active_process),
+    )
+    rag_context = retrieve_rag_context(
+        query=message,
+        process_number=_active_process_number(active_process),
+        requires_rag=query_route.requires_rag,
+    )
+
     return {
         "message": message,
         "intent_data": transported_intent_data,
-        "active_process": session_state.get("active_process") or {},
+        "active_process": active_process,
         "collection_status": collection_status,
+        "query_route": {
+            "route": query_route.route,
+            "reason": query_route.reason,
+            "requires_rag": query_route.requires_rag,
+        },
+        "rag_context": rag_context,
         "conversation": list(session_state.get("conversation", [])),
     }
 

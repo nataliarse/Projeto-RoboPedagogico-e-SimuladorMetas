@@ -73,6 +73,9 @@ def analyze_process_context(message: str, context_data: dict) -> dict:
     )
     fallback = _normalize_analysis_output(fallback)
 
+    if _route_requires_rag(context_data):
+        return fallback
+
     if intent not in MODEL_BACKED_INTENTS or analysis_type in NON_MODEL_ANALYSIS_TYPES:
         return fallback
 
@@ -114,6 +117,13 @@ def cpf_cnpj_removed_from_model_context(context_data: dict) -> bool:
         document not in sanitized_text for document in original_documents
     )
     return no_party_document_fields and no_private_values
+
+
+def _route_requires_rag(context_data: dict) -> bool:
+    query_route = context_data.get("query_route")
+    if not isinstance(query_route, dict):
+        return False
+    return bool(query_route.get("requires_rag"))
 
 
 def _target_analysis_type(
@@ -166,6 +176,7 @@ def _build_deterministic_analysis(
             message,
             process,
             _recent_conversation(context_data),
+            _rag_context(context_data),
         )
 
     if analysis_type == "legal_general_explanation":
@@ -275,6 +286,7 @@ def _process_question_analysis(
     message: str,
     process: dict,
     conversation: list | None = None,
+    rag_context: dict | None = None,
 ) -> dict:
     normalized = _normalize_text(message)
 
@@ -298,7 +310,7 @@ def _process_question_analysis(
         return _pending_question_analysis(process)
 
     if _is_document_content_question(normalized):
-        return _sentence_question_analysis(process)
+        return _sentence_question_analysis(process, rag_context)
 
     if "arquiv" in normalized:
         return _archive_question_analysis(process)
@@ -505,7 +517,10 @@ def _pending_question_analysis(process: dict) -> dict:
     }
 
 
-def _sentence_question_analysis(process: dict) -> dict:
+def _sentence_question_analysis_legacy(
+    process: dict,
+    rag_context: dict | None = None,
+) -> dict:
     sentence_documents = _matching_documents(process, {"sentenc", "decis"})
     sentence_movements = _matching_movements(process, {"sentenc"})
     facts: list[dict[str, str]] = []
@@ -541,6 +556,8 @@ def _sentence_question_analysis(process: dict) -> dict:
             "Não há dados suficientes na coleta para informar se houve sentença ou o que foi decidido."
         ]
 
+    limitations.extend(_rag_limitations(rag_context))
+
     return {
         "analysis_type": "process_question",
         "question_focus": "document_content",
@@ -549,6 +566,67 @@ def _sentence_question_analysis(process: dict) -> dict:
         "explanation": explanation,
         "limitations": limitations,
         "response_focus": "Informar que há registro de sentença somente se os metadados existirem, sem inventar o conteúdo decisório.",
+    }
+
+
+def _sentence_question_analysis(process: dict, rag_context: dict | None = None) -> dict:
+    sentence_documents = _matching_documents(process, {"sentenc", "decis"})
+    sentence_movements = _matching_movements(process, {"sentenc"})
+    facts: list[dict[str, str]] = []
+
+    for index, document in sentence_documents:
+        _add_fact(
+            facts,
+            "Documento de sentenca",
+            _document_summary(document),
+            f"documentos[{index}]",
+        )
+
+    for index, movement in sentence_movements:
+        _add_fact(
+            facts,
+            "Movimentacao de sentenca",
+            _movement_summary(movement),
+            f"movimentacoes[{index}]",
+        )
+
+    rag_facts = _rag_full_text_facts(rag_context)
+    facts.extend(rag_facts)
+
+    if rag_facts:
+        explanation = (
+            "Foram recuperados trechos de texto integral relacionados a pergunta. "
+            "A resposta deve ficar limitada a esses trechos e aos metadados do processo."
+        )
+        limitations = [
+            "A analise usa somente os trechos recuperados e os dados estruturados disponiveis.",
+            "Sem leitura humana do documento completo, a resposta nao deve extrapolar o trecho recuperado.",
+        ]
+    elif facts:
+        explanation = (
+            "Os dados registram sentenca ou movimentacao relacionada, mas nao disponibilizam "
+            "o conteudo da decisao. Portanto, nao e possivel informar o que foi decidido."
+        )
+        limitations = [
+            "Ha apenas metadados, como titulo, tipo, data ou descricao da movimentacao.",
+            "Sem o teor da decisao, a analise nao pode afirmar o conteudo da sentenca.",
+        ]
+    else:
+        explanation = "Os dados nao trouxeram documento ou movimentacao de sentenca para o processo ativo."
+        limitations = [
+            "Nao ha dados suficientes para informar se houve sentenca ou o que foi decidido."
+        ]
+
+    limitations.extend(_rag_limitations(rag_context))
+
+    return {
+        "analysis_type": "process_question",
+        "question_focus": "document_content",
+        "target_event": "sentenca",
+        "facts": facts,
+        "explanation": explanation,
+        "limitations": limitations,
+        "response_focus": "Informar que ha registro de sentenca somente se os metadados existirem, sem inventar o conteudo decisorio.",
     }
 
 
@@ -805,6 +883,81 @@ def _insufficient_data_analysis(context_data: dict) -> dict:
         ],
         "response_focus": "Solicitar um número de processo completo ou informar que a consulta local não encontrou dados.",
     }
+
+
+def _rag_context(context_data: dict) -> dict:
+    rag_context = context_data.get("rag_context")
+    return rag_context if isinstance(rag_context, dict) else {}
+
+
+def _rag_full_text_facts(rag_context: dict | None) -> list[dict[str, str]]:
+    if not isinstance(rag_context, dict) or rag_context.get("status") != "success":
+        return []
+
+    chunks = rag_context.get("chunks")
+    if not isinstance(chunks, list):
+        return []
+
+    facts: list[dict[str, str]] = []
+    for index, chunk in enumerate(chunks[:3]):
+        if not isinstance(chunk, dict):
+            continue
+        if chunk.get("content_kind") != "full_text":
+            continue
+
+        text = _format_value(chunk.get("text"))
+        if not text:
+            continue
+
+        facts.append(
+            {
+                "label": f"Trecho textual recuperado {index + 1}",
+                "value": text,
+                "source": _rag_source_path(chunk),
+            }
+        )
+
+    return facts
+
+
+def _rag_source_path(chunk: dict) -> str:
+    source_type = chunk.get("source_type")
+    source_id = _safe_source_index(chunk.get("source_id"))
+    if source_type == "movement":
+        return f"movimentacoes[{source_id}]"
+    return f"documentos[{source_id}]"
+
+
+def _safe_source_index(value: Any) -> int:
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str) and value.isdigit():
+        return int(value)
+    return 0
+
+
+def _rag_limitations(rag_context: dict | None) -> list[str]:
+    if not isinstance(rag_context, dict):
+        return []
+
+    status = rag_context.get("status")
+    if status == "unavailable":
+        return [
+            "A busca semantica local nao ficou disponivel; a resposta usa apenas os dados estruturados."
+        ]
+    if status == "empty":
+        return [
+            "A busca semantica nao encontrou trecho textual suficiente para complementar os dados estruturados."
+        ]
+    if status == "error":
+        return [
+            "A busca semantica falhou; a resposta usa apenas os dados estruturados."
+        ]
+    if status == "success" and not _rag_full_text_facts(rag_context):
+        return [
+            "A busca semantica encontrou apenas metadados, nao o teor integral da decisao."
+        ]
+    return []
 
 
 def _sanitize_process_for_model(process: dict) -> dict:

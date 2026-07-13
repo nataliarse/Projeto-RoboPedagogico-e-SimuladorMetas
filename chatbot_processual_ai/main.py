@@ -31,6 +31,7 @@ from ollama_client import (
     generate_text,
     set_runtime_model,
 )
+from orchestrators.processual_chat_orchestrator import run_processual_chat_step
 from session_state import create_session_state
 from system_resources import get_system_resources
 
@@ -642,24 +643,14 @@ def _run_chat_step(
     message: str,
     session_state: dict,
 ) -> tuple[dict, dict, dict, str, str | None]:
-    intent_data: dict = {}
-    context_data: dict = {}
-    analysis: dict = {}
-    stage = "Agente 1"
-
-    try:
-        intent_data = interpret_user_message(message)
-        stage = "Agente 2"
-        context_data = build_context_and_collect(message, intent_data, session_state)
-        stage = "Agente 3"
-        analysis_message = _message_for_process_analysis(message, intent_data)
-        analysis = analyze_process_context(analysis_message, context_data)
-        stage = "Agente 4"
-        response = create_user_response(message, analysis)
-    except Exception:
-        return intent_data, context_data, analysis, SAFE_CHAT_ERROR_RESPONSE, stage
-
-    return intent_data, context_data, analysis, response, None
+    result = run_processual_chat_step(message, session_state)
+    return (
+        result.intent_data,
+        result.context_data,
+        result.analysis,
+        result.response.resposta,
+        result.response.failed_stage,
+    )
 
 
 def _message_for_process_analysis(message: str, intent_data: dict) -> str:

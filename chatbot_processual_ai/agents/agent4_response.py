@@ -455,6 +455,16 @@ def _compose_legal_concept_with_case_context_response(analysis: dict) -> str:
 
 
 def _compose_document_content_response(analysis: dict) -> str:
+    recovered_text_lines = _retrieved_text_lines(analysis["facts"])
+    if recovered_text_lines:
+        response = "Encontrei estes trechos textuais relacionados:\n\n"
+        response += "\n".join(recovered_text_lines)
+        response += (
+            "\n\nA resposta deve ficar limitada a esses trechos; eles nÃ£o autorizam "
+            "conclusÃµes alÃ©m do texto recuperado."
+        )
+        return response
+
     record = _document_record_sentence(analysis["facts"])
     if not record:
         record = _movement_record_sentence(
@@ -473,6 +483,24 @@ def _compose_document_content_response(analysis: dict) -> str:
         "O teor da decisão não foi disponibilizado. Por isso, não é possível "
         "informar o que foi decidido ou para quem a sentença foi favorável."
     )
+
+
+def _retrieved_text_lines(facts: list[dict[str, str]]) -> list[str]:
+    lines = []
+    for fact in facts:
+        label = _normalize_for_match(fact["label"])
+        if "trecho" not in label or "textual" not in label:
+            continue
+
+        value = _sanitize_visible_text(fact["value"])
+        if not value:
+            continue
+
+        if len(value) > 700:
+            value = value[:700].rstrip() + "..."
+        lines.append(f"- \"{value}\"")
+
+    return _unique_lines(lines)
 
 
 def _compose_generic_process_question_response(analysis: dict) -> str:
