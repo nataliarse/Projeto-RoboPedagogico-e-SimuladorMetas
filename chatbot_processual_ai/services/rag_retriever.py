@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from config import RAG_ENABLED, RAG_MIN_SCORE, RAG_TOP_K
+from progress import ProgressReporter, progress_clock, report_progress
 from services.embedding_service import EmbeddingError, generate_embedding
 from services.process_repository import get_chunks_for_process, update_chunk_vector_id
 from services.qdrant_vector_store import (
@@ -36,46 +37,183 @@ def retrieve_rag_context(
     query: str,
     process_number: str | None,
     requires_rag: bool,
+    progress_reporter: ProgressReporter | None = None,
 ) -> dict[str, Any]:
     if not requires_rag:
+        report_progress(
+            progress_reporter,
+            code="rag.skipped",
+            level="success",
+            message="busca semantica nao necessaria para esta pergunta.",
+            details={"rag_status": RAG_NOT_NEEDED},
+        )
         return empty_rag_context(RAG_NOT_NEEDED, query)
 
     if not RAG_ENABLED:
+        report_progress(
+            progress_reporter,
+            code="rag.unavailable",
+            level="warning",
+            message="busca semantica desativada; usando dados estruturados.",
+            details={"rag_status": RAG_UNAVAILABLE},
+        )
         return empty_rag_context(RAG_UNAVAILABLE, query)
 
     normalized_number = normalize_process_number(process_number)
     if normalized_number is None:
+        report_progress(
+            progress_reporter,
+            code="rag.empty",
+            level="warning",
+            message="sem processo ativo para busca semantica.",
+            details={"rag_status": RAG_EMPTY},
+        )
         return empty_rag_context(RAG_EMPTY, query)
 
     chunks = get_chunks_for_process(normalized_number)
     if not chunks:
+        report_progress(
+            progress_reporter,
+            code="rag.empty",
+            level="warning",
+            message="nenhum trecho local disponivel para busca semantica.",
+            details={"rag_status": RAG_EMPTY},
+        )
         return empty_rag_context(RAG_EMPTY, query)
 
+    rag_started_at = progress_clock()
     try:
+        embedding_started_at = progress_clock()
+        report_progress(
+            progress_reporter,
+            code="rag.embedding_query.started",
+            level="started",
+            message="gerando embedding da pergunta...",
+        )
         query_vector = generate_embedding(query)
+        report_progress(
+            progress_reporter,
+            code="rag.embedding_query.finished",
+            level="success",
+            message="embedding da pergunta gerado.",
+            details={"vector_size": len(query_vector)},
+            started_at=embedding_started_at,
+        )
+
+        collection_started_at = progress_clock()
+        report_progress(
+            progress_reporter,
+            code="rag.collection.started",
+            level="started",
+            message="preparando indice vetorial local...",
+        )
         ensure_collection(len(query_vector))
+        report_progress(
+            progress_reporter,
+            code="rag.collection.finished",
+            level="success",
+            message="indice vetorial pronto.",
+            started_at=collection_started_at,
+        )
+
+        sync_started_at = progress_clock()
+        report_progress(
+            progress_reporter,
+            code="rag.sync.started",
+            level="started",
+            message="sincronizando trechos do processo...",
+            details={"chunks_count": _count_text_chunks(chunks)},
+        )
         _sync_process_chunks(normalized_number, chunks)
+        report_progress(
+            progress_reporter,
+            code="rag.sync.finished",
+            level="success",
+            message="trechos do processo sincronizados.",
+            details={"chunks_count": _count_text_chunks(chunks)},
+            started_at=sync_started_at,
+        )
+
+        search_started_at = progress_clock()
+        report_progress(
+            progress_reporter,
+            code="rag.search.started",
+            level="started",
+            message="buscando trechos relevantes...",
+            details={"top_k": RAG_TOP_K},
+        )
         results = search_points(
             vector=query_vector,
             process_number=normalized_number,
             top_k=RAG_TOP_K,
             min_score=RAG_MIN_SCORE,
         )
-    except (EmbeddingError, QdrantError):
+        report_progress(
+            progress_reporter,
+            code="rag.search.finished",
+            level="success",
+            message="busca vetorial concluida.",
+            details={"results_count": len(results)},
+            started_at=search_started_at,
+        )
+    except (EmbeddingError, QdrantError) as exc:
+        report_progress(
+            progress_reporter,
+            code="rag.unavailable",
+            level="warning",
+            message="busca semantica indisponivel; usando dados estruturados.",
+            details={
+                "rag_status": RAG_UNAVAILABLE,
+                "error_type": type(exc).__name__,
+            },
+            started_at=rag_started_at,
+        )
         return empty_rag_context(RAG_UNAVAILABLE, query)
-    except Exception:
+    except Exception as exc:
+        report_progress(
+            progress_reporter,
+            code="rag.error",
+            level="error",
+            message="busca semantica falhou; usando dados estruturados.",
+            details={
+                "rag_status": RAG_ERROR,
+                "error_type": type(exc).__name__,
+            },
+            started_at=rag_started_at,
+        )
         return empty_rag_context(RAG_ERROR, query)
 
     retrieved_chunks = [_chunk_from_result(item) for item in results]
     retrieved_chunks = [chunk for chunk in retrieved_chunks if chunk]
     if not retrieved_chunks:
+        report_progress(
+            progress_reporter,
+            code="rag.empty",
+            level="warning",
+            message="busca semantica nao encontrou trechos uteis.",
+            details={"rag_status": RAG_EMPTY},
+            started_at=rag_started_at,
+        )
         return empty_rag_context(RAG_EMPTY, query)
 
+    sources = _sources_from_chunks(retrieved_chunks)
+    report_progress(
+        progress_reporter,
+        code="rag.finished",
+        level="success",
+        message="trechos relevantes recuperados.",
+        details={
+            "rag_status": RAG_SUCCESS,
+            "chunks_count": len(retrieved_chunks),
+            "sources_count": len(sources),
+        },
+        started_at=rag_started_at,
+    )
     return {
         "status": RAG_SUCCESS,
         "query": query,
         "chunks": retrieved_chunks,
-        "sources": _sources_from_chunks(retrieved_chunks),
+        "sources": sources,
     }
 
 
@@ -110,6 +248,10 @@ def _sync_process_chunks(process_number: str, chunks: list[dict[str, Any]]) -> N
         chunk_id = chunk.get("id")
         if isinstance(chunk_id, int):
             update_chunk_vector_id(chunk_id, point_id)
+
+
+def _count_text_chunks(chunks: list[dict[str, Any]]) -> int:
+    return len([chunk for chunk in chunks if str(chunk.get("text") or "").strip()])
 
 
 def _chunk_from_result(result: dict[str, Any]) -> dict[str, Any]:

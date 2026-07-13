@@ -6,6 +6,7 @@ import uuid
 from pathlib import Path
 from unittest.mock import patch
 
+from ollama_client import OllamaError
 from orchestrators.processual_chat_orchestrator import run_processual_chat_step
 from services import process_repository
 from services.process_repository import (
@@ -13,6 +14,7 @@ from services.process_repository import (
     get_chunks_for_process,
     ingest_processes,
 )
+from services.process_query_router import route_process_query
 from services.qdrant_vector_store import QdrantError
 from services.rag_retriever import retrieve_rag_context
 
@@ -168,6 +170,50 @@ class RagBaseTestCase(unittest.TestCase):
         self.assertIsNone(result.response.failed_stage)
         self.assertEqual(result.response.rag_status, "unavailable")
         self.assertIn("teor", result.response.resposta.lower())
+
+    def test_recent_movement_question_uses_structured_route(self) -> None:
+        route = route_process_query(
+            "qua a movimentação mais recente?",
+            "process_question",
+            has_active_process=True,
+        )
+
+        self.assertEqual(route.route, "structured")
+        self.assertFalse(route.requires_rag)
+
+    def test_chat_answers_earliest_movement_from_structured_data(self) -> None:
+        ingest_processes(
+            self.sample_processes,
+            source_name="unit-test",
+        )
+        active_process = find_process_by_number("0011000-82.1981.5.18.0051")
+        session_state = {
+            "conversation": [],
+            "active_process": active_process,
+            "last_intent": "process_lookup",
+        }
+
+        with patch(
+            "agents.agent3_process_analysis.generate_text",
+            side_effect=OllamaError("offline"),
+        ), patch(
+            "agents.agent4_response._ollama_rewrite_enabled",
+            return_value=False,
+        ):
+            result = run_processual_chat_step(
+                "e a movimentação mais antiga?",
+                session_state,
+            )
+
+        self.assertIsNone(result.response.failed_stage)
+        self.assertEqual(result.context_data["query_route"]["route"], "structured")
+        self.assertFalse(result.context_data["query_route"]["requires_rag"])
+        self.assertEqual(result.response.rag_status, "not_needed")
+        self.assertEqual(result.analysis["question_focus"], "earliest_movement")
+        self.assertIn("mais antiga", result.response.resposta.lower())
+        self.assertIn("Distribu", result.response.resposta)
+        self.assertIn("12/03/1981", result.response.resposta)
+        self.assertNotIn("05/02/1984", result.response.resposta)
 
 
 if __name__ == "__main__":

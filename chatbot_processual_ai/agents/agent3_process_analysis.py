@@ -5,6 +5,7 @@ import unicodedata
 from typing import Any
 
 from ollama_client import OllamaError, generate_text
+from progress import ProgressReporter, progress_clock, report_progress
 from prompts.agent3_prompt import AGENT3_SYSTEM_PROMPT, build_agent3_prompt
 
 
@@ -25,6 +26,7 @@ ALLOWED_QUESTION_FOCUS = {
     "pending_issues",
     "timeline_before_event",
     "latest_movement",
+    "earliest_movement",
     "document_content",
     "legal_concept_with_case_context",
     "generic_process_question",
@@ -50,7 +52,11 @@ MAX_CONVERSATION_FOR_MODEL = 8
 INTERNAL_TERMS = {"agente", "prompt", "ollama", "json"}
 
 
-def analyze_process_context(message: str, context_data: dict) -> dict:
+def analyze_process_context(
+    message: str,
+    context_data: dict,
+    progress_reporter: ProgressReporter | None = None,
+) -> dict:
     if not isinstance(context_data, dict):
         context_data = {}
 
@@ -74,11 +80,32 @@ def analyze_process_context(message: str, context_data: dict) -> dict:
     fallback = _normalize_analysis_output(fallback)
 
     if _route_requires_rag(context_data):
+        report_progress(
+            progress_reporter,
+            code="analysis.local",
+            level="success",
+            message="analise estruturada preparada com o contexto recuperado.",
+            details={
+                "analysis_type": fallback.get("analysis_type"),
+                "uses_model": False,
+            },
+        )
         return fallback
 
     if intent not in MODEL_BACKED_INTENTS or analysis_type in NON_MODEL_ANALYSIS_TYPES:
+        report_progress(
+            progress_reporter,
+            code="analysis.local",
+            level="success",
+            message="analise resolvida por regras locais.",
+            details={
+                "analysis_type": fallback.get("analysis_type"),
+                "uses_model": False,
+            },
+        )
         return fallback
 
+    model_started_at = progress_clock()
     try:
         prompt = build_agent3_prompt(
             message=message,
@@ -87,12 +114,42 @@ def analyze_process_context(message: str, context_data: dict) -> dict:
             sanitized_process=sanitized_process,
             analysis_type=analysis_type,
         )
+        report_progress(
+            progress_reporter,
+            code="analysis.model.started",
+            level="started",
+            message="consultando modelo local para organizar a analise...",
+            details={"uses_model": True},
+        )
         response = generate_text(prompt, system_prompt=AGENT3_SYSTEM_PROMPT)
         model_analysis = _parse_model_json(response)
         validated = _validate_model_analysis(model_analysis)
         _reject_unsafe_model_analysis(validated, active_process)
-        return _normalize_analysis_output(validated)
-    except (OllamaError, ValueError, TypeError, json.JSONDecodeError):
+        normalized = _normalize_analysis_output(validated)
+        report_progress(
+            progress_reporter,
+            code="analysis.model.finished",
+            level="success",
+            message="modelo local retornou uma analise valida.",
+            details={
+                "analysis_type": normalized.get("analysis_type"),
+                "uses_model": True,
+            },
+            started_at=model_started_at,
+        )
+        return normalized
+    except (OllamaError, ValueError, TypeError, json.JSONDecodeError) as exc:
+        report_progress(
+            progress_reporter,
+            code="analysis.model.fallback",
+            level="warning",
+            message="modelo local indisponivel para analise; usando regras locais.",
+            details={
+                "fallback": True,
+                "error_type": type(exc).__name__,
+            },
+            started_at=model_started_at,
+        )
         return fallback
 
 
@@ -318,6 +375,9 @@ def _process_question_analysis(
     if "moviment" in normalized and _has_any(normalized, {"ultima", "recente"}):
         return _latest_movement_question_analysis(process)
 
+    if "moviment" in normalized and _is_earliest_movement_question(normalized):
+        return _earliest_movement_question_analysis(process)
+
     if "situacao" in normalized:
         return _situation_question_analysis(process)
 
@@ -382,6 +442,17 @@ def _is_timeline_before_event_question(normalized_message: str) -> bool:
         "aconteceu antes",
     )
     return any(marker in normalized_message for marker in before_markers)
+
+
+def _is_earliest_movement_question(normalized_message: str) -> bool:
+    earliest_markers = (
+        "mais antiga",
+        "primeira",
+        "primeiro",
+        "inicial",
+        "inicio",
+    )
+    return any(marker in normalized_message for marker in earliest_markers)
 
 
 def _is_legal_concept_with_case_context_question(normalized_message: str) -> bool:
@@ -741,6 +812,37 @@ def _latest_movement_question_analysis(process: dict) -> dict:
         "explanation": explanation,
         "limitations": limitations,
         "response_focus": "Informar a movimentação mais recente disponível na coleta.",
+    }
+
+
+def _earliest_movement_question_analysis(process: dict) -> dict:
+    facts: list[dict[str, str]] = []
+    earliest = _earliest_movement(process)
+
+    if earliest is not None:
+        index, movement = earliest
+        _add_fact(
+            facts,
+            "Primeira movimentacao",
+            _movement_summary(movement),
+            f"movimentacoes[{index}]",
+        )
+        explanation = "A movimentacao mais antiga foi identificada pela menor ordem disponivel nos dados."
+        limitations = [
+            "A analise depende da ordenacao e dos dados de movimentacao fornecidos."
+        ]
+    else:
+        explanation = "Os dados nao trouxeram movimentacoes para o processo ativo."
+        limitations = ["Nao ha movimentacoes disponiveis para identificar a movimentacao mais antiga."]
+
+    return {
+        "analysis_type": "process_question",
+        "question_focus": "earliest_movement",
+        "target_event": None,
+        "facts": facts,
+        "explanation": explanation,
+        "limitations": limitations,
+        "response_focus": "Informar a movimentacao mais antiga disponivel nos dados.",
     }
 
 
@@ -1213,6 +1315,14 @@ def _latest_movement(process: dict) -> tuple[int, dict] | None:
         return None
 
     return movements[-1]
+
+
+def _earliest_movement(process: dict) -> tuple[int, dict] | None:
+    movements = _ordered_movements(process)
+    if not movements:
+        return None
+
+    return movements[0]
 
 
 def _ordered_movements(process: dict) -> list[tuple[int, dict]]:

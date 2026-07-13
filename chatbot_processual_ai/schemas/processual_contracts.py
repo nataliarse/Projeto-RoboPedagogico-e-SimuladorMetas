@@ -25,3 +25,12 @@ class ProcessualChatStepResult:
     intent_data: dict
     context_data: dict
     analysis: dict
+
+
+@dataclass
+class ProcessProgressEvent:
+    code: str
+    level: str
+    message: str
+    details: dict = field(default_factory=dict)
+    elapsed_ms: int | None = None

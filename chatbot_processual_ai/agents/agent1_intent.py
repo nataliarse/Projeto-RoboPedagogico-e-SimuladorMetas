@@ -4,6 +4,7 @@ import unicodedata
 from typing import Any
 
 from ollama_client import OllamaError, generate_text
+from progress import ProgressReporter, progress_clock, report_progress
 from prompts.agent1_prompt import AGENT1_SYSTEM_PROMPT, build_agent1_prompt
 
 
@@ -231,19 +232,64 @@ def extract_process_number(message: str) -> str | None:
     return None
 
 
-def interpret_user_message(message: str) -> dict:
+def interpret_user_message(
+    message: str,
+    progress_reporter: ProgressReporter | None = None,
+) -> dict:
     process_number = extract_process_number(message)
     inferred_intent = _infer_intent(message, process_number)
 
     if inferred_intent is not None:
+        report_progress(
+            progress_reporter,
+            code="intent.local",
+            level="success",
+            message="intencao resolvida por regras locais.",
+            details={
+                "intent": inferred_intent,
+                "uses_model": False,
+            },
+        )
         return _build_response(inferred_intent, process_number, message)
 
+    model_started_at = progress_clock()
     try:
         prompt = build_agent1_prompt(message, process_number)
+        report_progress(
+            progress_reporter,
+            code="intent.model.started",
+            level="started",
+            message="consultando modelo local para entender a mensagem...",
+            details={"uses_model": True},
+        )
         response = generate_text(prompt, system_prompt=AGENT1_SYSTEM_PROMPT)
         parsed_response = _parse_model_json(response)
-        return _validate_model_response(parsed_response, message, process_number)
-    except (OllamaError, ValueError, TypeError, json.JSONDecodeError):
+        validated_response = _validate_model_response(
+            parsed_response,
+            message,
+            process_number,
+        )
+        report_progress(
+            progress_reporter,
+            code="intent.model.finished",
+            level="success",
+            message="modelo local retornou uma interpretacao valida.",
+            details={"uses_model": True},
+            started_at=model_started_at,
+        )
+        return validated_response
+    except (OllamaError, ValueError, TypeError, json.JSONDecodeError) as exc:
+        report_progress(
+            progress_reporter,
+            code="intent.model.fallback",
+            level="warning",
+            message="modelo local indisponivel para interpretacao; usando fallback seguro.",
+            details={
+                "fallback": True,
+                "error_type": type(exc).__name__,
+            },
+            started_at=model_started_at,
+        )
         return _fallback_response(process_number)
 
 

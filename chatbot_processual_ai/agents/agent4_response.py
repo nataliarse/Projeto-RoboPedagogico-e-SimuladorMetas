@@ -4,6 +4,7 @@ import unicodedata
 from typing import Any
 
 from ollama_client import OllamaError, generate_text
+from progress import ProgressReporter, progress_clock, report_progress
 from prompts.agent4_prompt import AGENT4_SYSTEM_PROMPT, build_agent4_prompt
 
 
@@ -24,6 +25,7 @@ ALLOWED_QUESTION_FOCUS = {
     "pending_issues",
     "timeline_before_event",
     "latest_movement",
+    "earliest_movement",
     "document_content",
     "legal_concept_with_case_context",
     "generic_process_question",
@@ -118,16 +120,38 @@ MAX_RESPONSE_LENGTH = 3000
 def create_user_response(
     message: str,
     analysis_data: dict,
+    progress_reporter: ProgressReporter | None = None,
 ) -> str:
     normalized = _normalize_analysis(analysis_data)
     safe_message = _string_value(message)
 
     if _requires_deterministic_response(normalized):
+        report_progress(
+            progress_reporter,
+            code="response.local",
+            level="success",
+            message="resposta final montada por regras locais.",
+            details={
+                "response_mode": "local",
+                "uses_model": False,
+            },
+        )
         return _fallback_response(normalized, safe_message)
 
     if not _ollama_rewrite_enabled():
+        report_progress(
+            progress_reporter,
+            code="response.local",
+            level="success",
+            message="resposta final montada por regras locais.",
+            details={
+                "response_mode": "local",
+                "uses_model": False,
+            },
+        )
         return _fallback_response(normalized, safe_message)
 
+    model_started_at = progress_clock()
     try:
         prompt = build_agent4_prompt(
             message=safe_message,
@@ -139,9 +163,36 @@ def create_user_response(
             limitations=normalized["limitations"],
             response_focus=normalized["response_focus"],
         )
+        report_progress(
+            progress_reporter,
+            code="response.model.started",
+            level="started",
+            message="consultando modelo local para redigir a resposta...",
+            details={"uses_model": True},
+        )
         response = generate_text(prompt, system_prompt=AGENT4_SYSTEM_PROMPT)
-        return _validate_model_response(response)
-    except (OllamaError, ValueError, TypeError):
+        validated_response = _validate_model_response(response)
+        report_progress(
+            progress_reporter,
+            code="response.model.finished",
+            level="success",
+            message="modelo local retornou a resposta final.",
+            details={"uses_model": True},
+            started_at=model_started_at,
+        )
+        return validated_response
+    except (OllamaError, ValueError, TypeError) as exc:
+        report_progress(
+            progress_reporter,
+            code="response.model.fallback",
+            level="warning",
+            message="modelo local indisponivel para redacao; usando resposta segura.",
+            details={
+                "fallback": True,
+                "error_type": type(exc).__name__,
+            },
+            started_at=model_started_at,
+        )
         return _fallback_response(normalized, safe_message)
 
 
@@ -300,6 +351,9 @@ def _fallback_response(analysis: dict, message: str = "") -> str:
     if question_focus == "timeline_before_event":
         return _compose_timeline_before_event_response(analysis)
 
+    if question_focus == "earliest_movement":
+        return _compose_earliest_movement_response(analysis)
+
     if question_focus == "legal_concept_with_case_context":
         return _compose_legal_concept_with_case_context_response(analysis)
 
@@ -425,6 +479,28 @@ def _compose_timeline_before_event_response(analysis: dict) -> str:
     complement = movement.get("complement", "")
     if complement:
         sentence += f", com o complemento \"{complement}\""
+
+    return _ensure_sentence(sentence)
+
+
+def _compose_earliest_movement_response(analysis: dict) -> str:
+    fact = (
+        _fact_by_label(analysis["facts"], "primeira", "movimentacao")
+        or _fact_by_label(analysis["facts"], "movimentacao", "antiga")
+    )
+    movement = _parse_movement_fact(fact["value"]) if fact else {}
+    description = movement.get("description", "")
+    if not description:
+        return _join_parts_or_default([analysis["explanation"]])
+
+    sentence = f'A movimentação mais antiga disponível é "{description}"'
+    date = movement.get("date", "")
+    if date:
+        sentence += f", em {date}"
+
+    complement = movement.get("complement", "")
+    if complement:
+        sentence += f', com o complemento "{complement}"'
 
     return _ensure_sentence(sentence)
 

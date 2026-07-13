@@ -2,6 +2,7 @@ import re
 import unicodedata
 
 from collector_adapter import find_process_by_number
+from progress import ProgressReporter, progress_clock, report_progress
 from services.process_query_router import route_process_query
 from services.rag_retriever import retrieve_rag_context
 
@@ -63,19 +64,49 @@ def build_context_and_collect(
     message: str,
     intent_data: dict,
     session_state: dict,
+    progress_reporter: ProgressReporter | None = None,
 ) -> dict:
     intent = intent_data.get("intent")
     process_number = intent_data.get("process_number")
     transported_intent_data = dict(intent_data)
 
     _register_conversation_entry(message, intent, session_state)
+    report_progress(
+        progress_reporter,
+        code="context.conversation",
+        level="success",
+        message="historico recente atualizado.",
+        details={"conversation_entries": len(session_state.get("conversation", []))},
+    )
 
     collection_status = "not_needed"
     if intent == "process_lookup":
         if _should_use_active_process(message, process_number, session_state):
             transported_intent_data["intent"] = "process_question"
+            report_progress(
+                progress_reporter,
+                code="context.active_reused",
+                level="success",
+                message="processo ativo reaproveitado para a pergunta.",
+                details={"collection_status": collection_status},
+            )
         else:
+            lookup_started_at = progress_clock()
+            report_progress(
+                progress_reporter,
+                code="context.lookup.started",
+                level="started",
+                message="consultando base local do processo...",
+            )
             collection_status = _handle_process_lookup(process_number, session_state)
+            report_progress(
+                progress_reporter,
+                code="context.lookup.finished",
+                level=_collection_status_level(collection_status),
+                message=_collection_status_message(collection_status),
+                details={"collection_status": collection_status},
+                started_at=lookup_started_at,
+            )
 
     active_process = session_state.get("active_process") or {}
     query_route = route_process_query(
@@ -83,10 +114,21 @@ def build_context_and_collect(
         transported_intent_data.get("intent"),
         bool(active_process),
     )
+    report_progress(
+        progress_reporter,
+        code="route.finished",
+        level="success",
+        message=_route_message(query_route.route, query_route.requires_rag),
+        details={
+            "route": query_route.route,
+            "requires_rag": query_route.requires_rag,
+        },
+    )
     rag_context = retrieve_rag_context(
         query=message,
         process_number=_active_process_number(active_process),
         requires_rag=query_route.requires_rag,
+        progress_reporter=progress_reporter,
     )
 
     return {
@@ -121,6 +163,33 @@ def _handle_process_lookup(process_number: str | None, session_state: dict) -> s
     session_state["active_process"] = process
     session_state["last_intent"] = "process_lookup"
     return "success"
+
+
+def _collection_status_level(collection_status: str) -> str:
+    if collection_status in {"success", "already_active", "not_needed"}:
+        return "success"
+    return "warning"
+
+
+def _collection_status_message(collection_status: str) -> str:
+    messages = {
+        "success": "processo localizado na base local.",
+        "already_active": "processo informado ja estava ativo.",
+        "missing_number": "numero de processo ausente ou incompleto.",
+        "not_found": "processo nao encontrado na base local.",
+        "not_needed": "consulta local nao necessaria.",
+    }
+    return messages.get(collection_status, "coleta concluida.")
+
+
+def _route_message(route: str, requires_rag: bool) -> str:
+    if requires_rag:
+        return "rota definida: busca semantica sera consultada."
+    if route == "missing_process":
+        return "rota definida: pergunta depende de processo ativo."
+    if route == "out_of_scope":
+        return "rota definida: pedido fora do escopo processual."
+    return "rota definida: dados estruturados sao suficientes."
 
 
 def _register_conversation_entry(

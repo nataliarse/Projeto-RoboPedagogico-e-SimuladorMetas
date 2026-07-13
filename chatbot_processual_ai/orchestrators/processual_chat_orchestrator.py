@@ -5,6 +5,7 @@ from agents.agent1_intent import interpret_user_message
 from agents.agent2_context_collection import build_context_and_collect
 from agents.agent3_process_analysis import analyze_process_context
 from agents.agent4_response import create_user_response
+from progress import ProgressReporter, progress_clock, report_progress
 from schemas.processual_contracts import ProcessualChatResponse, ProcessualChatStepResult
 
 
@@ -17,22 +18,130 @@ PROCESSUAL_CHAT_RESPONSE_TYPE = "processual_chat"
 def run_processual_chat_step(
     message: str,
     session_state: dict,
+    progress_reporter: ProgressReporter | None = None,
 ) -> ProcessualChatStepResult:
     intent_data: dict = {}
     context_data: dict = {}
     analysis: dict = {}
     stage = "Agente 1"
+    stage_code = "intent"
+    stage_started_at: float | None = None
 
     try:
-        intent_data = interpret_user_message(message)
+        stage_started_at = progress_clock()
+        report_progress(
+            progress_reporter,
+            code="intent.started",
+            level="started",
+            message="entendendo a pergunta...",
+        )
+        intent_data = interpret_user_message(
+            message,
+            progress_reporter=progress_reporter,
+        )
+        report_progress(
+            progress_reporter,
+            code="intent.finished",
+            level="success",
+            message="intencao identificada.",
+            details={
+                "intent": intent_data.get("intent"),
+                "confidence": intent_data.get("confidence"),
+            },
+            started_at=stage_started_at,
+        )
+
         stage = "Agente 2"
-        context_data = build_context_and_collect(message, intent_data, session_state)
+        stage_code = "context"
+        stage_started_at = progress_clock()
+        report_progress(
+            progress_reporter,
+            code="context.started",
+            level="started",
+            message="localizando contexto do processo...",
+        )
+        context_data = build_context_and_collect(
+            message,
+            intent_data,
+            session_state,
+            progress_reporter=progress_reporter,
+        )
+        report_progress(
+            progress_reporter,
+            code="context.finished",
+            level="success",
+            message="contexto preparado.",
+            details={
+                "collection_status": context_data.get("collection_status"),
+                "has_active_process": bool(context_data.get("active_process")),
+                "rag_status": _rag_status(context_data),
+            },
+            started_at=stage_started_at,
+        )
+
         stage = "Agente 3"
+        stage_code = "analysis"
+        stage_started_at = progress_clock()
+        report_progress(
+            progress_reporter,
+            code="analysis.started",
+            level="started",
+            message="analisando informacoes disponiveis...",
+        )
         analysis_message = _message_for_process_analysis(message, intent_data)
-        analysis = analyze_process_context(analysis_message, context_data)
+        analysis = analyze_process_context(
+            analysis_message,
+            context_data,
+            progress_reporter=progress_reporter,
+        )
+        report_progress(
+            progress_reporter,
+            code="analysis.finished",
+            level="success",
+            message="analise concluida.",
+            details={
+                "analysis_type": analysis.get("analysis_type"),
+                "question_focus": analysis.get("question_focus"),
+                "facts_count": _safe_len(analysis.get("facts")),
+                "limitations_count": _safe_len(analysis.get("limitations")),
+            },
+            started_at=stage_started_at,
+        )
+
         stage = "Agente 4"
-        response = create_user_response(message, analysis)
-    except Exception:
+        stage_code = "response"
+        stage_started_at = progress_clock()
+        report_progress(
+            progress_reporter,
+            code="response.started",
+            level="started",
+            message="montando resposta final...",
+        )
+        response = create_user_response(
+            message,
+            analysis,
+            progress_reporter=progress_reporter,
+        )
+        report_progress(
+            progress_reporter,
+            code="response.finished",
+            level="success",
+            message="resposta pronta.",
+            details={"response_length": len(response)},
+            started_at=stage_started_at,
+        )
+    except Exception as exc:
+        report_progress(
+            progress_reporter,
+            code=f"{stage_code}.failed",
+            level="error",
+            message="falha controlada; preparando resposta segura.",
+            details={
+                "failed_stage": stage,
+                "error_type": type(exc).__name__,
+            },
+            started_at=stage_started_at,
+        )
         return ProcessualChatStepResult(
             response=_build_processual_chat_response(
                 intent_data=intent_data,
@@ -123,6 +232,12 @@ def _rag_sources(context_data: dict) -> list[dict]:
         return []
 
     return [source for source in sources if isinstance(source, dict)]
+
+
+def _safe_len(value: object) -> int:
+    if isinstance(value, list):
+        return len(value)
+    return 0
 
 
 def _active_process_number(context_data: dict, session_state: dict) -> str | None:

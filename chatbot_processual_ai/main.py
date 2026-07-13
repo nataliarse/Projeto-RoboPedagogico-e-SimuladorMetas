@@ -32,6 +32,8 @@ from ollama_client import (
     set_runtime_model,
 )
 from orchestrators.processual_chat_orchestrator import run_processual_chat_step
+from progress import ProgressReporter
+from schemas.processual_contracts import ProcessProgressEvent
 from session_state import create_session_state
 from system_resources import get_system_resources
 
@@ -82,6 +84,32 @@ INFO_STYLE = "cyan"
 SUCCESS_STYLE = "bold green"
 WARNING_STYLE = "yellow"
 TRACE_STYLE = "magenta"
+PROGRESS_TRACE_DETAIL_KEYS = {
+    "analysis_type",
+    "chunks_count",
+    "collection_status",
+    "confidence",
+    "conversation_entries",
+    "error_type",
+    "facts_count",
+    "failed_stage",
+    "fallback",
+    "has_active_process",
+    "intent",
+    "limitations_count",
+    "question_focus",
+    "rag_status",
+    "requires_rag",
+    "response_length",
+    "response_mode",
+    "results_count",
+    "route",
+    "sources_count",
+    "synced_chunks",
+    "top_k",
+    "uses_model",
+    "vector_size",
+}
 
 
 def _print_plain(message: str, style: str, *, stderr: bool = False) -> None:
@@ -119,6 +147,70 @@ def _print_warning(message: str) -> None:
 
 def _print_trace(message: str) -> None:
     _print_plain(message, TRACE_STYLE)
+
+
+def _progress_styles_for_level(level: str) -> tuple[str, str]:
+    styles = {
+        "started": ("bold cyan", "cyan"),
+        "success": ("bold green", "green"),
+        "warning": ("bold yellow", "yellow"),
+        "error": ("bold red", "bold red"),
+    }
+    return styles.get(level, ("bold cyan", "cyan"))
+
+
+def _build_chat_progress_reporter(trace_enabled: bool) -> ProgressReporter:
+    def _report(event: ProcessProgressEvent) -> None:
+        _print_progress_event(event, trace_enabled=trace_enabled)
+
+    return _report
+
+
+def _print_progress_event(
+    event: ProcessProgressEvent,
+    *,
+    trace_enabled: bool,
+) -> None:
+    label_style, message_style = _progress_styles_for_level(event.level)
+    _print_prefixed("Fluxo", event.message, label_style, message_style)
+
+    if not trace_enabled:
+        return
+
+    trace_details = _format_progress_trace_details(event)
+    if trace_details:
+        _print_trace(trace_details)
+
+
+def _format_progress_trace_details(event: ProcessProgressEvent) -> str:
+    parts = [f"codigo={event.code}"]
+    for key in sorted(event.details):
+        if key not in PROGRESS_TRACE_DETAIL_KEYS:
+            continue
+
+        value = _safe_progress_detail_value(event.details.get(key))
+        if value:
+            parts.append(f"{key}={value}")
+
+    if event.elapsed_ms is not None:
+        parts.append(f"tempo_ms={event.elapsed_ms}")
+
+    return "  " + " | ".join(parts)
+
+
+def _safe_progress_detail_value(value: object) -> str:
+    if isinstance(value, bool):
+        return _format_yes_no(value)
+    if isinstance(value, (int, float)):
+        return str(value)
+    if isinstance(value, str):
+        text = value.replace("\n", " ").replace("\r", " ").strip()
+        if len(text) > 80:
+            text = text[:77].rstrip() + "..."
+        return text
+    if value is None:
+        return "null"
+    return ""
 
 
 def _print_agent(message: str) -> None:
@@ -622,9 +714,11 @@ def _run_chat() -> None:
                     model_trace_printed = True
             continue
 
+        progress_reporter = _build_chat_progress_reporter(trace_enabled)
         intent_data, context_data, analysis, response, failed_stage = _run_chat_step(
             message,
             session_state,
+            progress_reporter=progress_reporter,
         )
         _print_agent(response)
         _register_assistant_message(response, session_state)
@@ -642,8 +736,13 @@ def _run_chat() -> None:
 def _run_chat_step(
     message: str,
     session_state: dict,
+    progress_reporter: ProgressReporter | None = None,
 ) -> tuple[dict, dict, dict, str, str | None]:
-    result = run_processual_chat_step(message, session_state)
+    result = run_processual_chat_step(
+        message,
+        session_state,
+        progress_reporter=progress_reporter,
+    )
     return (
         result.intent_data,
         result.context_data,
@@ -707,10 +806,28 @@ def _print_chat_trace(
     _print_trace(
         f"Collection status: {_safe_trace_text(context_data.get('collection_status'))}"
     )
+    query_route = context_data.get("query_route")
+    if isinstance(query_route, dict):
+        _print_trace(f"Route: {_safe_trace_text(query_route.get('route'))}")
+        _print_trace(
+            f"Requires RAG: {_format_yes_no(query_route.get('requires_rag'))}"
+        )
+
+    rag_context = context_data.get("rag_context")
+    if isinstance(rag_context, dict):
+        sources = rag_context.get("sources")
+        chunks = rag_context.get("chunks")
+        _print_trace(f"RAG status: {_safe_trace_text(rag_context.get('status'))}")
+        _print_trace(f"RAG chunks: {_safe_count(chunks)}")
+        _print_trace(f"RAG fontes: {_safe_count(sources)}")
+
     _print_trace(
         f"Processo ativo: {_active_process_number_for_trace(context_data, session_state)}"
     )
     _print_trace(f"Analysis type: {_safe_trace_text(analysis.get('analysis_type'))}")
+    _print_trace(f"Question focus: {_safe_trace_text(analysis.get('question_focus'))}")
+    _print_trace(f"Fatos: {_safe_count(analysis.get('facts'))}")
+    _print_trace(f"Limitacoes: {_safe_count(analysis.get('limitations'))}")
 
 
 def _active_process_number_for_trace(context_data: dict, session_state: dict) -> str:
@@ -767,6 +884,12 @@ def _safe_trace_text(value: object) -> str:
     if isinstance(value, str) and value.strip():
         return value.strip()
     return "unknown"
+
+
+def _safe_count(value: object) -> int:
+    if isinstance(value, list):
+        return len(value)
+    return 0
 
 
 def _force_deterministic_model_fallbacks() -> None:

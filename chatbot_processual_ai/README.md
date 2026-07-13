@@ -80,9 +80,9 @@ python main.py
 python main.py --chat
 ```
 
-Use `sair`, `exit` ou `quit` para encerrar a conversa. Digite `--trace` durante o chat para ligar ou desligar o modo de depuração seguro.
+Use `sair`, `exit` ou `quit` para encerrar a conversa. Durante cada pergunta, o terminal mostra logs coloridos de progresso com o prefixo `Fluxo:` para indicar que a resposta esta passando pelas etapas internas. Digite `--trace` durante o chat para ligar ou desligar o modo de depuracao seguro.
 
-Ao iniciar o chat, o sistema consulta os modelos ja instalados no Ollama e escolhe um modelo local compativel com a RAM disponivel, sem baixar modelos e sem alterar `.env`. Detalhes tecnicos de modelo e recursos aparecem somente no diagnostico ou no modo `--trace`.
+Ao iniciar o chat, o sistema consulta os modelos ja instalados no Ollama e escolhe um modelo local compativel com a RAM disponivel, sem baixar modelos e sem alterar `.env`. Detalhes tecnicos de modelo, recursos, rota, RAG e tempos aparecem somente no diagnostico ou no modo `--trace`.
 
 ## API HTTP
 

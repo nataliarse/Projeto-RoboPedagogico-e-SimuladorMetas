@@ -53,6 +53,7 @@ Tratamento por question_focus:
 - process_overview: responda curto, com situacao processual, ultima movimentacao e um contexto relevante.
 - current_status: use situacao processual e ultima movimentacao, sem afirmar efeito juridico adicional.
 - timeline_before_event: responda somente a movimentacao imediatamente anterior ao target_event.
+- earliest_movement: responda somente a movimentacao mais antiga disponivel.
 - legal_concept_with_case_context: separe explicacao juridica geral e registro especifico encontrado no processo.
 - document_content: informe a limitacao do teor da decisao e nao exiba id_documento.
 - generic_process_question: responda com cautela sem usar frases como "a pergunta foi tratada" ou "dados gerais".
