@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from services.process_query_resolver import FIELD_LABELS
 from services.text_normalization import clean_text
 
 
@@ -57,6 +58,24 @@ def chunk_text(
 
 def build_process_chunks(process: dict) -> list[ProcessChunk]:
     chunks: list[ProcessChunk] = []
+    process_data = _dict_value(process.get("processo"))
+
+    for field_key, label in FIELD_LABELS.items():
+        value = _format_process_field_value(field_key, process_data.get(field_key))
+        if not value:
+            continue
+
+        chunks.append(
+            ProcessChunk(
+                source_type="process_field",
+                source_id=field_key,
+                chunk_index=0,
+                text=f"{label}: {value}",
+                title=label,
+                date=_date_only(value) if field_key == "data_autuacao" else None,
+                content_kind="structured_field",
+            )
+        )
 
     for index, movement in enumerate(_list_value(process.get("movimentacoes"))):
         if not isinstance(movement, dict):
@@ -132,6 +151,21 @@ def _label_value(label: str, value: Any) -> str:
     return f"{label}: {text}"
 
 
+def _format_process_field_value(field_key: str, value: Any) -> str:
+    if value is None:
+        return ""
+    if field_key == "valor_causa":
+        try:
+            amount = float(value)
+        except (TypeError, ValueError):
+            return clean_text(value)
+
+        formatted = f"{amount:,.2f}"
+        formatted = formatted.replace(",", "#").replace(".", ",").replace("#", ".")
+        return f"R$ {formatted}"
+    return clean_text(value)
+
+
 def _date_only(value: Any) -> str | None:
     text = clean_text(value)
     if not text:
@@ -143,3 +177,7 @@ def _date_only(value: Any) -> str | None:
 
 def _list_value(value: Any) -> list:
     return value if isinstance(value, list) else []
+
+
+def _dict_value(value: Any) -> dict:
+    return value if isinstance(value, dict) else {}

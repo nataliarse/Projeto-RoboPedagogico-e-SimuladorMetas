@@ -56,6 +56,8 @@ Tratamento por question_focus:
 - earliest_movement: responda somente a movimentacao mais antiga disponivel.
 - legal_concept_with_case_context: separe explicacao juridica geral e registro especifico encontrado no processo.
 - document_content: informe a limitacao do teor da decisao e nao exiba id_documento.
+- case_value: informe somente o valor da causa registrado, sem atualizar ou inferir valores.
+- structured_field: informe somente o campo estruturado solicitado.
 - generic_process_question: responda com cautela sem usar frases como "a pergunta foi tratada" ou "dados gerais".
 - parties: liste somente tipo e nome das partes, uma vez cada.
 - pending_issues: responda objetivamente sem repetir explicacao e sem mencionar o nome tecnico do campo.

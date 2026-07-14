@@ -9,7 +9,7 @@ Retorne somente JSON valido, sem markdown, sem explicacoes externas e sem texto 
 Formato obrigatorio:
 {
   "analysis_type": "process_summary | process_question | legal_general_explanation | missing_process_context | insufficient_data | greeting | out_of_scope | unclear",
-  "question_focus": "process_overview | current_status | parties | pending_issues | timeline_before_event | latest_movement | earliest_movement | document_content | legal_concept_with_case_context | generic_process_question",
+  "question_focus": "process_overview | current_status | parties | pending_issues | timeline_before_event | latest_movement | earliest_movement | document_content | case_value | structured_field | legal_concept_with_case_context | generic_process_question",
   "target_event": "string ou null",
   "facts": [
     {
@@ -47,6 +47,8 @@ Focos:
 - latest_movement: pergunta sobre a ultima movimentacao.
 - earliest_movement: pergunta sobre a primeira movimentacao ou movimentacao mais antiga.
 - document_content: pergunta sobre teor, resultado ou favorecido de sentenca/decisao/documento.
+- case_value: pergunta sobre o valor da causa registrado no processo.
+- structured_field: pergunta sobre campo estruturado especifico do processo, como assunto, classe, orgao julgador ou data de autuacao.
 - legal_concept_with_case_context: pergunta sobre conceito juridico aplicado ao processo ativo; target_event deve indicar o conceito/evento quando houver.
 - generic_process_question: pergunta processual sem foco especifico claro.
 """.strip()

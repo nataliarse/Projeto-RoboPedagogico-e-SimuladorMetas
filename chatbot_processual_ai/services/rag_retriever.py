@@ -5,6 +5,10 @@ from typing import Any
 from config import RAG_ENABLED, RAG_MIN_SCORE, RAG_TOP_K
 from progress import ProgressReporter, progress_clock, report_progress
 from services.embedding_service import EmbeddingError, generate_embedding
+from services.process_query_resolver import (
+    TARGET_DOCUMENT_CONTENT,
+    resolve_process_query,
+)
 from services.process_repository import get_chunks_for_process, update_chunk_vector_id
 from services.qdrant_vector_store import (
     QdrantError,
@@ -148,6 +152,7 @@ def retrieve_rag_context(
             top_k=RAG_TOP_K,
             min_score=RAG_MIN_SCORE,
         )
+        results = _rerank_results(query, results)
         report_progress(
             progress_reporter,
             code="rag.search.finished",
@@ -250,6 +255,118 @@ def _sync_process_chunks(process_number: str, chunks: list[dict[str, Any]]) -> N
             update_chunk_vector_id(chunk_id, point_id)
 
 
+def _rerank_results(query: str, results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not results:
+        return []
+
+    query_spec = resolve_process_query(query)
+    query_terms = _query_terms(query)
+    ranked = []
+
+    for index, result in enumerate(results):
+        if not isinstance(result, dict):
+            continue
+
+        score = _safe_score(result.get("score"))
+        score += _rerank_bonus(result, query_spec, query_terms)
+        ranked.append((score, index, result))
+
+    ranked.sort(key=lambda item: (-item[0], item[1]))
+    reranked_results = []
+    for score, _index, result in ranked:
+        reranked = dict(result)
+        reranked["rerank_score"] = score
+        reranked_results.append(reranked)
+
+    return reranked_results
+
+
+def _rerank_bonus(
+    result: dict[str, Any],
+    query_spec: Any,
+    query_terms: set[str],
+) -> float:
+    payload = result.get("payload")
+    if not isinstance(payload, dict):
+        return 0.0
+
+    source_type = str(payload.get("source_type") or "")
+    source_id = str(payload.get("source_id") or "")
+    content_kind = str(payload.get("content_kind") or "")
+    searchable = _searchable_payload_text(payload)
+    bonus = 0.0
+
+    field_key = getattr(query_spec, "field_key", None)
+    if field_key:
+        if source_type == "process_field" and source_id == field_key:
+            bonus += 0.50
+        elif field_key in source_id or field_key.replace("_", " ") in searchable:
+            bonus += 0.20
+        if content_kind == "structured_field":
+            bonus += 0.20
+
+    if getattr(query_spec, "target", None) == TARGET_DOCUMENT_CONTENT:
+        if source_type == "document":
+            bonus += 0.12
+        if content_kind == "full_text":
+            bonus += 0.25
+
+    term_matches = sum(1 for term in query_terms if term in searchable)
+    bonus += min(0.18, term_matches * 0.03)
+    return bonus
+
+
+def _query_terms(query: str) -> set[str]:
+    import re
+    import unicodedata
+
+    normalized = unicodedata.normalize("NFD", str(query or "").lower())
+    normalized = "".join(
+        character
+        for character in normalized
+        if unicodedata.category(character) != "Mn"
+    )
+    stopwords = {
+        "a",
+        "ao",
+        "da",
+        "de",
+        "do",
+        "e",
+        "me",
+        "o",
+        "os",
+        "qual",
+        "que",
+    }
+    return {
+        token
+        for token in re.findall(r"[a-z0-9]+", normalized)
+        if len(token) > 2 and token not in stopwords
+    }
+
+
+def _searchable_payload_text(payload: dict[str, Any]) -> str:
+    import unicodedata
+
+    text = " ".join(
+        str(payload.get(field) or "")
+        for field in ("source_type", "source_id", "title", "content_kind", "text")
+    ).lower()
+    decomposed = unicodedata.normalize("NFD", text)
+    return "".join(
+        character
+        for character in decomposed
+        if unicodedata.category(character) != "Mn"
+    )
+
+
+def _safe_score(value: Any) -> float:
+    if isinstance(value, (int, float)):
+        return float(value)
+    return 0.0
+
+
 def _count_text_chunks(chunks: list[dict[str, Any]]) -> int:
     return len([chunk for chunk in chunks if str(chunk.get("text") or "").strip()])
 
@@ -264,7 +381,7 @@ def _chunk_from_result(result: dict[str, Any]) -> dict[str, Any]:
         return {}
 
     return {
-        "score": result.get("score"),
+        "score": result.get("rerank_score", result.get("score")),
         "text": text,
         "source_type": payload.get("source_type"),
         "source_id": payload.get("source_id"),

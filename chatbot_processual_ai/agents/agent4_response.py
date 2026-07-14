@@ -26,7 +26,10 @@ ALLOWED_QUESTION_FOCUS = {
     "timeline_before_event",
     "latest_movement",
     "earliest_movement",
+    "first_and_latest_movement",
     "document_content",
+    "case_value",
+    "structured_field",
     "legal_concept_with_case_context",
     "generic_process_question",
 }
@@ -198,8 +201,16 @@ def create_user_response(
 
 def _requires_deterministic_response(analysis: dict) -> bool:
     return analysis["analysis_type"] == "greeting" or analysis["question_focus"] in {
+        "case_value",
+        "current_status",
+        "earliest_movement",
+        "first_and_latest_movement",
+        "latest_movement",
         "parties",
         "pending_issues",
+        "process_overview",
+        "structured_field",
+        "timeline_before_event",
     }
 
 
@@ -351,14 +362,26 @@ def _fallback_response(analysis: dict, message: str = "") -> str:
     if question_focus == "timeline_before_event":
         return _compose_timeline_before_event_response(analysis)
 
+    if question_focus == "latest_movement":
+        return _compose_latest_movement_response(analysis)
+
     if question_focus == "earliest_movement":
         return _compose_earliest_movement_response(analysis)
+
+    if question_focus == "first_and_latest_movement":
+        return _compose_first_and_latest_movement_response(analysis)
 
     if question_focus == "legal_concept_with_case_context":
         return _compose_legal_concept_with_case_context_response(analysis)
 
     if question_focus == "document_content":
         return _compose_document_content_response(analysis)
+
+    if question_focus == "case_value":
+        return _compose_case_value_response(analysis)
+
+    if question_focus == "structured_field":
+        return _compose_structured_field_response(analysis)
 
     if (
         question_focus == "generic_process_question"
@@ -461,6 +484,22 @@ def _compose_pending_issues_response(analysis: dict) -> str:
     return "Não há informação suficiente disponível para responder sobre pendências."
 
 
+def _compose_case_value_response(analysis: dict) -> str:
+    value = _fact_value_by_label(analysis["facts"], "valor", "causa")
+    if value:
+        return f"O valor da causa informado é {value}."
+
+    return "Não há valor da causa informado nos dados consultados."
+
+
+def _compose_structured_field_response(analysis: dict) -> str:
+    fact_lines = _format_fact_lines(analysis["facts"])
+    if fact_lines:
+        return "\n".join(fact_lines)
+
+    return _join_parts_or_default([analysis["explanation"]])
+
+
 def _compose_timeline_before_event_response(analysis: dict) -> str:
     fact = _fact_by_label(analysis["facts"], "movimentacao", "anterior")
     movement = _parse_movement_fact(fact["value"]) if fact else {}
@@ -479,6 +518,25 @@ def _compose_timeline_before_event_response(analysis: dict) -> str:
     complement = movement.get("complement", "")
     if complement:
         sentence += f", com o complemento \"{complement}\""
+
+    return _ensure_sentence(sentence)
+
+
+def _compose_latest_movement_response(analysis: dict) -> str:
+    fact = _fact_by_label(analysis["facts"], "ultima", "movimentacao")
+    movement = _parse_movement_fact(fact["value"]) if fact else {}
+    description = movement.get("description", "")
+    if not description:
+        return _join_parts_or_default([analysis["explanation"]])
+
+    sentence = f'A ultima movimentacao disponivel e "{description}"'
+    date = movement.get("date", "")
+    if date:
+        sentence += f", em {date}"
+
+    complement = movement.get("complement", "")
+    if complement:
+        sentence += f', com o complemento "{complement}"'
 
     return _ensure_sentence(sentence)
 
@@ -503,6 +561,46 @@ def _compose_earliest_movement_response(analysis: dict) -> str:
         sentence += f', com o complemento "{complement}"'
 
     return _ensure_sentence(sentence)
+
+
+def _compose_first_and_latest_movement_response(analysis: dict) -> str:
+    first_fact = (
+        _fact_by_label(analysis["facts"], "primeira", "movimentacao")
+        or _fact_by_label(analysis["facts"], "movimentacao", "antiga")
+    )
+    latest_fact = _fact_by_label(analysis["facts"], "ultima", "movimentacao")
+
+    lines = []
+    first_line = _movement_labeled_line(first_fact, "Primeira")
+    if first_line:
+        lines.append(first_line)
+
+    latest_line = _movement_labeled_line(latest_fact, "Ultima")
+    if latest_line:
+        lines.append(latest_line)
+
+    if lines:
+        return "\n".join(lines)
+
+    return _join_parts_or_default([analysis["explanation"]])
+
+
+def _movement_labeled_line(fact: dict[str, str] | None, label: str) -> str:
+    movement = _parse_movement_fact(fact["value"]) if fact else {}
+    description = movement.get("description", "")
+    if not description:
+        return ""
+
+    line = f'- {label}: "{description}"'
+    date = movement.get("date", "")
+    if date:
+        line += f", em {date}"
+
+    complement = movement.get("complement", "")
+    if complement:
+        line += f', com o complemento "{complement}"'
+
+    return _ensure_sentence(line)
 
 
 def _compose_legal_concept_with_case_context_response(analysis: dict) -> str:

@@ -14,6 +14,7 @@ from services.process_repository import (
     get_chunks_for_process,
     ingest_processes,
 )
+from services.process_query_resolver import resolve_process_query
 from services.process_query_router import route_process_query
 from services.qdrant_vector_store import QdrantError
 from services.rag_retriever import retrieve_rag_context
@@ -40,6 +41,18 @@ class RagBaseTestCase(unittest.TestCase):
 
     def _cleanup_db_file(self) -> None:
         self.db_path.unlink(missing_ok=True)
+
+    def _session_with_active_process(self) -> dict:
+        ingest_processes(
+            self.sample_processes,
+            source_name="unit-test",
+        )
+        active_process = find_process_by_number("0011000-82.1981.5.18.0051")
+        return {
+            "conversation": [],
+            "active_process": active_process,
+            "last_intent": "process_lookup",
+        }
 
     def test_sqlite_ingestion_is_idempotent_and_sanitized(self) -> None:
         first = ingest_processes(
@@ -73,9 +86,19 @@ class RagBaseTestCase(unittest.TestCase):
         self.assertGreaterEqual(len(chunks), 1)
         self.assertTrue(all(chunk["text"] for chunk in chunks))
         self.assertTrue(
-            all(chunk["source_type"] in {"movement", "document"} for chunk in chunks)
+            all(
+                chunk["source_type"] in {"movement", "document", "process_field"}
+                for chunk in chunks
+            )
         )
-        self.assertTrue(all(chunk["content_kind"] == "metadata" for chunk in chunks))
+        self.assertTrue(
+            all(
+                chunk["content_kind"] in {"metadata", "structured_field"}
+                for chunk in chunks
+            )
+        )
+        self.assertTrue(any(chunk["source_type"] == "process_field" for chunk in chunks))
+        self.assertTrue(any(chunk["content_kind"] == "structured_field" for chunk in chunks))
 
     def test_rag_unavailable_does_not_raise(self) -> None:
         ingest_processes(
@@ -168,8 +191,273 @@ class RagBaseTestCase(unittest.TestCase):
             )
 
         self.assertIsNone(result.response.failed_stage)
+        self.assertEqual(result.context_data["query_route"]["route"], "rag")
+        self.assertTrue(result.context_data["query_route"]["requires_rag"])
         self.assertEqual(result.response.rag_status, "unavailable")
         self.assertIn("teor", result.response.resposta.lower())
+
+    def test_chat_answers_case_value_from_active_process_without_rag(self) -> None:
+        ingest_processes(
+            self.sample_processes,
+            source_name="unit-test",
+        )
+        session_state = {"conversation": []}
+
+        with patch(
+            "agents.agent3_process_analysis.generate_text",
+            side_effect=OllamaError("offline"),
+        ), patch(
+            "agents.agent4_response._ollama_rewrite_enabled",
+            return_value=False,
+        ):
+            first_result = run_processual_chat_step(
+                "Consulte o processo 0011000-82.1981.5.18.0051",
+                session_state,
+            )
+            result = run_processual_chat_step(
+                "me diga então o valor causa",
+                session_state,
+            )
+
+        self.assertIsNone(first_result.response.failed_stage)
+        self.assertIsNone(result.response.failed_stage)
+        self.assertEqual(result.response.intent, "process_question")
+        self.assertEqual(result.context_data["query_route"]["route"], "structured")
+        self.assertFalse(result.context_data["query_route"]["requires_rag"])
+        self.assertEqual(result.response.rag_status, "not_needed")
+        self.assertEqual(result.analysis["question_focus"], "case_value")
+        self.assertIn("R$ 15.430,75", result.response.resposta)
+        self.assertNotIn("BAIXADO", result.response.resposta)
+
+    def test_value_described_question_uses_case_value_without_model(self) -> None:
+        session_state = self._session_with_active_process()
+
+        with patch(
+            "agents.agent1_intent.generate_text",
+            side_effect=AssertionError("Agente 1 nao deveria chamar Ollama."),
+        ) as agent1_generate, patch(
+            "agents.agent3_process_analysis.generate_text",
+            side_effect=AssertionError("Agente 3 nao deveria chamar Ollama."),
+        ) as agent3_generate, patch(
+            "agents.agent4_response.generate_text",
+            side_effect=AssertionError("Agente 4 nao deveria chamar Ollama."),
+        ) as agent4_generate, patch(
+            "agents.agent4_response._ollama_rewrite_enabled",
+            return_value=True,
+        ):
+            result = run_processual_chat_step(
+                "qual o valor descrito nesse processo?",
+                session_state,
+            )
+
+        self.assertIsNone(result.response.failed_stage)
+        self.assertEqual(result.response.intent, "process_question")
+        self.assertEqual(result.context_data["query_route"]["route"], "structured")
+        self.assertFalse(result.context_data["query_route"]["requires_rag"])
+        self.assertEqual(result.response.rag_status, "not_needed")
+        self.assertEqual(result.analysis["question_focus"], "case_value")
+        self.assertIn("R$ 15.430,75", result.response.resposta)
+        agent1_generate.assert_not_called()
+        agent3_generate.assert_not_called()
+        agent4_generate.assert_not_called()
+
+    def test_case_value_question_still_works_without_model(self) -> None:
+        session_state = self._session_with_active_process()
+
+        with patch(
+            "agents.agent1_intent.generate_text",
+            side_effect=AssertionError("Agente 1 nao deveria chamar Ollama."),
+        ) as agent1_generate, patch(
+            "agents.agent3_process_analysis.generate_text",
+            side_effect=AssertionError("Agente 3 nao deveria chamar Ollama."),
+        ) as agent3_generate, patch(
+            "agents.agent4_response.generate_text",
+            side_effect=AssertionError("Agente 4 nao deveria chamar Ollama."),
+        ) as agent4_generate, patch(
+            "agents.agent4_response._ollama_rewrite_enabled",
+            return_value=True,
+        ):
+            result = run_processual_chat_step(
+                "qual o valor da causa?",
+                session_state,
+            )
+
+        self.assertIsNone(result.response.failed_stage)
+        self.assertEqual(result.context_data["query_route"]["route"], "structured")
+        self.assertFalse(result.context_data["query_route"]["requires_rag"])
+        self.assertEqual(result.analysis["question_focus"], "case_value")
+        self.assertIn("R$ 15.430,75", result.response.resposta)
+        agent1_generate.assert_not_called()
+        agent3_generate.assert_not_called()
+        agent4_generate.assert_not_called()
+
+    def test_parties_question_uses_structured_data_without_model(self) -> None:
+        session_state = self._session_with_active_process()
+
+        with patch(
+            "agents.agent1_intent.generate_text",
+            side_effect=AssertionError("Agente 1 nao deveria chamar Ollama."),
+        ) as agent1_generate, patch(
+            "agents.agent3_process_analysis.generate_text",
+            side_effect=AssertionError("Agente 3 nao deveria chamar Ollama."),
+        ) as agent3_generate, patch(
+            "agents.agent4_response.generate_text",
+            side_effect=AssertionError("Agente 4 nao deveria chamar Ollama."),
+        ) as agent4_generate, patch(
+            "agents.agent4_response._ollama_rewrite_enabled",
+            return_value=True,
+        ):
+            result = run_processual_chat_step(
+                "quais sao as partes interessadas?",
+                session_state,
+            )
+
+        self.assertIsNone(result.response.failed_stage)
+        self.assertEqual(result.context_data["query_route"]["route"], "structured")
+        self.assertFalse(result.context_data["query_route"]["requires_rag"])
+        self.assertEqual(result.response.rag_status, "not_needed")
+        self.assertEqual(result.analysis["question_focus"], "parties")
+        self.assertIn("JO", result.response.resposta)
+        self.assertIn("IND", result.response.resposta)
+        agent1_generate.assert_not_called()
+        agent3_generate.assert_not_called()
+        agent4_generate.assert_not_called()
+
+    def test_pending_question_uses_structured_data_without_model(self) -> None:
+        session_state = self._session_with_active_process()
+
+        with patch(
+            "agents.agent1_intent.generate_text",
+            side_effect=AssertionError("Agente 1 nao deveria chamar Ollama."),
+        ) as agent1_generate, patch(
+            "agents.agent3_process_analysis.generate_text",
+            side_effect=AssertionError("Agente 3 nao deveria chamar Ollama."),
+        ) as agent3_generate, patch(
+            "agents.agent4_response.generate_text",
+            side_effect=AssertionError("Agente 4 nao deveria chamar Ollama."),
+        ) as agent4_generate, patch(
+            "agents.agent4_response._ollama_rewrite_enabled",
+            return_value=True,
+        ):
+            result = run_processual_chat_step(
+                "existe alguma pendencia?",
+                session_state,
+            )
+
+        self.assertIsNone(result.response.failed_stage)
+        self.assertEqual(result.context_data["query_route"]["route"], "structured")
+        self.assertFalse(result.context_data["query_route"]["requires_rag"])
+        self.assertEqual(result.response.rag_status, "not_needed")
+        self.assertEqual(result.analysis["question_focus"], "pending_issues")
+        self.assertIn("pend", result.response.resposta.lower())
+        agent1_generate.assert_not_called()
+        agent3_generate.assert_not_called()
+        agent4_generate.assert_not_called()
+
+    def test_direct_case_value_question_loads_process_and_does_not_summarize(self) -> None:
+        ingest_processes(
+            self.sample_processes,
+            source_name="unit-test",
+        )
+        session_state = {"conversation": []}
+
+        with patch(
+            "agents.agent3_process_analysis.generate_text",
+            side_effect=OllamaError("offline"),
+        ), patch(
+            "agents.agent4_response._ollama_rewrite_enabled",
+            return_value=False,
+        ):
+            result = run_processual_chat_step(
+                "do processo 0011000-82.1981.5.18.0051 qual o valor informado?",
+                session_state,
+            )
+
+        self.assertIsNone(result.response.failed_stage)
+        self.assertEqual(result.response.intent, "process_question")
+        self.assertEqual(result.response.collection_status, "success")
+        self.assertEqual(result.context_data["query_route"]["route"], "structured")
+        self.assertEqual(result.analysis["question_focus"], "case_value")
+        self.assertIn("O valor da causa informado é R$ 15.430,75.", result.response.resposta)
+        self.assertNotIn("Arquivado definitivamente", result.response.resposta)
+
+    def test_case_value_concept_without_active_process_stays_general(self) -> None:
+        session_state = {"conversation": []}
+
+        with patch(
+            "agents.agent3_process_analysis.generate_text",
+            side_effect=OllamaError("offline"),
+        ), patch(
+            "agents.agent4_response._ollama_rewrite_enabled",
+            return_value=False,
+        ):
+            result = run_processual_chat_step(
+                "o que significa valor da causa?",
+                session_state,
+            )
+
+        self.assertIsNone(result.response.failed_stage)
+        self.assertEqual(result.response.intent, "legal_general_question")
+        self.assertEqual(result.analysis["analysis_type"], "legal_general_explanation")
+        self.assertNotEqual(result.analysis["question_focus"], "case_value")
+        self.assertIn("valor da causa", result.response.resposta.lower())
+
+    def test_rag_rerank_prioritizes_structured_field_match(self) -> None:
+        process_field_payload = {
+            "payload": {
+                "numero_processo": "00110008219815180051",
+                "source_type": "process_field",
+                "source_id": "valor_causa",
+                "chunk_index": 0,
+                "title": "Valor da causa",
+                "date": None,
+                "content_kind": "structured_field",
+                "text_hash": "value-hash",
+                "text": "Valor da causa: R$ 15.430,75",
+            },
+            "score": 0.61,
+        }
+        movement_payload = {
+            "payload": {
+                "numero_processo": "00110008219815180051",
+                "source_type": "movement",
+                "source_id": "4",
+                "chunk_index": 0,
+                "title": "Arquivado definitivamente",
+                "date": "1984-02-05",
+                "content_kind": "metadata",
+                "text_hash": "movement-hash",
+                "text": "Movimentacao: Arquivado definitivamente.",
+            },
+            "score": 0.89,
+        }
+
+        with patch(
+            "services.rag_retriever.RAG_ENABLED",
+            True,
+        ), patch(
+            "services.rag_retriever.get_chunks_for_process",
+            return_value=[_sample_chunk()],
+        ), patch(
+            "services.rag_retriever.generate_embedding",
+            return_value=[0.1, 0.2],
+        ), patch(
+            "services.rag_retriever.ensure_collection",
+        ), patch(
+            "services.rag_retriever._sync_process_chunks",
+        ), patch(
+            "services.rag_retriever.search_points",
+            return_value=[movement_payload, process_field_payload],
+        ):
+            context = retrieve_rag_context(
+                query="qual o valor da causa?",
+                process_number="0011000-82.1981.5.18.0051",
+                requires_rag=True,
+            )
+
+        self.assertEqual(context["status"], "success")
+        self.assertEqual(context["chunks"][0]["source_type"], "process_field")
+        self.assertEqual(context["chunks"][0]["source_id"], "valor_causa")
 
     def test_recent_movement_question_uses_structured_route(self) -> None:
         route = route_process_query(
@@ -180,6 +468,23 @@ class RagBaseTestCase(unittest.TestCase):
 
         self.assertEqual(route.route, "structured")
         self.assertFalse(route.requires_rag)
+
+    def test_document_value_question_keeps_document_route(self) -> None:
+        query_spec = resolve_process_query(
+            "qual o valor descrito na sentenca?",
+            has_active_process=True,
+        )
+        route = route_process_query(
+            "qual o valor descrito na sentenca?",
+            "process_question",
+            has_active_process=True,
+            process_query_spec=query_spec,
+        )
+
+        self.assertEqual(query_spec.target, "document_content")
+        self.assertTrue(query_spec.requires_rag)
+        self.assertEqual(route.route, "rag")
+        self.assertTrue(route.requires_rag)
 
     def test_chat_answers_earliest_movement_from_structured_data(self) -> None:
         ingest_processes(
@@ -214,6 +519,54 @@ class RagBaseTestCase(unittest.TestCase):
         self.assertIn("Distribu", result.response.resposta)
         self.assertIn("12/03/1981", result.response.resposta)
         self.assertNotIn("05/02/1984", result.response.resposta)
+
+    def test_chat_answers_first_and_latest_movement_without_model(self) -> None:
+        session_state = self._session_with_active_process()
+
+        with patch(
+            "agents.agent1_intent.generate_text",
+            side_effect=AssertionError("Agente 1 nao deveria chamar Ollama."),
+        ) as agent1_generate, patch(
+            "agents.agent3_process_analysis.generate_text",
+            side_effect=AssertionError("Agente 3 nao deveria chamar Ollama."),
+        ) as agent3_generate, patch(
+            "agents.agent4_response.generate_text",
+            side_effect=AssertionError("Agente 4 nao deveria chamar Ollama."),
+        ) as agent4_generate, patch(
+            "agents.agent4_response._ollama_rewrite_enabled",
+            return_value=True,
+        ):
+            result = run_processual_chat_step(
+                "qual a primeira e ultima movimentacao?",
+                session_state,
+            )
+
+        self.assertIsNone(result.response.failed_stage)
+        self.assertEqual(result.context_data["query_route"]["route"], "structured")
+        self.assertFalse(result.context_data["query_route"]["requires_rag"])
+        self.assertEqual(result.response.rag_status, "not_needed")
+        self.assertEqual(result.analysis["question_focus"], "first_and_latest_movement")
+        self.assertIn("Distribu", result.response.resposta)
+        self.assertIn("12/03/1981", result.response.resposta)
+        self.assertIn("Arquivado definitivamente", result.response.resposta)
+        self.assertIn("05/02/1984", result.response.resposta)
+        agent1_generate.assert_not_called()
+        agent3_generate.assert_not_called()
+        agent4_generate.assert_not_called()
+
+
+def _sample_chunk() -> dict:
+    return {
+        "id": 1,
+        "source_type": "document",
+        "source_id": "1",
+        "chunk_index": 0,
+        "title": "Sentenca",
+        "date": "1982-08-15",
+        "content_kind": "metadata",
+        "text_hash": "hash",
+        "text": "Documento de sentenca registrado em 1982.",
+    }
 
 
 if __name__ == "__main__":

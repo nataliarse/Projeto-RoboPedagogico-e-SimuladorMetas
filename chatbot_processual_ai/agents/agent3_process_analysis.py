@@ -7,6 +7,12 @@ from typing import Any
 from ollama_client import OllamaError, generate_text
 from progress import ProgressReporter, progress_clock, report_progress
 from prompts.agent3_prompt import AGENT3_SYSTEM_PROMPT, build_agent3_prompt
+from services.process_query_resolver import (
+    detect_structured_field_key,
+    field_label,
+    is_structured_process_spec,
+    process_query_spec_from_dict,
+)
 
 
 ALLOWED_ANALYSIS_TYPES = {
@@ -27,7 +33,10 @@ ALLOWED_QUESTION_FOCUS = {
     "timeline_before_event",
     "latest_movement",
     "earliest_movement",
+    "first_and_latest_movement",
     "document_content",
+    "case_value",
+    "structured_field",
     "legal_concept_with_case_context",
     "generic_process_question",
 }
@@ -43,6 +52,21 @@ NON_MODEL_ANALYSIS_TYPES = {
     "greeting",
     "out_of_scope",
     "unclear",
+}
+LOCAL_STRUCTURED_QUESTION_FOCUS = {
+    "process_overview",
+    "case_value",
+    "structured_field",
+    "parties",
+    "pending_issues",
+    "latest_movement",
+    "earliest_movement",
+    "first_and_latest_movement",
+    "current_status",
+    "timeline_before_event",
+    "documents",
+    "subject",
+    "court",
 }
 FACT_SOURCE_RE = re.compile(
     r"^(processo|partes_interessadas|movimentacoes|documentos|pendencias|coleta)"
@@ -69,6 +93,7 @@ def analyze_process_context(
     if not isinstance(active_process, dict):
         active_process = {}
 
+    query_spec = _process_query_spec(context_data)
     sanitized_process = _sanitize_process_for_model(active_process)
     analysis_type = _target_analysis_type(intent, active_process, context_data)
     fallback = _build_deterministic_analysis(
@@ -76,6 +101,7 @@ def analyze_process_context(
         analysis_type,
         context_data,
         sanitized_process,
+        query_spec,
     )
     fallback = _normalize_analysis_output(fallback)
 
@@ -85,6 +111,19 @@ def analyze_process_context(
             code="analysis.local",
             level="success",
             message="analise estruturada preparada com o contexto recuperado.",
+            details={
+                "analysis_type": fallback.get("analysis_type"),
+                "uses_model": False,
+            },
+        )
+        return fallback
+
+    if _should_use_local_analysis(context_data, query_spec, fallback):
+        report_progress(
+            progress_reporter,
+            code="analysis.local",
+            level="success",
+            message="analise resolvida por regras locais.",
             details={
                 "analysis_type": fallback.get("analysis_type"),
                 "uses_model": False,
@@ -183,6 +222,37 @@ def _route_requires_rag(context_data: dict) -> bool:
     return bool(query_route.get("requires_rag"))
 
 
+def _process_query_spec(context_data: dict):
+    if not isinstance(context_data, dict):
+        return process_query_spec_from_dict(None)
+    return process_query_spec_from_dict(context_data.get("process_query_spec"))
+
+
+def _should_use_local_analysis(
+    context_data: dict,
+    query_spec: object,
+    fallback: dict,
+) -> bool:
+    if not _route_is_structured_without_rag(context_data):
+        return False
+
+    question_focus = fallback.get("question_focus")
+    if question_focus in LOCAL_STRUCTURED_QUESTION_FOCUS:
+        return True
+
+    return is_structured_process_spec(query_spec)
+
+
+def _route_is_structured_without_rag(context_data: dict) -> bool:
+    query_route = context_data.get("query_route")
+    if not isinstance(query_route, dict):
+        return False
+    return (
+        query_route.get("route") == "structured"
+        and not bool(query_route.get("requires_rag"))
+    )
+
+
 def _target_analysis_type(
     intent: Any,
     active_process: dict,
@@ -198,6 +268,8 @@ def _target_analysis_type(
         return "insufficient_data"
 
     if intent == "process_question":
+        if collection_status in {"missing_number", "not_found"}:
+            return "insufficient_data"
         if _has_active_process(active_process):
             return "process_question"
         return "missing_process_context"
@@ -224,6 +296,7 @@ def _build_deterministic_analysis(
     analysis_type: str,
     context_data: dict,
     process: dict,
+    query_spec: object | None = None,
 ) -> dict:
     if analysis_type == "process_summary":
         return _process_summary_analysis(process)
@@ -234,6 +307,7 @@ def _build_deterministic_analysis(
             process,
             _recent_conversation(context_data),
             _rag_context(context_data),
+            query_spec,
         )
 
     if analysis_type == "legal_general_explanation":
@@ -344,8 +418,15 @@ def _process_question_analysis(
     process: dict,
     conversation: list | None = None,
     rag_context: dict | None = None,
+    query_spec: object | None = None,
 ) -> dict:
     normalized = _normalize_text(message)
+    normalized_spec = process_query_spec_from_dict(query_spec)
+
+    if is_structured_process_spec(normalized_spec):
+        if normalized_spec.field_key == "valor_causa":
+            return _case_value_question_analysis(process)
+        return _structured_field_question_analysis(process, normalized_spec.field_key)
 
     if _is_process_overview_question(normalized):
         return _process_summary_analysis(process)
@@ -372,7 +453,10 @@ def _process_question_analysis(
     if "arquiv" in normalized:
         return _archive_question_analysis(process)
 
-    if "moviment" in normalized and _has_any(normalized, {"ultima", "recente"}):
+    if "moviment" in normalized and _is_first_and_latest_movement_question(normalized):
+        return _first_and_latest_movement_question_analysis(process)
+
+    if "moviment" in normalized and _is_latest_movement_question(normalized):
         return _latest_movement_question_analysis(process)
 
     if "moviment" in normalized and _is_earliest_movement_question(normalized):
@@ -399,6 +483,9 @@ def _looks_like_active_process_question(message: Any) -> bool:
     normalized = _normalize_text(message)
     if not normalized:
         return False
+
+    if detect_structured_field_key(normalized):
+        return True
 
     if (
         _is_process_overview_question(normalized)
@@ -453,6 +540,24 @@ def _is_earliest_movement_question(normalized_message: str) -> bool:
         "inicio",
     )
     return any(marker in normalized_message for marker in earliest_markers)
+
+
+def _is_latest_movement_question(normalized_message: str) -> bool:
+    latest_markers = (
+        "mais recente",
+        "ultima",
+        "ultimo",
+        "recente",
+        "final",
+    )
+    return any(marker in normalized_message for marker in latest_markers)
+
+
+def _is_first_and_latest_movement_question(normalized_message: str) -> bool:
+    return (
+        _is_earliest_movement_question(normalized_message)
+        and _is_latest_movement_question(normalized_message)
+    )
 
 
 def _is_legal_concept_with_case_context_question(normalized_message: str) -> bool:
@@ -585,6 +690,66 @@ def _pending_question_analysis(process: dict) -> dict:
         "explanation": explanation,
         "limitations": limitations,
         "response_focus": "Responder somente com base no campo pendencias da coleta.",
+    }
+
+
+def _case_value_question_analysis(process: dict) -> dict:
+    process_data = _dict_value(process.get("processo"))
+    raw_value = process_data.get("valor_causa")
+    facts: list[dict[str, str]] = []
+
+    formatted_value = _format_brl_currency(raw_value)
+    _add_fact(facts, "Valor da causa", formatted_value, "processo.valor_causa")
+
+    if formatted_value:
+        explanation = "O valor da causa foi lido diretamente do campo estruturado do processo."
+        limitations = [
+            "O valor informado nao inclui atualizacao monetaria, juros ou qualquer inferencia historica."
+        ]
+    else:
+        explanation = "Os dados disponiveis nao trouxeram valor da causa para o processo ativo."
+        limitations = ["Sem o campo processo.valor_causa, nao e possivel informar o valor da causa."]
+
+    return {
+        "analysis_type": "process_question",
+        "question_focus": "case_value",
+        "target_event": None,
+        "facts": facts,
+        "explanation": explanation,
+        "limitations": limitations,
+        "response_focus": "Informar somente o valor da causa registrado no processo, sem corrigir ou inferir valores.",
+    }
+
+
+def _structured_field_question_analysis(process: dict, field_key: str | None) -> dict:
+    if field_key == "situacao":
+        return _situation_question_analysis(process)
+    if field_key == "valor_causa":
+        return _case_value_question_analysis(process)
+
+    process_data = _dict_value(process.get("processo"))
+    value = process_data.get(field_key or "")
+    facts: list[dict[str, str]] = []
+    label = field_label(field_key)
+    formatted_value = _format_structured_field_value(field_key, value)
+    source = f"processo.{field_key}" if field_key else "processo"
+    _add_fact(facts, label, formatted_value, source)
+
+    if formatted_value:
+        explanation = f"O campo {label} foi lido diretamente dos dados estruturados do processo."
+        limitations = ["A resposta usa somente o valor registrado na base local."]
+    else:
+        explanation = f"Os dados disponiveis nao trouxeram o campo {label} para o processo ativo."
+        limitations = [f"Sem o campo {source}, nao e possivel responder com precisao."]
+
+    return {
+        "analysis_type": "process_question",
+        "question_focus": "structured_field",
+        "target_event": None,
+        "facts": facts,
+        "explanation": explanation,
+        "limitations": limitations,
+        "response_focus": "Informar somente o campo estruturado solicitado.",
     }
 
 
@@ -812,6 +977,54 @@ def _latest_movement_question_analysis(process: dict) -> dict:
         "explanation": explanation,
         "limitations": limitations,
         "response_focus": "Informar a movimentação mais recente disponível na coleta.",
+    }
+
+
+def _first_and_latest_movement_question_analysis(process: dict) -> dict:
+    facts: list[dict[str, str]] = []
+    earliest = _earliest_movement(process)
+    latest = _latest_movement(process)
+
+    if earliest is not None:
+        index, movement = earliest
+        _add_fact(
+            facts,
+            "Primeira movimentacao",
+            _movement_summary(movement),
+            f"movimentacoes[{index}]",
+        )
+
+    if latest is not None:
+        index, movement = latest
+        _add_fact(
+            facts,
+            "Ultima movimentacao",
+            _movement_summary(movement),
+            f"movimentacoes[{index}]",
+        )
+
+    if facts:
+        explanation = (
+            "A primeira e a ultima movimentacao foram identificadas pela ordem "
+            "disponivel nos dados."
+        )
+        limitations = [
+            "A analise depende da ordenacao e dos dados de movimentacao fornecidos."
+        ]
+    else:
+        explanation = "Os dados nao trouxeram movimentacoes para o processo ativo."
+        limitations = [
+            "Nao ha movimentacoes disponiveis para identificar a primeira e a ultima movimentacao."
+        ]
+
+    return {
+        "analysis_type": "process_question",
+        "question_focus": "first_and_latest_movement",
+        "target_event": None,
+        "facts": facts,
+        "explanation": explanation,
+        "limitations": limitations,
+        "response_focus": "Informar a primeira e a ultima movimentacao disponiveis nos dados.",
     }
 
 
@@ -1283,10 +1496,40 @@ def _format_value(value: Any) -> str:
     return str(value)
 
 
+def _format_brl_currency(value: Any) -> str:
+    if value is None:
+        return ""
+
+    try:
+        amount = float(value)
+    except (TypeError, ValueError):
+        return _format_value(value)
+
+    formatted = f"{amount:,.2f}"
+    formatted = formatted.replace(",", "#").replace(".", ",").replace("#", ".")
+    return f"R$ {formatted}"
+
+
+def _format_structured_field_value(field_key: str | None, value: Any) -> str:
+    if field_key == "valor_causa":
+        return _format_brl_currency(value)
+    if field_key == "data_autuacao":
+        return _format_date_display(value)
+    return _format_value(value)
+
+
 def _format_date(value: Any) -> str:
     text = _format_value(value)
     if "T" in text:
         return text.split("T", 1)[0]
+    return text
+
+
+def _format_date_display(value: Any) -> str:
+    text = _format_date(value)
+    match = re.match(r"^(\d{4})-(\d{2})-(\d{2})$", text)
+    if match:
+        return f"{match.group(3)}/{match.group(2)}/{match.group(1)}"
     return text
 
 
@@ -1435,6 +1678,8 @@ def _standard_limitations(process: dict) -> list[str]:
 
 
 def _detect_legal_concept(normalized_message: str) -> str:
+    if "valor" in normalized_message and "causa" in normalized_message:
+        return "valor_causa"
     if "transito" in normalized_message and "julgado" in normalized_message:
         return "transito_julgado"
     if "arquiv" in normalized_message:
@@ -1469,6 +1714,10 @@ def _legal_concept_explanation(concept: str) -> str:
         "partes_trabalhistas": (
             "Em processos trabalhistas, reclamante costuma ser quem apresenta a "
             "reclamação, e reclamado é quem responde à reclamação."
+        ),
+        "valor_causa": (
+            "Valor da causa e o valor atribuido ao processo para fins processuais. "
+            "Ele nao equivale necessariamente ao valor que sera recebido ou pago."
         ),
         "geral": (
             "A pergunta pede uma explicação jurídico-processual geral, mas o conceito "

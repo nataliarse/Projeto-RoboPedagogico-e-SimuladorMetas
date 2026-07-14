@@ -3,6 +3,10 @@ import unicodedata
 
 from collector_adapter import find_process_by_number
 from progress import ProgressReporter, progress_clock, report_progress
+from services.process_query_resolver import (
+    is_structured_process_spec,
+    resolve_process_query,
+)
 from services.process_query_router import route_process_query
 from services.rag_retriever import retrieve_rag_context
 
@@ -31,13 +35,20 @@ _ACTIVE_PROCESS_REFERENCE_PHRASES = {
 }
 _ACTIVE_PROCESS_REFERENCE_TOKENS = {
     "andamento",
+    "assunto",
+    "autuacao",
+    "causa",
+    "classe",
     "ele",
     "isso",
+    "julgador",
     "movimentacao",
     "movimentacoes",
+    "orgao",
     "recurso",
     "recursos",
     "situacao",
+    "valor",
 }
 _NEW_PROCESS_LOOKUP_PHRASES = {
     "outro processo",
@@ -107,12 +118,39 @@ def build_context_and_collect(
                 details={"collection_status": collection_status},
                 started_at=lookup_started_at,
             )
+    elif intent == "process_question" and _normalize_process_number(process_number):
+        lookup_started_at = progress_clock()
+        report_progress(
+            progress_reporter,
+            code="context.lookup.started",
+            level="started",
+            message="consultando base local do processo...",
+        )
+        collection_status = _handle_process_lookup(process_number, session_state)
+        report_progress(
+            progress_reporter,
+            code="context.lookup.finished",
+            level=_collection_status_level(collection_status),
+            message=_collection_status_message(collection_status),
+            details={"collection_status": collection_status},
+            started_at=lookup_started_at,
+        )
 
     active_process = session_state.get("active_process") or {}
+    query_spec = resolve_process_query(
+        message,
+        process_number=process_number,
+        has_active_process=bool(active_process),
+    )
+    if is_structured_process_spec(query_spec) and active_process:
+        transported_intent_data["intent"] = "process_question"
+    transported_intent_data["process_query_spec"] = query_spec.to_dict()
+
     query_route = route_process_query(
         message,
         transported_intent_data.get("intent"),
         bool(active_process),
+        process_query_spec=query_spec,
     )
     report_progress(
         progress_reporter,
@@ -141,6 +179,7 @@ def build_context_and_collect(
             "reason": query_route.reason,
             "requires_rag": query_route.requires_rag,
         },
+        "process_query_spec": query_spec.to_dict(),
         "rag_context": rag_context,
         "conversation": list(session_state.get("conversation", [])),
     }

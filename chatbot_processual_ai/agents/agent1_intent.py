@@ -6,6 +6,14 @@ from typing import Any
 from ollama_client import OllamaError, generate_text
 from progress import ProgressReporter, progress_clock, report_progress
 from prompts.agent1_prompt import AGENT1_SYSTEM_PROMPT, build_agent1_prompt
+from services.process_query_resolver import (
+    SCOPE_GENERAL,
+    TARGET_GENERIC_PROCESS,
+    TARGET_LEGAL_CONCEPT,
+    is_document_content_spec,
+    is_structured_process_spec,
+    resolve_process_query,
+)
 
 
 ALLOWED_INTENTS = {
@@ -113,6 +121,7 @@ _PROCESS_LOOKUP_CONTEXT = {
 _LEGAL_GENERAL_TERMS = {
     "arquivamento",
     "audiencia",
+    "causa",
     "definitivo",
     "despacho",
     "execucao",
@@ -124,6 +133,7 @@ _LEGAL_GENERAL_TERMS = {
     "recurso",
     "sentenca",
     "transito",
+    "valor",
 }
 _PROCESS_QUESTION_TERMS = {
     "andamento",
@@ -131,6 +141,7 @@ _PROCESS_QUESTION_TERMS = {
     "arquivado",
     "audiencia",
     "causa",
+    "classe",
     "despacho",
     "documento",
     "documentos",
@@ -140,6 +151,7 @@ _PROCESS_QUESTION_TERMS = {
     "movimentacoes",
     "nome",
     "nomes",
+    "orgao",
     "partes",
     "pendencia",
     "pendencias",
@@ -148,6 +160,8 @@ _PROCESS_QUESTION_TERMS = {
     "reclamante",
     "sentenca",
     "situacao",
+    "autuacao",
+    "valor",
     "vinculada",
     "vinculadas",
     "vinculado",
@@ -400,11 +414,17 @@ def _infer_intent(message: str, process_number: str | None) -> str | None:
     token_list = _tokenize(normalized)
     compact = " ".join(token_list)
     tokens = set(token_list)
+    query_spec = resolve_process_query(message, process_number=process_number)
 
     if not compact:
         return "unclear"
 
     if process_number is not None:
+        if (
+            query_spec.scope == "process"
+            and query_spec.target != TARGET_GENERIC_PROCESS
+        ):
+            return "process_question"
         return "process_lookup"
 
     if _is_greeting_message(message):
@@ -413,8 +433,14 @@ def _infer_intent(message: str, process_number: str | None) -> str | None:
     if _is_process_lookup(normalized, token_list, tokens):
         return "process_lookup"
 
+    if query_spec.scope == SCOPE_GENERAL and query_spec.target == TARGET_LEGAL_CONCEPT:
+        return "legal_general_question"
+
     if _is_legal_general_question(compact, tokens):
         return "legal_general_question"
+
+    if is_structured_process_spec(query_spec) or is_document_content_spec(query_spec):
+        return "process_question"
 
     if _is_process_question(message, compact, tokens):
         return "process_question"

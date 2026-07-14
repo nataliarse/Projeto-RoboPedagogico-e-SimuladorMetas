@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from services.process_query_resolver import (
+    SCOPE_PROCESS,
+    TARGET_LEGAL_CONCEPT_WITH_CASE_CONTEXT,
+    is_document_content_spec,
+    is_structured_process_spec,
+    process_query_spec_from_dict,
+)
 from services.text_normalization import normalize_text_for_match
 
 
@@ -23,7 +30,10 @@ def route_process_query(
     message: str,
     intent: str | None,
     has_active_process: bool,
+    process_query_spec: object | None = None,
 ) -> ProcessQueryRoute:
+    query_spec = process_query_spec_from_dict(process_query_spec)
+
     if intent == "out_of_scope":
         return ProcessQueryRoute(
             route=OUT_OF_SCOPE_ROUTE,
@@ -37,6 +47,35 @@ def route_process_query(
             reason="Intencao nao exige recuperacao semantica.",
             requires_rag=False,
         )
+
+    if query_spec.scope == SCOPE_PROCESS and query_spec.target != "unclear":
+        if not has_active_process:
+            return ProcessQueryRoute(
+                route=MISSING_PROCESS_ROUTE,
+                reason="Pergunta depende de processo ativo.",
+                requires_rag=False,
+            )
+
+        if is_structured_process_spec(query_spec):
+            return ProcessQueryRoute(
+                route=STRUCTURED_ROUTE,
+                reason="Pergunta respondida por campo estruturado do processo.",
+                requires_rag=False,
+            )
+
+        if is_document_content_spec(query_spec):
+            return ProcessQueryRoute(
+                route=RAG_ROUTE,
+                reason="Pergunta busca teor ou conteudo textual de documento.",
+                requires_rag=True,
+            )
+
+        if query_spec.target == TARGET_LEGAL_CONCEPT_WITH_CASE_CONTEXT:
+            return ProcessQueryRoute(
+                route=HYBRID_ROUTE,
+                reason="Pergunta combina conceito juridico com contexto do processo.",
+                requires_rag=True,
+            )
 
     if intent == "process_lookup":
         return ProcessQueryRoute(
@@ -90,6 +129,9 @@ def route_process_query(
 
 
 def _looks_like_structured_question(normalized: str) -> bool:
+    if _looks_like_documentary_value_question(normalized):
+        return False
+
     structured_markers = (
         "situacao",
         "aberto",
@@ -110,6 +152,22 @@ def _looks_like_structured_question(normalized: str) -> bool:
         "antes do arquivamento",
         "antes da sentenca",
         "antes do transito",
+        "valor da causa",
+        "valor causa",
+        "valor informado",
+        "valor descrito",
+        "valor registrado",
+        "valor indicado",
+        "valor declarado",
+        "valor desse processo",
+        "valor deste processo",
+        "qual o valor",
+        "assunto",
+        "classe judicial",
+        "classe processual",
+        "orgao julgador",
+        "data de autuacao",
+        "data autuacao",
         "quando foi arquivado",
         "quando ele foi arquivado",
     )
@@ -117,6 +175,9 @@ def _looks_like_structured_question(normalized: str) -> bool:
 
 
 def _looks_like_document_content_question(normalized: str) -> bool:
+    if _looks_like_documentary_value_question(normalized):
+        return True
+
     document_markers = (
         "teor",
         "conteudo",
@@ -124,6 +185,7 @@ def _looks_like_document_content_question(normalized: str) -> bool:
         "sentenca decidiu",
         "decisao decidiu",
         "o que a sentenca decidiu",
+        "o que foi decidido",
         "favoravel",
         "quem ganhou",
         "ganhou",
@@ -131,6 +193,24 @@ def _looks_like_document_content_question(normalized: str) -> bool:
         "fundamentacao",
     )
     return any(marker in normalized for marker in document_markers)
+
+
+def _looks_like_documentary_value_question(normalized: str) -> bool:
+    if "valor" not in normalized:
+        return False
+
+    documentary_markers = (
+        "calculo",
+        "calculos",
+        "conteudo",
+        "decisao",
+        "documento",
+        "fundamentacao",
+        "fundamento",
+        "sentenca",
+        "teor",
+    )
+    return any(marker in normalized for marker in documentary_markers)
 
 
 def _mentions_case_context(message: str) -> bool:
