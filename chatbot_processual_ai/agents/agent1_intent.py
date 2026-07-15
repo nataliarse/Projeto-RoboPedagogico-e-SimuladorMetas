@@ -147,6 +147,8 @@ _PROCESS_QUESTION_TERMS = {
     "documentos",
     "encerrada",
     "encerrado",
+    "historico",
+    "linha",
     "movimentacao",
     "movimentacoes",
     "nome",
@@ -156,10 +158,12 @@ _PROCESS_QUESTION_TERMS = {
     "pendencia",
     "pendencias",
     "pendente",
+    "processo",
     "reclamado",
     "reclamante",
     "sentenca",
     "situacao",
+    "tempo",
     "autuacao",
     "valor",
     "vinculada",
@@ -168,9 +172,19 @@ _PROCESS_QUESTION_TERMS = {
     "vinculados",
 }
 _PROCESS_QUESTION_PHRASES = {
+    "historico do processo",
+    "linha do tempo",
     "situacao atual",
+    "todas as movimentacoes",
     "ultima movimentacao",
+    "ultimas movimentacoes",
     "valor da causa",
+}
+_PROCESS_QUESTION_COMMANDS = {
+    "exiba",
+    "liste",
+    "listar",
+    "mostre",
 }
 _OUT_OF_SCOPE_WORDS = {
     "aleatoria",
@@ -425,6 +439,8 @@ def _infer_intent(message: str, process_number: str | None) -> str | None:
             and query_spec.target != TARGET_GENERIC_PROCESS
         ):
             return "process_question"
+        if _is_process_question(message, compact, tokens):
+            return "process_question"
         return "process_lookup"
 
     if _is_greeting_message(message):
@@ -539,7 +555,12 @@ def _is_process_question(message: str, compact: str, tokens: set[str]) -> bool:
         "quem",
         "tem",
     )
-    has_question_shape = "?" in message or compact.startswith(question_starters)
+    has_question_shape = (
+        "?" in message
+        or compact.startswith(question_starters)
+        or bool(tokens & _PROCESS_QUESTION_COMMANDS)
+        or any(phrase in compact for phrase in _PROCESS_QUESTION_PHRASES)
+    )
     has_process_subject = bool(tokens & _PROCESS_QUESTION_TERMS) or any(
         phrase in compact for phrase in _PROCESS_QUESTION_PHRASES
     )

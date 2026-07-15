@@ -54,6 +54,40 @@ class RagBaseTestCase(unittest.TestCase):
             "last_intent": "process_lookup",
         }
 
+    def _run_active_process_question_without_model(self, message: str):
+        session_state = self._session_with_active_process()
+
+        with patch(
+            "agents.agent1_intent.generate_text",
+            side_effect=AssertionError("Agente 1 nao deveria chamar Ollama."),
+        ) as agent1_generate, patch(
+            "agents.agent3_process_analysis.generate_text",
+            side_effect=AssertionError("Agente 3 nao deveria chamar Ollama."),
+        ) as agent3_generate, patch(
+            "agents.agent4_response.generate_text",
+            side_effect=AssertionError("Agente 4 nao deveria chamar Ollama."),
+        ) as agent4_generate, patch(
+            "agents.agent4_response._ollama_rewrite_enabled",
+            return_value=True,
+        ):
+            result = run_processual_chat_step(message, session_state)
+
+        agent1_generate.assert_not_called()
+        agent3_generate.assert_not_called()
+        agent4_generate.assert_not_called()
+        self.assertIsNone(result.response.failed_stage)
+        self.assertEqual(result.context_data["query_route"]["route"], "structured")
+        self.assertFalse(result.context_data["query_route"]["requires_rag"])
+        self.assertEqual(result.response.rag_status, "not_needed")
+        return result
+
+    def _movement_fact_count(self, result) -> int:
+        return sum(
+            1
+            for fact in result.analysis["facts"]
+            if fact["source"].startswith("movimentacoes[")
+        )
+
     def test_sqlite_ingestion_is_idempotent_and_sanitized(self) -> None:
         first = ingest_processes(
             self.sample_processes,
@@ -486,6 +520,21 @@ class RagBaseTestCase(unittest.TestCase):
         self.assertEqual(route.route, "rag")
         self.assertTrue(route.requires_rag)
 
+    def test_sentence_decision_question_keeps_rag_route(self) -> None:
+        query_spec = resolve_process_query(
+            "o que a sentenca decidiu?",
+            has_active_process=True,
+        )
+        route = route_process_query(
+            "o que a sentenca decidiu?",
+            "process_question",
+            has_active_process=True,
+            process_query_spec=query_spec,
+        )
+
+        self.assertEqual(route.route, "rag")
+        self.assertTrue(route.requires_rag)
+
     def test_chat_answers_earliest_movement_from_structured_data(self) -> None:
         ingest_processes(
             self.sample_processes,
@@ -553,6 +602,69 @@ class RagBaseTestCase(unittest.TestCase):
         agent1_generate.assert_not_called()
         agent3_generate.assert_not_called()
         agent4_generate.assert_not_called()
+
+    def test_chat_answers_latest_movement_without_model(self) -> None:
+        result = self._run_active_process_question_without_model(
+            "qual foi a ultima movimentacao?"
+        )
+
+        self.assertEqual(result.analysis["question_focus"], "latest_movement")
+        self.assertEqual(self._movement_fact_count(result), 1)
+        self.assertIn("Arquivado definitivamente", result.response.resposta)
+        self.assertIn("05/02/1984", result.response.resposta)
+        self.assertNotIn("10/10/1983", result.response.resposta)
+
+    def test_chat_answers_default_recent_movements_without_model(self) -> None:
+        result = self._run_active_process_question_without_model(
+            "quais foram as ultimas movimentacoes?"
+        )
+
+        self.assertEqual(result.analysis["question_focus"], "movement_list")
+        self.assertEqual(self._movement_fact_count(result), 3)
+        self.assertIn("Arquivado definitivamente", result.response.resposta)
+        self.assertIn("10/10/1983", result.response.resposta)
+        self.assertIn("15/08/1982", result.response.resposta)
+        self.assertNotIn("20/05/1981", result.response.resposta)
+        self.assertNotIn("12/03/1981", result.response.resposta)
+
+    def test_chat_answers_requested_recent_movement_count_without_model(self) -> None:
+        result = self._run_active_process_question_without_model(
+            "mostre as 3 movimentacoes mais recentes"
+        )
+
+        self.assertEqual(result.analysis["question_focus"], "movement_list")
+        self.assertEqual(self._movement_fact_count(result), 3)
+        self.assertEqual(result.response.resposta.count("- Movimentacao"), 3)
+
+    def test_chat_answers_all_movements_without_model(self) -> None:
+        result = self._run_active_process_question_without_model(
+            "liste todas as movimentacoes"
+        )
+
+        self.assertEqual(result.analysis["question_focus"], "movement_list")
+        self.assertEqual(self._movement_fact_count(result), 5)
+        self.assertEqual(result.response.resposta.count("- Movimentacao"), 5)
+        self.assertIn("Distribu", result.response.resposta)
+        self.assertIn("Arquivado definitivamente", result.response.resposta)
+
+    def test_chat_answers_movement_timeline_without_model(self) -> None:
+        result = self._run_active_process_question_without_model(
+            "o que aconteceu nesse processo ate agora?"
+        )
+
+        self.assertEqual(result.analysis["question_focus"], "movement_timeline")
+        self.assertEqual(self._movement_fact_count(result), 5)
+        response = result.response.resposta
+        self.assertIn("Linha do tempo", response)
+        dates = [
+            response.find("12/03/1981"),
+            response.find("20/05/1981"),
+            response.find("15/08/1982"),
+            response.find("10/10/1983"),
+            response.find("05/02/1984"),
+        ]
+        self.assertTrue(all(position >= 0 for position in dates))
+        self.assertEqual(dates, sorted(dates))
 
 
 def _sample_chunk() -> dict:

@@ -27,6 +27,8 @@ ALLOWED_QUESTION_FOCUS = {
     "latest_movement",
     "earliest_movement",
     "first_and_latest_movement",
+    "movement_list",
+    "movement_timeline",
     "document_content",
     "case_value",
     "structured_field",
@@ -206,6 +208,8 @@ def _requires_deterministic_response(analysis: dict) -> bool:
         "earliest_movement",
         "first_and_latest_movement",
         "latest_movement",
+        "movement_list",
+        "movement_timeline",
         "parties",
         "pending_issues",
         "process_overview",
@@ -370,6 +374,12 @@ def _fallback_response(analysis: dict, message: str = "") -> str:
 
     if question_focus == "first_and_latest_movement":
         return _compose_first_and_latest_movement_response(analysis)
+
+    if question_focus == "movement_list":
+        return _compose_movement_list_response(analysis)
+
+    if question_focus == "movement_timeline":
+        return _compose_movement_timeline_response(analysis)
 
     if question_focus == "legal_concept_with_case_context":
         return _compose_legal_concept_with_case_context_response(analysis)
@@ -583,6 +593,44 @@ def _compose_first_and_latest_movement_response(analysis: dict) -> str:
         return "\n".join(lines)
 
     return _join_parts_or_default([analysis["explanation"]])
+
+
+def _compose_movement_list_response(analysis: dict) -> str:
+    lines = _movement_fact_lines(analysis["facts"])
+    if not lines:
+        return _join_parts_or_default([analysis["explanation"]])
+
+    parts = ["Movimentacoes:\n\n" + "\n".join(lines)]
+    limitation_text = _movement_cap_limitations_text(analysis["limitations"])
+    if limitation_text:
+        parts.append(limitation_text)
+    return "\n\n".join(parts)
+
+
+def _compose_movement_timeline_response(analysis: dict) -> str:
+    lines = _movement_fact_lines(analysis["facts"])
+    if not lines:
+        return _join_parts_or_default([analysis["explanation"]])
+
+    return "Linha do tempo do processo:\n\n" + "\n".join(lines)
+
+
+def _movement_fact_lines(facts: list[dict[str, str]]) -> list[str]:
+    lines = []
+    for fact in facts:
+        line = _movement_labeled_line(fact, fact["label"])
+        if line:
+            lines.append(line)
+    return lines
+
+
+def _movement_cap_limitations_text(limitations: list[str]) -> str:
+    relevant = []
+    for limitation in limitations:
+        normalized = _normalize_for_match(limitation)
+        if "foram listadas" in normalized or "maximo" in normalized:
+            relevant.append(limitation)
+    return _important_limitations_text(relevant)
 
 
 def _movement_labeled_line(fact: dict[str, str] | None, label: str) -> str:

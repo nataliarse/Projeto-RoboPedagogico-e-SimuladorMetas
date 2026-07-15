@@ -129,8 +129,14 @@ def route_process_query(
 
 
 def _looks_like_structured_question(normalized: str) -> bool:
-    if _looks_like_documentary_value_question(normalized):
+    if (
+        _looks_like_documentary_value_question(normalized)
+        or _looks_like_document_content_question(normalized)
+    ):
         return False
+
+    if _looks_like_movement_structured_question(normalized):
+        return True
 
     structured_markers = (
         "situacao",
@@ -172,6 +178,20 @@ def _looks_like_structured_question(normalized: str) -> bool:
         "quando ele foi arquivado",
     )
     return any(marker in normalized for marker in structured_markers)
+
+
+def _looks_like_movement_structured_question(normalized: str) -> bool:
+    movement_markers = (
+        "movimentacao",
+        "movimentacoes",
+        "historico do processo",
+        "linha do tempo",
+        "o que aconteceu nesse processo",
+        "o que aconteceu neste processo",
+        "o que aconteceu no processo",
+        "o que aconteceu ate agora",
+    )
+    return any(marker in normalized for marker in movement_markers)
 
 
 def _looks_like_document_content_question(normalized: str) -> bool:

@@ -27,11 +27,14 @@ _ACTIVE_PROCESS_REFERENCE_PHRASES = {
     "antes do arquivamento",
     "esse processo",
     "este processo",
+    "historico do processo",
+    "linha do tempo",
     "nesse caso",
     "neste caso",
     "transito em julgado",
     "ultima decisao",
     "ultima movimentacao",
+    "ultimas movimentacoes",
 }
 _ACTIVE_PROCESS_REFERENCE_TOKENS = {
     "andamento",
@@ -40,14 +43,17 @@ _ACTIVE_PROCESS_REFERENCE_TOKENS = {
     "causa",
     "classe",
     "ele",
+    "historico",
     "isso",
     "julgador",
+    "linha",
     "movimentacao",
     "movimentacoes",
     "orgao",
     "recurso",
     "recursos",
     "situacao",
+    "tempo",
     "valor",
 }
 _NEW_PROCESS_LOOKUP_PHRASES = {

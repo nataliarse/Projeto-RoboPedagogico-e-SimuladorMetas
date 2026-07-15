@@ -34,6 +34,8 @@ ALLOWED_QUESTION_FOCUS = {
     "latest_movement",
     "earliest_movement",
     "first_and_latest_movement",
+    "movement_list",
+    "movement_timeline",
     "document_content",
     "case_value",
     "structured_field",
@@ -62,6 +64,8 @@ LOCAL_STRUCTURED_QUESTION_FOCUS = {
     "latest_movement",
     "earliest_movement",
     "first_and_latest_movement",
+    "movement_list",
+    "movement_timeline",
     "current_status",
     "timeline_before_event",
     "documents",
@@ -74,6 +78,8 @@ FACT_SOURCE_RE = re.compile(
 )
 MAX_CONVERSATION_FOR_MODEL = 8
 INTERNAL_TERMS = {"agente", "prompt", "ollama", "json"}
+DEFAULT_RECENT_MOVEMENT_COUNT = 3
+MAX_STRUCTURED_MOVEMENTS = 20
 
 
 def analyze_process_context(
@@ -428,6 +434,9 @@ def _process_question_analysis(
             return _case_value_question_analysis(process)
         return _structured_field_question_analysis(process, normalized_spec.field_key)
 
+    if _is_movement_timeline_question(normalized):
+        return _movement_timeline_question_analysis(process)
+
     if _is_process_overview_question(normalized):
         return _process_summary_analysis(process)
 
@@ -455,6 +464,9 @@ def _process_question_analysis(
 
     if "moviment" in normalized and _is_first_and_latest_movement_question(normalized):
         return _first_and_latest_movement_question_analysis(process)
+
+    if "moviment" in normalized and _is_movement_list_question(normalized):
+        return _movement_list_question_analysis(process, normalized)
 
     if "moviment" in normalized and _is_latest_movement_question(normalized):
         return _latest_movement_question_analysis(process)
@@ -491,6 +503,8 @@ def _looks_like_active_process_question(message: Any) -> bool:
         _is_process_overview_question(normalized)
         or _is_current_status_question(normalized)
         or _is_timeline_before_event_question(normalized)
+        or _is_movement_timeline_question(normalized)
+        or ("moviment" in normalized and _is_movement_list_question(normalized))
         or _is_legal_concept_with_case_context_question(normalized)
         or _is_document_content_question(normalized)
     ):
@@ -558,6 +572,56 @@ def _is_first_and_latest_movement_question(normalized_message: str) -> bool:
         _is_earliest_movement_question(normalized_message)
         and _is_latest_movement_question(normalized_message)
     )
+
+
+def _is_movement_timeline_question(normalized_message: str) -> bool:
+    if _has_any(
+        normalized_message,
+        {"decisao", "documento", "fundamentacao", "fundamento", "sentenca", "teor"},
+    ):
+        return False
+    if "linha do tempo" in normalized_message:
+        return True
+    if "historico" in normalized_message and "processo" in normalized_message:
+        return True
+    return "o que aconteceu" in normalized_message and (
+        "ate agora" in normalized_message
+        or "nesse processo" in normalized_message
+        or "neste processo" in normalized_message
+        or "no processo" in normalized_message
+    )
+
+
+def _is_movement_list_question(normalized_message: str) -> bool:
+    if _is_first_and_latest_movement_question(normalized_message):
+        return False
+    if _is_all_movements_question(normalized_message):
+        return True
+    if _movement_count_from_message(normalized_message) is not None:
+        return True
+    if "movimentacoes" in normalized_message:
+        return True
+    return False
+
+
+def _is_all_movements_question(normalized_message: str) -> bool:
+    return "todas" in normalized_message or "todos" in normalized_message
+
+
+def _movement_count_from_message(normalized_message: str) -> int | None:
+    patterns = (
+        r"\b(?:as|os)?\s*(\d{1,2})\s+moviment",
+        r"\b(?:ultimas?|ultimos?)\s+(\d{1,2})\s+moviment",
+        r"\b(\d{1,2})\s+(?:ultimas?|ultimos?)\s+moviment",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, normalized_message)
+        if not match:
+            continue
+        count = int(match.group(1))
+        if count > 0:
+            return count
+    return None
 
 
 def _is_legal_concept_with_case_context_question(normalized_message: str) -> bool:
@@ -1059,6 +1123,89 @@ def _earliest_movement_question_analysis(process: dict) -> dict:
     }
 
 
+def _movement_list_question_analysis(process: dict, normalized_message: str) -> dict:
+    facts: list[dict[str, str]] = []
+    movements = _ordered_movements(process)
+
+    if not movements:
+        return {
+            "analysis_type": "process_question",
+            "question_focus": "movement_list",
+            "target_event": None,
+            "facts": facts,
+            "explanation": "Os dados nao trouxeram movimentacoes para o processo ativo.",
+            "limitations": ["Nao ha movimentacoes disponiveis para listar."],
+            "response_focus": "Listar movimentacoes disponiveis nos dados estruturados.",
+        }
+
+    limitations = [
+        "A analise depende da ordenacao e dos dados de movimentacao fornecidos."
+    ]
+    if _is_all_movements_question(normalized_message):
+        if len(movements) <= MAX_STRUCTURED_MOVEMENTS:
+            selected = movements
+            explanation = "Foram listadas todas as movimentacoes disponiveis nos dados."
+        else:
+            selected = list(reversed(movements[-MAX_STRUCTURED_MOVEMENTS:]))
+            explanation = (
+                "Ha muitas movimentacoes disponiveis; foram listadas as mais recentes."
+            )
+            limitations.append(
+                f"Ha {len(movements)} movimentacoes; foram listadas as {MAX_STRUCTURED_MOVEMENTS} mais recentes."
+            )
+    else:
+        requested_count = (
+            _movement_count_from_message(normalized_message)
+            or DEFAULT_RECENT_MOVEMENT_COUNT
+        )
+        selected_count = min(requested_count, MAX_STRUCTURED_MOVEMENTS)
+        selected = list(reversed(movements[-selected_count:]))
+        explanation = (
+            f"Foram listadas as {len(selected)} movimentacoes mais recentes disponiveis."
+        )
+        if requested_count > MAX_STRUCTURED_MOVEMENTS:
+            limitations.append(
+                f"O pedido indicou {requested_count} movimentacoes; foram listadas no maximo {MAX_STRUCTURED_MOVEMENTS}."
+            )
+
+    _add_movement_facts(facts, selected)
+
+    return {
+        "analysis_type": "process_question",
+        "question_focus": "movement_list",
+        "target_event": None,
+        "facts": facts,
+        "explanation": explanation,
+        "limitations": limitations,
+        "response_focus": "Listar movimentacoes selecionadas diretamente dos dados estruturados.",
+    }
+
+
+def _movement_timeline_question_analysis(process: dict) -> dict:
+    facts: list[dict[str, str]] = []
+    movements = _ordered_movements(process)
+
+    if movements:
+        _add_movement_facts(facts, movements)
+        explanation = "A linha do tempo foi montada com as movimentacoes em ordem cronologica."
+        limitations = [
+            "A analise usa a ordem das movimentacoes fornecidas nos dados disponiveis."
+        ]
+    else:
+        explanation = "Os dados nao trouxeram movimentacoes para o processo ativo."
+        limitations = ["Nao ha movimentacoes disponiveis para montar linha do tempo."]
+
+    return {
+        "analysis_type": "process_question",
+        "question_focus": "movement_timeline",
+        "target_event": None,
+        "facts": facts,
+        "explanation": explanation,
+        "limitations": limitations,
+        "response_focus": "Apresentar linha do tempo cronologica das movimentacoes estruturadas.",
+    }
+
+
 def _situation_question_analysis(process: dict) -> dict:
     process_data = _dict_value(process.get("processo"))
     facts: list[dict[str, str]] = []
@@ -1484,6 +1631,19 @@ def _add_fact(
             "source": source,
         }
     )
+
+
+def _add_movement_facts(
+    facts: list[dict[str, str]],
+    movements: list[tuple[int, dict]],
+) -> None:
+    for position, (index, movement) in enumerate(movements, start=1):
+        _add_fact(
+            facts,
+            f"Movimentacao {position}",
+            _movement_summary(movement),
+            f"movimentacoes[{index}]",
+        )
 
 
 def _format_value(value: Any) -> str:
