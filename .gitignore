@@ -1,43 +1,81 @@
+# -----------------------------------------------------------------------------
 # Python
+# -----------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *$py.class
-*.pyo
 .Python
 
-# Ambientes virtuais
+# Virtual environments
 .venv/
 venv/
 env/
 ENV/
 
-# Dependencias, builds e pacotes
+# Packaging and build outputs
 build/
 dist/
 downloads/
 eggs/
 .eggs/
-*.egg-info/
 *.egg
+*.egg-info/
 pip-wheel-metadata/
 wheelhouse/
+MANIFEST
 
-# Testes, cobertura e caches de ferramentas
+# Test, coverage and tool caches
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .tox/
 .nox/
+.hypothesis/
+.pyre/
+.pytype/
 .coverage
 .coverage.*
 coverage.xml
 htmlcov/
-.hypothesis/
-.pyre/
-.pytype/
 .ipynb_checkpoints/
 
-# Variaveis de ambiente e segredos locais
+# -----------------------------------------------------------------------------
+# Node.js / Angular / TypeScript
+# -----------------------------------------------------------------------------
+node_modules/
+.angular/
+.cache/
+.parcel-cache/
+.vite/
+out-tsc/
+bazel-out/
+coverage/
+*.tsbuildinfo
+
+# Package-manager caches and diagnostic logs
+.npm/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Frontend test and tooling outputs
+.sass-cache/
+.history/
+__screenshots__/
+connect.lock
+libpeerconnection.log
+testem.log
+typings/
+
+# -----------------------------------------------------------------------------
+# Environment files, credentials and local secrets
+# -----------------------------------------------------------------------------
 .env
 .env.*
 !.env.example
@@ -46,24 +84,28 @@ htmlcov/
 *.key
 *.p12
 *.pfx
+*.jks
+*.keystore
 *.crt
 *.cer
 
-# Dados reais/sensiveis e arquivos gerados pelo chatbot
+# -----------------------------------------------------------------------------
+# Local data and generated application artifacts
+# -----------------------------------------------------------------------------
 chatbot_processual_ai/data/*
 !chatbot_processual_ai/data/
 !chatbot_processual_ai/data/sample_processes.json
 !chatbot_processual_ai/data/README.md
 
-# Logs e arquivos temporarios
 logs/
 *.log
 *.tmp
 *.temp
+*.bak
+*.swp
+*.swo
 tmp/
 temp/
-
-# Saidas locais, modelos e artefatos grandes
 outputs/
 artifacts/
 models/
@@ -71,12 +113,28 @@ checkpoints/
 *.sqlite
 *.sqlite3
 *.db
+*.db-journal
+*.db-shm
+*.db-wal
 
-# IDEs, sistema operacional e ferramentas locais
+# -----------------------------------------------------------------------------
+# Editors, operating systems and local agent configuration
+# -----------------------------------------------------------------------------
 .vscode/
 .idea/
+.project
+.classpath
+.settings/
+.c9/
+*.launch
+*.sublime-workspace
 .agents/
-.codex/
+.codex/*
+!.codex/rules/
+.codex/rules/*
+!.codex/rules/safety.rules
 .DS_Store
+._*
 Thumbs.db
-desktop.ini
+ehthumbs.db
+Desktop.ini

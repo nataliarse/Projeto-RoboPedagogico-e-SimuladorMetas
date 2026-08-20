@@ -1,0 +1,20 @@
+/* You can add global styles to this file, and also import other style files */
+/* src/styles.css */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cor-primaria:  #185FA5;
+  --cor-fundo:     #F8F7F4;
+  --cor-sidebar:   #1a1a2e;
+  --cor-texto:     #2C2C2A;
+  --cor-borda:     #D3D1C7;
+  --raio:          8px;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  height: 100vh;
+  overflow: hidden;
+}

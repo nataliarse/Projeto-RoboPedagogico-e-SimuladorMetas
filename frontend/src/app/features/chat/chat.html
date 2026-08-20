@@ -1,0 +1,89 @@
+<div class="page" [class.dark]="darkMode()">
+  <div class="chat-wrapper">
+
+    <!-- Cabeçalho -->
+    <div class="chat-header">
+      <div class="header-left">
+        <div class="header-icon">⚖️</div>
+        <div class="header-info">
+          <h1>Assistente Jurídico PJE - Robô Orientador de Dados</h1>
+          <span><span class="status-dot"></span>Sistema disponível</span>
+        </div>
+        <div class="badge-mvp">MVP</div>
+      </div>
+      <button class="btn-dark" (click)="toggleDark()" [title]="darkMode() ? 'Modo claro' : 'Modo escuro'">
+        {{ darkMode() ? '☀️' : '🌙' }}
+      </button>
+    </div>
+
+    <!-- Card expansível -->
+    <div class="card-processos" [class.aberto]="cardAberto()">
+      <button class="card-topo" (click)="toggleCard()">
+        <div class="card-topo-left">
+          <span class="card-icone">📋</span>
+          <span class="card-titulo">Últimos Processos Consultados</span>
+        </div>
+        <span class="card-chevron">{{ cardAberto() ? '▲' : '▼' }}</span>
+      </button>
+
+      @if (cardAberto()) {
+        <div class="card-lista">
+          @if (historico().length === 0) {
+            <div class="card-vazio">Nenhum processo consultado ainda.</div>
+          }
+          @for (p of historico(); track p.data_consulta) {
+            <div class="card-item">
+              <div class="card-item-numero">{{ p.numero_processo }}</div>
+              <div class="card-item-data">Consultado em {{ p.data_consulta }}</div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Mensagens -->
+    <div class="mensagens">
+
+      @for (msg of state.mensagens(); track msg.timestamp) {
+        <div class="msg-row" [class.user]="msg.role === 'user'" [class.bot]="msg.role === 'bot'">
+          <div class="avatar" [class.bot-av]="msg.role === 'bot'" [class.user-av]="msg.role === 'user'">
+            {{ msg.role === 'bot' ? '⚖️' : '👤' }}
+          </div>
+          <div class="bolha-wrap">
+            <div class="bolha" [class.user]="msg.role === 'user'" [class.bot]="msg.role === 'bot'">
+              {{ msg.content }}
+            </div>
+            <span class="timestamp">{{ msg.timestamp | date:'HH:mm' }}</span>
+          </div>
+        </div>
+      }
+
+      @if (state.carregando()) {
+        <div class="loading-row">
+          <div class="avatar bot-av">⚖️</div>
+          <div class="loading-bolha">
+            <span class="spinner"></span>
+            Consultando o sistema do governo...
+          </div>
+        </div>
+      }
+
+      <div #fim></div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <textarea
+        [(ngModel)]="texto"
+        (keydown)="onEnter($event)"
+        [disabled]="state.carregando()"
+        placeholder="Informe o número do processo ou sua pergunta..."
+        rows="2">
+      </textarea>
+      <button (click)="enviar()" [disabled]="state.carregando()">
+        Consultar
+      </button>
+    </div>
+
+  </div>
+</div>
