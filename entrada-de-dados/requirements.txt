@@ -1,0 +1,15 @@
+# --- Estruturação / modelagem (pipeline.ipynb) ---
+pandas
+openpyxl
+pydantic>=2
+
+# --- Notebook ---
+jupyter
+ipykernel
+
+# --- Coleta / raspagem (coletor_trt18.py) ---
+# Necessário apenas para raspar de verdade (COLETAR_AGORA = True).
+playwright
+ddddocr
+opencv-python
+numpy
