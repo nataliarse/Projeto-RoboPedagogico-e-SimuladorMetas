@@ -458,93 +458,135 @@ anteriores foram preservados; nenhum código, proxy, CORS ou item P2 foi alterad
 ## INT-P2-001 — Adicionar testes HTTP do endpoint processual
 
 **Status inicial:** `TODO`  
+**Status atual:** `VALIDATED`
 **Dependência:** contrato P1 validado
 
 ### Cobertura mínima
 
-- [ ] request válido retorna HTTP esperado;
-- [ ] estrutura de response respeita contrato;
-- [ ] `session_id` é retornado;
-- [ ] `resultado.resposta` é string utilizável;
-- [ ] `processo_ativo` é retornado após consulta válida;
-- [ ] segunda pergunta com mesma sessão preserva contexto;
-- [ ] mensagens inválidas/vazias seguem política definida;
-- [ ] falha controlada não vaza detalhe sensível.
+- [x] request válido retorna HTTP esperado;
+- [x] estrutura de response respeita contrato;
+- [x] `session_id` é retornado;
+- [x] `resultado.resposta` é string utilizável;
+- [x] `processo_ativo` é retornado após consulta válida;
+- [x] segunda pergunta com mesma sessão preserva contexto;
+- [x] mensagens inválidas/vazias seguem política definida;
+- [x] falha controlada não vaza detalhe sensível.
 
 ### Critério de aceite
 
 - contrato principal tem teste automatizado na camada FastAPI.
+
+**Evidência:** `tests/test_api_processual_chat.py` exerce a aplicação ASGI/FastAPI
+real com quatro cenários determinísticos: response contratual com processo ativo,
+continuidade por `session_id` explícito, payload sem `mensagem` rejeitado com
+`422` e falha controlada `200` sem vazamento do marcador técnico sintético. A
+política de vazio/espaços não foi antecipada e permanece reservada a
+`INT-P2-004`. Teste focado: 4/4; regressão backend: 33/33; `git diff --check`
+aprovado.
 
 ---
 
 ## INT-P2-002 — Isolar sessões de clientes web
 
 **Status inicial:** `TODO`  
+**Status atual:** `VALIDATED`
 **Dependência:** INT-P1-003 + INT-P2-001
 
 ### Ações
 
-- [ ] Substituir fallback global `default` pela estratégia aprovada.
-- [ ] Preservar IDs válidos enviados pelo cliente.
-- [ ] Adicionar testes para duas sessões independentes.
-- [ ] Adicionar teste de continuidade da mesma sessão.
-- [ ] Manter alteração localizada na camada de sessão/API.
+- [x] Substituir fallback global `default` pela estratégia aprovada.
+- [x] Preservar IDs válidos enviados pelo cliente.
+- [x] Adicionar testes para duas sessões independentes.
+- [x] Adicionar teste de continuidade da mesma sessão.
+- [x] Manter alteração localizada na camada de sessão/API.
 
 ### Critério de aceite
 
 - contexto de um cliente não é reutilizado por outro cliente sem ID compartilhado explicitamente.
+
+**Evidência:** `api.py` gera UUID v4 para omissão, `null`, vazio ou apenas
+espaços, preserva IDs explícitos normalizados e mantém `_SESSIONS` em memória.
+Os testes HTTP comprovam IDs e contextos distintos, continuidade do
+`processo_ativo`, preservação de ID explícito e contexto vazio sob o mesmo ID
+após perda do estado. Teste focado: 7/7; regressão backend: 36/36;
+`git diff --check` aprovado.
 
 ---
 
 ## INT-P2-003 — Definir endpoint de saúde mínimo
 
 **Status inicial:** `TODO`  
+**Status atual:** `VALIDATED`
 **Obrigatoriedade:** recomendado para integração saudável; pode ser adiado formalmente
 
 ### Ações
 
-- [ ] Criar `GET /api/health` ou equivalente mínimo.
-- [ ] Não transformar healthcheck em diagnóstico pesado de Ollama/Qdrant a cada chamada.
-- [ ] Retornar apenas estado técnico seguro necessário para disponibilidade da API.
-- [ ] Testar resposta.
+- [x] Criar `GET /api/health` ou equivalente mínimo.
+- [x] Não transformar healthcheck em diagnóstico pesado de Ollama/Qdrant a cada chamada.
+- [x] Retornar apenas estado técnico seguro necessário para disponibilidade da API.
+- [x] Testar resposta.
 
 ### Critério de aceite
 
 - frontend pode distinguir “interface carregou” de “API está acessível”.
+
+**Evidência:** `GET /api/health` responde `200` com `{"status":"ok"}` pela
+aplicação FastAPI real. A rota não acessa sessões, banco, Ollama, Qdrant,
+RAG, agentes ou orquestradores. O teste HTTP confirma o payload e `_SESSIONS`
+inalterado. Teste focado: 8/8; regressão backend: 37/37; semântica limitada à
+disponibilidade da API documentada em `docs/integration.md`.
 
 ---
 
 ## INT-P2-004 — Revisar validação de request e códigos HTTP
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Ações
 
-- [ ] Definir comportamento para `mensagem` vazia/só espaços.
-- [ ] Definir tamanho máximo razoável ou registrar decisão de não limitar no MVP.
-- [ ] Confirmar semântica de 4xx vs. resposta controlada 200.
-- [ ] Evitar converter falha técnica inesperada em sucesso silencioso.
+- [x] Definir comportamento para `mensagem` vazia/só espaços.
+- [x] Definir tamanho máximo razoável ou registrar decisão de não limitar no MVP.
+- [x] Confirmar semântica de 4xx vs. resposta controlada 200.
+- [x] Evitar converter falha técnica inesperada em sucesso silencioso.
 
 ### Critério de aceite
 
 - contrato de entrada possui limites e erros compreensíveis.
+
+**Evidência:** o schema Pydantic rejeita `mensagem` ausente, `null`, vazia ou
+somente whitespace com `422`, sem chamar o orquestrador ou normalizar conteúdo
+válido. Não há limite adicional no MVP por ausência de fundamento objetivo para
+um valor; o risco foi documentado. Testes HTTP confirmam resultado funcional
+`missing_number` e falha controlada em `200`, além de exceção inesperada em
+`500` sem exposição do marcador sintético. Teste focado: 14/14; regressão
+backend: 43/43; `git diff --check` aprovado.
 
 ---
 
 ## INT-P2-005 — CORS somente se a topologia exigir
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Ações
 
-- [ ] Se proxy/mesma origem resolver desenvolvimento e produção, não adicionar CORS por ritual.
-- [ ] Se necessário, adicionar `CORSMiddleware` com origens explícitas por configuração.
-- [ ] Não liberar credenciais/origens indiscriminadamente.
-- [ ] Testar origem permitida e não permitida quando aplicável.
+- [x] Se proxy/mesma origem resolver desenvolvimento e produção, não adicionar CORS por ritual.
+- [x] Se necessário, adicionar `CORSMiddleware` com origens explícitas por configuração.
+- [x] Não liberar credenciais/origens indiscriminadamente.
+- [x] Testar origem permitida e não permitida quando aplicável.
 
 ### Critério de aceite
 
 - política de origem coincide com a arquitetura aprovada.
+
+**Evidência:** desenvolvimento aprovado usa `/api/*` relativo com proxy Angular
+previsto em `INT-P5-001`, e produção prefere uma origem pública única. Não há
+origem cross-origin concreta nem infraestrutura de produção definida; por isso,
+nenhum `CORSMiddleware`, wildcard, credencial ou origem fictícia foi adicionado.
+Se um deployment futuro separar frontend e API, CORS deverá ser implementado
+antes dele com allowlist configurável e superfície mínima. Regressão backend:
+43/43; código funcional e itens P3 permaneceram inalterados.
 
 ---
 

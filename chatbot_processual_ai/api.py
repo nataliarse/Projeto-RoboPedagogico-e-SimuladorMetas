@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from dataclasses import asdict
 from typing import Any
+from uuid import uuid4
 
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from agents.agent2_context_collection import MAX_CONVERSATION_ENTRIES
 from orchestrators.hybrid_orchestrator import run_process_meta_impact
@@ -18,8 +19,6 @@ from services.meta_simulator_adapter import simulate_meta
 from session_state import create_session_state
 
 
-DEFAULT_SESSION_ID = "default"
-
 app = FastAPI(title="Chatbot Processual AI")
 _SESSIONS: dict[str, dict[str, Any]] = {}
 
@@ -27,6 +26,13 @@ _SESSIONS: dict[str, dict[str, Any]] = {}
 class ProcessualChatHTTPRequest(BaseModel):
     session_id: str | None = None
     mensagem: str
+
+    @field_validator("mensagem")
+    @classmethod
+    def validate_message_has_text(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("mensagem deve conter texto")
+        return value
 
 
 class MetaSimulationHTTPRequest(BaseModel):
@@ -44,6 +50,11 @@ class ProcessMetaImpactHTTPRequest(BaseModel):
     numero_processo: str
     meta_id: str
     ano: int
+
+
+@app.get("/api/health")
+def health() -> dict[str, str]:
+    return {"status": "ok"}
 
 
 @app.post("/api/processos/chat")
@@ -109,7 +120,7 @@ def impacto_processo_meta(request: ProcessMetaImpactHTTPRequest) -> dict[str, An
 def _normalize_session_id(session_id: str | None) -> str:
     if isinstance(session_id, str) and session_id.strip():
         return session_id.strip()
-    return DEFAULT_SESSION_ID
+    return str(uuid4())
 
 
 def _get_session_state(session_id: str) -> dict[str, Any]:

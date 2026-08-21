@@ -126,11 +126,11 @@ Se C05 não for necessário porque o projeto usar proxy/mesma origem e o healthc
 
 | ID | Status | Commit planejado | Arquivos esperados | Evidência para `VALIDATED` | Commit real |
 |---|---|---|---|---|---|
-| INT-P2-001 | `TODO` | C03 | testes API | testes HTTP passando | — |
-| INT-P2-002 | `TODO` | C04 | `api.py`/sessão + testes | sessões distintas + contexto preservado | — |
-| INT-P2-003 | `TODO` | C05 | `api.py` + testes | healthcheck seguro passando ou adiamento registrado | — |
-| INT-P2-004 | `TODO` | C03 | API/schema/testes | validação e status HTTP cobertos | — |
-| INT-P2-005 | `TODO` | C05 | API/config/docs | origem validada ou item dispensado com justificativa | — |
+| INT-P2-001 | `VALIDATED` | C03 | `tests/test_api_processual_chat.py` | 4 testes HTTP focados e regressão backend 33/33 passando | — |
+| INT-P2-002 | `VALIDATED` | C04 | `api.py`/sessão + testes | UUID v4, sessões distintas, continuidade e restart conceitual; 36/36 testes | — |
+| INT-P2-003 | `VALIDATED` | C05 | `api.py` + testes | `GET /api/health`; payload mínimo; sessão intacta; regressão 37/37 | — |
+| INT-P2-004 | `VALIDATED` | C03 | API/schema/testes/docs | vazio/whitespace 422; resultados controlados 200; falha inesperada 500; 43/43 testes | — |
+| INT-P2-005 | `VALIDATED` | C05 | docs | CORS dispensado: topologia same-origin, sem origem cross-origin concreta; 43/43 testes | — |
 
 ### P3 — Frontend
 
@@ -210,6 +210,11 @@ Adicionar uma linha **somente quando houver evento real**.
 | 21/08/2026 12:16:19 -03:00 | INT-P1-004 | Semântica de erros e falhas controladas definida e validada | `TODO` → `IN_PROGRESS` → `VALIDATED` | fronteira factual inspecionada; categorias e matrizes HTTP/frontend aprovadas; campos de estado e mensagens seguras definidos; timeout adiado; contrato e código inalterados; `COMMIT_REAL: —` | — |
 | 21/08/2026 13:17:01 -03:00 | INT-P1-005 | Política temporal definida e validada | `TODO` → `IN_PROGRESS` → `VALIDATED` | frontend 60 s; Ollama/embedding 60 s por chamada; Qdrant 10 s por chamada; request FastAPI sem limite total; chamadas sequenciais e RAG iterativo analisados; política 120 s backend total < 135 s cliente, margem 15 s; nenhuma implementação; `COMMIT_REAL: —` | — |
 | 21/08/2026 13:39:25 -03:00 | INT-P1-006 | Topologia de rede e política de origens definidas e validadas | `TODO` → `IN_PROGRESS` → `VALIDATED` | frontend relativo `/api/chat`, sem proxy; Angular `:4200`; FastAPI `:8000`, sem CORS/static/reverse proxy; aprovado `/api/...` + proxy local, mesma origem preferencial e fallback cross-origin com allowlist; P2-005 condicional; implementação adiada a P5; `COMMIT_REAL: —` | — |
+| 21/08/2026 13:52:00 -03:00 | INT-P2-001 | Contrato processual coberto na fronteira HTTP | `TODO` → `IN_PROGRESS` → `VALIDATED` | cliente ASGI local; 4/4 testes focados; regressão 29 → 33/33; estado global isolado; falha controlada segura; P2-002/P2-004 não antecipados; `COMMIT_REAL: —` | — |
+| 21/08/2026 14:48:58 -03:00 | INT-P2-002 | Sessões de clientes web isoladas | `TODO` → `IN_PROGRESS` → `VALIDATED` | fallback `default` removido; UUID v4 sem ID utilizável; IDs explícitos preservados; isolamento, continuidade e restart conceitual cobertos; 7/7 focados e 36/36 na regressão; `COMMIT_REAL: —` | — |
+| 21/08/2026 15:21:09 -03:00 | INT-P2-003 | Healthcheck mínimo da API implementado e validado | `TODO` → `IN_PROGRESS` → `VALIDATED` | `GET /api/health` retorna `200` e `{"status":"ok"}`; sem dependências pesadas ou efeito em sessão; 8/8 focados e 37/37 na regressão; `COMMIT_REAL: —` | — |
+| 21/08/2026 15:34:37 -03:00 | INT-P2-004 | Validação de mensagem e semântica HTTP implementadas e validadas | `TODO` → `IN_PROGRESS` → `VALIDATED` | vazio/whitespace `422`; texto válido preservado; sem limite adicional no MVP; domínio/falha controlada `200`; falha inesperada `500`; 14/14 focados e 43/43 na regressão; `COMMIT_REAL: —` | — |
+| 21/08/2026 15:40:40 -03:00 | INT-P2-005 | Necessidade de CORS decidida e validada | `TODO` → `IN_PROGRESS` → `VALIDATED` | dev por proxy same-origin; produção preferencial same-origin; nenhuma origem cross-origin concreta; CORS não implementado; fallback futuro exige allowlist configurável; 43/43 testes; `COMMIT_REAL: —` | — |
 
 ### Registro detalhado — INT-P0-004
 
@@ -453,6 +458,144 @@ RISCOS: infraestrutura e origem de produção desconhecidas; CORS futuro depende
 COMMIT_SUGERIDO: docs(integration): define Angular FastAPI network topology
 COMMIT_REAL: —
 OBSERVACOES: G1 permanece aberto; P1 pronta para auditoria separada de fechamento; P2 não iniciada; CHECKPOINT_P1: AINDA_NAO
+```
+
+### Registro detalhado — INT-P2-001
+
+```text
+ID: INT-P2-001
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 21/08/2026 13:52:00 -03:00
+ARQUIVO_TESTE: chatbot_processual_ai/tests/test_api_processual_chat.py
+FERRAMENTA_ASGI: cliente ASGI mínimo local sobre a aplicação FastAPI real; httpx não está instalado e nenhuma dependência foi adicionada
+ISOLAMENTO: run_processual_chat_step substituído somente nos cenários de contrato/continuidade; falha controlada usa orquestrador real com interpret_user_message substituído; _SESSIONS limpo antes e depois de cada teste
+CENARIOS: sucesso HTTP/JSON e envelope público; session_id explícito normalizado e devolvido; resposta utilizável; processo ativo propagado; continuidade do mesmo ID; payload sem mensagem retorna 422; falha controlada retorna 200 e não vaza marcador técnico sintético
+BASELINE: 29 passed, 1 warning de cache pytest sem permissão, em 1,64 s
+TESTE_FOCADO: 4 passed, 1 warning de cache pytest sem permissão, em 0,47 s
+REGRESSAO_FINAL: 33 passed, 1 warning de cache pytest sem permissão, em 1,72 s
+CONTAGEM: 29 testes anteriores + 4 novos = 33
+ARQUIVOS_MODIFICADOS: chatbot_processual_ai/tests/test_api_processual_chat.py; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+RESUMO_DIFF: cobertura HTTP determinística do contrato processual e atualização operacional exclusiva de INT-P2-001
+LIMITACOES: vazio/espaços e limites permanecem para INT-P2-004; isolamento entre clientes sem ID, UUID e remoção de default permanecem para INT-P2-002; handler de exceção HTTP inesperada não foi criado
+ESCOPO_NEGATIVO: api.py, schemas, orquestradores, agentes, frontend, timeout, healthcheck, CORS, UUID e fallback default inalterados; INT-P2-002..005 permanecem TODO
+REVISAO: diff completo revisado; sem debug, segredo real ou alteração funcional; git diff --check aprovado
+COMMIT_SUGERIDO: test(api): cover processual chat http contract
+COMMIT_REAL: —
+CHECKPOINT_P2: AINDA_NAO
+```
+
+### Registro detalhado — INT-P2-002
+
+```text
+ID: INT-P2-002
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 21/08/2026 14:48:58 -03:00
+IMPLEMENTACAO: _normalize_session_id gera str(uuid4()) somente quando o ID está omitido, nulo, vazio ou contém apenas espaços
+FALLBACK_ANTERIOR: DEFAULT_SESSION_ID = "default", compartilhado entre requests sem ID utilizável
+ESTRATEGIA_NOVA: UUID v4 opaco por request sem ID utilizável; ID explícito aparado e preservado; _SESSIONS cria ou reutiliza contexto pela chave efetiva
+ARQUIVOS_FUNCIONAIS_MODIFICADOS: chatbot_processual_ai/api.py
+TESTES_ADICIONADOS_ALTERADOS: chatbot_processual_ai/tests/test_api_processual_chat.py; duas sessões sem ID e contextos independentes; formas não utilizáveis; ID explícito/continuidade; ID desconhecido após limpeza global
+TESTE_DUAS_SESSOES: IDs UUID v4 distintos; objetos de estado distintos; processos ativos A e B preservados separadamente
+TESTE_CONTINUIDADE: duas requests com o mesmo ID reutilizam o mesmo objeto de estado e preservam processo_ativo
+TESTE_ID_EXPLICITO: ID válido normalizado é devolvido sem substituição por UUID
+TESTE_ID_DESCONHECIDO_RESTART: _SESSIONS limpo; ID recebido preservado; novo contexto vazio criado sob o próprio ID; estado anterior não recuperado
+BASELINE: 33 passed, 1 warning ambiental de cache pytest sem permissão, em 1,91 s
+TESTE_FOCADO: 7 passed, 1 warning ambiental de cache pytest sem permissão, em 0,53 s
+REGRESSAO_FINAL: 36 passed, 1 warning ambiental de cache pytest sem permissão, em 1,91 s
+CONTAGEM: 33 testes anteriores + 3 novos = 36
+ARQUIVOS_MODIFICADOS: chatbot_processual_ai/api.py; chatbot_processual_ai/tests/test_api_processual_chat.py; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+RESUMO_DIFF: remoção localizada do fallback compartilhado, geração UUID v4 e cobertura HTTP determinística da política P1-003
+LIMITACOES: sessões continuam locais e em memória, sem TTL, limite, eviction ou persistência; restart perde contexto; session_id não autentica; compartilhamento deliberado do mesmo ID permanece possível
+ESCOPO_NEGATIVO: frontend, schemas, orquestradores, agentes, persistência, Redis, timeout, healthcheck, CORS e INT-P2-003..005 inalterados
+REVISAO: diff completo revisado; sem debug, segredo, PII ou alteração fora do escopo; git diff --check aprovado
+COMMIT_SUGERIDO: fix(api): isolate processual chat sessions per client
+COMMIT_REAL: —
+CHECKPOINT_P2: AINDA_NAO
+```
+
+### Registro detalhado — INT-P2-003
+
+```text
+ID: INT-P2-003
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 21/08/2026 15:21:09 -03:00
+ROTA_IMPLEMENTADA: GET /api/health
+SEMANTICA: confirma somente que a fronteira FastAPI está acessível e responde HTTP; não representa saúde integral do sistema
+PAYLOAD: {"status":"ok"}
+ARQUIVOS_FUNCIONAIS_MODIFICADOS: chatbot_processual_ai/api.py
+TESTE_CRIADO_ALTERADO: chatbot_processual_ai/tests/test_api_processual_chat.py; aplicação ASGI real; HTTP 200; JSON exato; _SESSIONS preservado
+DEPENDENCIAS_PESADAS: handler retorna literal determinístico; não chama Ollama, Qdrant, RAG, banco, agentes, orquestradores ou serviços
+BASELINE: 36 passed, 1 warning ambiental de cache pytest sem permissão, em 2,10 s
+TESTE_FOCADO: 8 passed, 1 warning ambiental de cache pytest sem permissão, em 0,49 s
+REGRESSAO_FINAL: 37 passed, 1 warning ambiental de cache pytest sem permissão, em 1,98 s
+CONTAGEM: 36 testes anteriores + 1 novo = 37
+ARQUIVOS_MODIFICADOS: chatbot_processual_ai/api.py; chatbot_processual_ai/tests/test_api_processual_chat.py; docs/integration.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+RESUMO_DIFF: rota GET mínima, teste HTTP sem efeito em sessão e documentação explícita da semântica limitada
+RISCOS: /api/health não detecta indisponibilidade de Ollama, Qdrant, RAG, banco, agentes ou orquestradores por definição
+ESCOPO_NEGATIVO: frontend, CORS, proxy, timeout, contrato de chat, P2-004 e P2-005 inalterados; G2 não fechado
+REVISAO: diff completo revisado; sem debug, segredo, metadata interna ou alteração fora do escopo; git diff --check aprovado
+COMMIT_SUGERIDO: feat(api): add minimal healthcheck
+COMMIT_REAL: —
+CHECKPOINT_P2: AINDA_NAO
+```
+
+### Registro detalhado — INT-P2-004
+
+```text
+ID: INT-P2-004
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 21/08/2026 15:34:37 -03:00
+COMPORTAMENTO_ANTERIOR: mensagem str obrigatória; ausência e null retornavam 422; vazio e whitespace eram aceitos e chegavam ao orquestrador; sem limite máximo; mensagem sem normalização
+VALIDACAO_IMPLEMENTADA: field_validator Pydantic na request HTTP exige ao menos um caractere não-whitespace e devolve a string original
+POLITICA_VAZIO: HTTP 422 na fronteira, sem execução do endpoint/orquestrador ou criação de sessão
+POLITICA_WHITESPACE: HTTP 422 para espaço, tab, LF e CR sem conteúdo textual
+MAX_MESSAGE_LENGTH: nenhum limite adicional no MVP; não há requisito objetivo que sustente um número sem arbitrariedade; revisar antes de exposição pública em escala
+SEMANTICA_4XX: violação do contrato de entrada ou condição HTTP; não produz resposta conversacional
+SEMANTICA_RESULTADO_FUNCIONAL: missing_number/not_found após request válida permanecem HTTP 200 com resposta segura
+SEMANTICA_FALHA_CONTROLADA: failed_stage não nulo permanece HTTP 200 com resposta segura
+SEMANTICA_FALHA_INESPERADA: exceção não capturada permanece HTTP 500 padrão FastAPI; INTERNAL_TEST_MARKER não aparece no payload
+ARQUIVOS_MODIFICADOS: chatbot_processual_ai/api.py; chatbot_processual_ai/tests/test_api_processual_chat.py; docs/integration.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+TESTES_ADICIONADOS_ALTERADOS: null sem sessão; vazio sem orquestrador/sessão; whitespace; mensagem válida preservada; missing_number 200; falha inesperada 500 segura; helper ASGI permite observar response 500
+BASELINE: 37 passed, 1 warning ambiental de cache pytest sem permissão, em 1,88 s
+TESTE_FOCADO: 14 passed, 1 warning ambiental de cache pytest sem permissão, em 0,49 s
+REGRESSAO_FINAL: 43 passed, 1 warning ambiental de cache pytest sem permissão, em 1,98 s
+CONTAGEM: 37 testes anteriores + 6 novos = 43
+RESUMO_DIFF: validação mínima no schema HTTP, cobertura das quatro categorias semânticas e documentação da decisão de tamanho
+RISCOS: ausência de limite adicional de mensagem; formato detalhado do 422 pertence ao FastAPI/Pydantic; 500 depende do tratamento seguro padrão do FastAPI/Starlette
+ESCOPO_NEGATIVO: sessão, healthcheck, timeout, CORS, frontend, P2-005 e G2 inalterados; nenhum handler ou schema de erro novo
+REVISAO: diff completo e teste não rastreado revisados; sem debug, segredo real, normalização indevida ou alteração fora do escopo; git diff --check aprovado
+COMMIT_SUGERIDO: fix(api): validate processual chat messages
+COMMIT_REAL: —
+CHECKPOINT_P2: AINDA_NAO
+```
+
+### Registro detalhado — INT-P2-005
+
+```text
+ID: INT-P2-005
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 21/08/2026 15:40:40 -03:00
+TOPOLOGIA_ANALISADA: desenvolvimento Angular :4200 com /api/* relativo e proxy futuro para FastAPI :8000; produção preferencial sob origem pública única
+CROSS_ORIGIN_REAL_ATUAL: NÃO
+ORIGEM_PRODUCAO_REAL: NÃO DEFINIDA
+DECISAO_CORS_ATUAL: NÃO NECESSÁRIO; não implementar enquanto a topologia permanecer same-origin
+POLITICA_FUTURA: se um deployment usar origens distintas, implementar antes dele allowlist explícita e configurável, métodos e headers mínimos e credenciais somente mediante requisito separado
+CORS_IMPLEMENTADO: NÃO
+IMPLEMENTACAO_FUNCIONAL: NENHUMA / NÃO NECESSÁRIA
+ARQUIVOS_MODIFICADOS_NO_ITEM: docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; docs/integration.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+BASELINE_BACKEND: 43 passed, 0 failed, 0 skipped, 0 warnings, em 1,77 s; cacheprovider desabilitado por restrição ambiental de diretórios de cache
+REGRESSAO_FINAL: 43 passed, 0 failed, 0 skipped, 0 warnings, em 1,69 s; cacheprovider desabilitado pela mesma restrição ambiental
+RISCOS: origem final de produção permanece indefinida; CORS deverá ser reavaliado antes de qualquer deployment cross-origin; CORS não fornece autenticação, autorização ou proteção do session_id
+ESCOPO_NEGATIVO: backend funcional, frontend, proxy, sessão, healthcheck, validação HTTP, timeout, P3, G2 e checkpoint P2 inalterados
+REVISAO: diff completo revisado; sem middleware, wildcard, origem fictícia, credenciais, debug, segredo ou alteração fora do escopo; git diff --check aprovado
+COMMIT_SUGERIDO: docs(integration): validate same-origin CORS decision
+COMMIT_REAL: —
+CHECKPOINT_P2: AINDA_NAO
 ```
 
 ---

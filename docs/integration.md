@@ -116,13 +116,28 @@ montada explicitamente pela função HTTP, e `resultado` é a serialização do
 | Campo | Tipo JSON | Obrigatório | Pode ser omitido | Aceita `null` | Semântica |
 |---|---|---:|---:|---:|---|
 | `session_id` | string ou `null` | não | sim | sim | Identificador de transporte usado para selecionar o estado conversacional. O valor não vazio é aparado nas extremidades antes do uso. Omissão, `null`, string vazia e string composta apenas por espaços são normalizados atualmente para `"default"`. Não há validação de formato ou tamanho. |
-| `mensagem` | string | sim | não | não | Texto corrente enviado pelo usuário ao fluxo processual. É repassado ao orquestrador sem transformação na fronteira HTTP. Strings vazias ou compostas apenas por espaços são aceitas atualmente; não há limite de tamanho declarado. |
+| `mensagem` | string | sim | não | não | Texto corrente enviado pelo usuário ao fluxo processual. Deve conter ao menos um caractere não-whitespace. Mensagens válidas são repassadas ao orquestrador sem transformação na fronteira HTTP. Não há limite adicional de tamanho no MVP. |
 
 Campos adicionais do objeto são ignorados pelo modelo Pydantic atual. Isso é
 comportamento observado, não autorização para o frontend enviá-los. A política
-de geração, persistência, expiração e isolamento de `session_id` é adiada para
-`INT-P1-003`. A ausência de validação de conteúdo de `mensagem` deve ser
-avaliada em P2; este item não acrescenta validação.
+de geração, persistência, expiração e isolamento de `session_id` está definida
+na seção correspondente.
+
+#### Validação de `mensagem` e tamanho no MVP
+
+A fronteira Pydantic rejeita com `422` campo ausente, `null`, tipo incompatível,
+string vazia e string composta somente por whitespace (`espaço`, `\t`, `\n` ou
+`\r`). A verificação usa `strip()` apenas para determinar se existe conteúdo;
+ela devolve a string original e não remove espaços de uma mensagem válida.
+Requests rejeitadas não alcançam o endpoint, não chamam o orquestrador e não
+criam sessão.
+
+Não foi adotado limite máximo adicional para `mensagem` no MVP. Não existe
+atualmente requisito de produto, limite da interface ou restrição de
+processamento suficientemente sustentada para escolher um valor sem
+arbitrariedade. Permanecem aplicáveis os limites normais do servidor e do
+transporte. Esta decisão deve ser revista antes de exposição pública em escala,
+considerando proteção de recursos e os limites efetivos da infraestrutura.
 
 ### Response
 
@@ -160,10 +175,11 @@ stack traces não fazem parte do contrato.
   falha controlada do pipeline também retorna atualmente `200 OK` e é
   observável por `resultado.failed_stage`, sem invalidar
   `resultado.resposta`.
-- **Erro de validação:** JSON ausente ou incompatível com os campos tipados gera
-  `422 Unprocessable Entity` no formato FastAPI/Pydantic `{"detail": [...]}`.
-  Por exemplo, omitir `mensagem`, enviá-la como `null` ou usar tipo não textual
-  produz `422`.
+- **Erro de validação:** JSON ausente ou incompatível com o contrato de entrada
+  gera `422 Unprocessable Entity` no formato FastAPI/Pydantic
+  `{"detail": [...]}`.
+  Por exemplo, omitir `mensagem`, enviá-la como `null`, usar tipo não textual ou
+  enviar texto vazio/somente whitespace produz `422`.
 - **Erro HTTP explícito:** a função do endpoint não lança `HTTPException` nem
   define outro status explícito. O roteamento do framework ainda produz, por
   exemplo, `405` para método não permitido e `404` para rota inexistente, com
@@ -175,6 +191,19 @@ stack traces não fazem parte do contrato.
 
 A política completa de erro e degradação está definida na seção
 “Semântica de erros e degradação” deste documento.
+
+### Healthcheck mínimo da API
+
+`GET /api/health` responde `200 OK` com `{"status":"ok"}` quando a fronteira
+FastAPI está acessível e consegue responder uma requisição HTTP simples. Esse
+healthcheck da API não é um healthcheck profundo das dependências: ele não
+consulta Ollama, Qdrant, RAG, banco, agentes ou orquestradores e não cria nem
+altera sessões.
+
+Portanto, o frontend pode futuramente inferir somente “API disponível” a partir
+de uma resposta `200`; não pode inferir que o chatbot inteiro ou suas
+dependências estejam saudáveis. A rota não reutiliza os campos de estado do
+contrato de chat, como `failed_stage`, `rag_status` ou `collection_status`.
 
 ### Exemplos representativos
 
@@ -442,8 +471,9 @@ contrato, considera `resultado.failed_stage`, a usabilidade de
 `resultado.resposta` e os estados auxiliares.
 
 No comportamento atual de `POST /api/processos/chat`, FastAPI/Pydantic rejeita
-body ausente ou inválido, `mensagem` ausente, `null` ou de tipo incompatível com
-`422`; roteamento pode produzir outros `4xx`, como `404` e `405`. O endpoint não
+body ausente ou inválido, `mensagem` ausente, `null`, vazia, somente whitespace
+ou de tipo incompatível com `422`; roteamento pode produzir outros `4xx`, como
+`404` e `405`. O endpoint não
 lança `HTTPException` nem converte exceção explicitamente. O orquestrador, por
 sua vez, captura `Exception` durante os Agentes 1 a 4 e devolve uma falha
 controlada com texto fixo seguro e `failed_stage`; o endpoint serializa esse
@@ -827,8 +857,13 @@ Se a produção exigir origens distintas, as origens devem vir de configuração
 com métodos e headers mínimos. Credenciais só podem ser habilitadas mediante
 necessidade real e análise específica. `allow_origins=["*"]` não é solução
 padrão para “fazer funcionar” e não deve ser combinado por conveniência com
-credenciais. Se desenvolvimento e produção final usarem mesma origem,
-`INT-P2-005` pode ser formalmente dispensado ou adiado; ele não é iniciado aqui.
+credenciais. No estado atual, desenvolvimento e produção preferencial usam a
+estratégia de mesma origem e não existe origem cross-origin concreta aprovada.
+`INT-P2-005` decide, portanto, não implementar CORS enquanto essa topologia
+permanecer. Se um deployment futuro separar frontend e API, a necessidade deverá
+ser reaberta antes dele e implementada com allowlist configurável, métodos e
+headers mínimos e sem credenciais salvo requisito separado. O proxy local
+continua pertencendo a `INT-P5-001`.
 
 ### URL pública, contratos e segurança
 
