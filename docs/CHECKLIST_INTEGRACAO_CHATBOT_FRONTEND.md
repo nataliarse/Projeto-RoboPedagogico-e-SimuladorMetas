@@ -236,7 +236,7 @@ dependência comprovada. O diff do item é exclusivamente documental.
 
 ## INT-P1-001 — Formalizar topologia da integração
 
-**Status inicial:** `TODO`  
+**Status inicial:** `VALIDATED`
 **Dependência:** P0
 
 ### Decisão alvo
@@ -254,20 +254,26 @@ Orquestradores / agentes / serviços / SQLite / RAG / Ollama
 
 ### Ações
 
-- [ ] Declarar que frontend e backend são aplicações irmãs, não código a ser fundido internamente.
-- [ ] Declarar que o frontend conhece apenas a API pública.
-- [ ] Declarar que detalhes de agentes, RAG, SQLite e Ollama não vazam para componentes Angular.
-- [ ] Registrar em `docs/ARCHITECTURE.md` ou documento de integração específico.
+- [x] Declarar que frontend e backend são aplicações irmãs, não código a ser fundido internamente.
+- [x] Declarar que o frontend conhece apenas a API pública.
+- [x] Declarar que detalhes de agentes, RAG, SQLite e Ollama não vazam para componentes Angular.
+- [x] Registrar em `docs/ARCHITECTURE.md` ou documento de integração específico.
 
 ### Critério de aceite
 
 - fronteira de responsabilidade inequívoca para humano e agente de código.
 
+**Evidência:** `docs/integration.md` formaliza HTTP/JSON como única fronteira
+Angular–FastAPI, explicita as direções permitidas e proibidas de dependência,
+encapsula os componentes internos do backend e mantém decisões contratuais dos
+itens `INT-P1-002` a `INT-P1-006` fora deste item. Nenhum código funcional foi
+alterado.
+
 ---
 
 ## INT-P1-002 — Congelar contrato HTTP v1 do chat processual
 
-**Status inicial:** `TODO`  
+**Status inicial:** `VALIDATED`
 **Dependência:** INT-P1-001
 
 ### Contrato base existente
@@ -303,21 +309,31 @@ Response:
 
 ### Ações
 
-- [ ] Validar nomes, nulabilidade e semântica de cada campo.
-- [ ] Decidir quais campos são obrigatórios na API v1.
-- [ ] Decidir compatibilidade futura sem acoplar o frontend a campos internos desnecessários.
-- [ ] Documentar exemplos de sucesso, processo ausente, falha controlada e erro HTTP.
-- [ ] Registrar política de versionamento/breaking change do contrato.
+- [x] Validar nomes, nulabilidade e semântica de cada campo.
+- [x] Decidir quais campos são obrigatórios na API v1.
+- [x] Decidir compatibilidade futura sem acoplar o frontend a campos internos desnecessários.
+- [x] Documentar exemplos de sucesso, processo ausente, falha controlada e erro HTTP.
+- [x] Registrar política de versionamento/breaking change do contrato.
 
 ### Critério de aceite
 
 - backend, frontend, testes e documentação usam o mesmo contrato.
 
+**Evidência:** `docs/integration.md` congela o contrato lógico v1 observado em
+`chatbot_processual_ai/api.py`, `schemas/processual_contracts.py` e no
+orquestrador, incluindo omissão versus `null`, normalização, estrutura completa
+da resposta, classificação de campos, semântica HTTP, exemplos e
+compatibilidade. A divergência atual do `ChatService` (`/api/chat`, body sem
+`session_id` e `Observable<any>`) está explicitamente registrada como estado a
+ser alinhado em P3; nenhum backend, frontend, schema ou DTO foi alterado neste
+item documental. Regressão backend: 29 testes aprovados; validação dirigida
+ASGI confirmou `200`, `422`, `404` e `405` e a forma JSON observada.
+
 ---
 
 ## INT-P1-003 — Definir estratégia de sessão web
 
-**Status inicial:** `TODO`  
+**Status inicial:** `VALIDATED`
 **Prioridade:** bloqueante para uso multiusuário
 
 ### Problema observado
@@ -334,57 +350,81 @@ Quando o cliente não envia `session_id`, o backend usa atualmente `default`; cl
 
 ### Ações
 
-- [ ] Aprovar estratégia.
-- [ ] Definir comportamento em refresh, nova aba, fechamento do navegador e backend reiniciado.
-- [ ] Definir limite/expiração futura para `_SESSIONS` ou registrar dívida técnica.
-- [ ] Garantir que IDs não carreguem dados pessoais/sensíveis.
+- [x] Aprovar estratégia.
+- [x] Definir comportamento em refresh, nova aba, fechamento do navegador e backend reiniciado.
+- [x] Definir limite/expiração futura para `_SESSIONS` ou registrar dívida técnica.
+- [x] Garantir que IDs não carreguem dados pessoais/sensíveis.
 
 ### Critério de aceite
 
 - dois clientes sem `session_id` não recebem automaticamente a mesma sessão;
 - segunda pergunta do mesmo cliente preserva `processo_ativo`.
 
+**Evidência:** `docs/integration.md` registra a decisão-alvo de UUID opaco
+gerado pelo backend na ausência de ID utilizável, reuso do mesmo ID,
+`sessionStorage`, ciclo de vida completo, isolamento de `processo_ativo`,
+privacidade e limitações de `_SESSIONS`. ID válido desconhecido cria contexto
+vazio sob o próprio ID, sem promessa de recuperar estado perdido. A semântica
+de abas considera a possível cópia inicial quando existe `opener`. Nenhum
+código, teste ou item posterior foi alterado.
+
 ---
 
 ## INT-P1-004 — Definir semântica de erros e falhas controladas
 
-**Status inicial:** `TODO`
+**Status inicial:** `VALIDATED`
 
 ### Ações
 
-- [ ] Diferenciar erro de transporte/HTTP de resposta válida com `failed_stage`.
-- [ ] Definir texto seguro mostrado ao usuário em cada caso.
-- [ ] Definir quais detalhes ficam apenas em logs/trace.
-- [ ] Não expor stack trace, path local, configuração, IDs internos do banco ou Qdrant.
-- [ ] Definir como `collection_status`, `rag_status` e `failed_stage` influenciam UI sem transformar limitação em “sucesso verde”.
+- [x] Diferenciar erro de transporte/HTTP de resposta válida com `failed_stage`.
+- [x] Definir texto seguro mostrado ao usuário em cada caso.
+- [x] Definir quais detalhes ficam apenas em logs/trace.
+- [x] Não expor stack trace, path local, configuração, IDs internos do banco ou Qdrant.
+- [x] Definir como `collection_status`, `rag_status` e `failed_stage` influenciam UI sem transformar limitação em “sucesso verde”.
 
 ### Critério de aceite
 
 - tratamento previsível e documentado no frontend e backend.
 
+**Evidência:** `docs/integration.md` registra o comportamento factual do
+endpoint e a precedência entre transporte, `4xx`/`5xx`, falha controlada,
+degradação e sucesso. A matriz preserva o contrato P1-002, define o papel de
+`failed_stage`, `rag_status`, `collection_status` e `resultado.resposta`, separa
+mensagem pública de diagnóstico, proíbe mock como fallback e reserva timeout a
+`INT-P1-005`. Nenhum código funcional, schema, sessão, healthcheck ou item
+posterior foi alterado.
+
 ---
 
 ## INT-P1-005 — Definir política de timeout
 
-**Status inicial:** `TODO`
+**Status inicial:** `VALIDATED`
 
 ### Ações
 
-- [ ] Mapear timeout interno do Ollama e demais operações demoradas.
-- [ ] Garantir que timeout do frontend seja maior que o limite interno relevante, com margem de transporte/processamento.
-- [ ] Evitar timeout infinito.
-- [ ] Definir mensagem de timeout distinta de erro genérico.
-- [ ] Registrar valores em documentação/configuração, não espalhar números mágicos.
+- [x] Mapear timeout interno do Ollama e demais operações demoradas.
+- [x] Garantir que timeout do frontend seja maior que o limite interno relevante, com margem de transporte/processamento.
+- [x] Evitar timeout infinito.
+- [x] Definir mensagem de timeout distinta de erro genérico.
+- [x] Registrar valores em documentação/configuração, não espalhar números mágicos.
 
 ### Critério de aceite
 
 - o frontend não aborta rotineiramente a requisição no mesmo instante em que o backend atinge seu próprio limite.
 
+**Evidência:** `docs/integration.md` registra os limites atuais (`60 s` no
+Angular e por chamada Ollama/embedding, `10 s` por chamada Qdrant e ausência de
+limite total FastAPI), comprova chamadas sequenciais e o laço de embeddings do
+RAG, e aprova um orçamento total backend de `120 s` com timeout cliente de
+`135 s`. A margem de `15 s`, a classificação, a mensagem segura, a
+recuperabilidade, a sessão e as fontes futuras de configuração estão
+definidas. Nenhum timeout ou código funcional foi alterado.
+
 ---
 
 ## INT-P1-006 — Definir topologia de rede em desenvolvimento e produção
 
-**Status inicial:** `TODO`
+**Status inicial:** `VALIDATED`
 
 ### Recomendação
 
@@ -394,14 +434,22 @@ Quando o cliente não envia `session_id`, o backend usa atualmente `default`; cl
 
 ### Ações
 
-- [ ] Aprovar topologia local.
-- [ ] Aprovar origem/URL de produção quando conhecida.
-- [ ] Definir se será necessário `CORSMiddleware`.
-- [ ] Não codificar `http://localhost:8000` dentro de componentes.
+- [x] Aprovar topologia local.
+- [x] Aprovar origem/URL de produção quando conhecida.
+- [x] Definir se será necessário `CORSMiddleware`.
+- [x] Não codificar `http://localhost:8000` dentro de componentes.
 
 ### Critério de aceite
 
 - URL da API tem uma única estratégia definida e reproduzível por ambiente.
+
+**Evidência:** `docs/integration.md` registra o diagnóstico factual, aprova
+`/api/...` relativo com proxy Angular `localhost:4200` → FastAPI
+`localhost:8000`, dispensa CORS local nessa topologia e prefere mesma origem em
+produção. A origem real permanece não definida; se a infraestrutura exigir
+origens distintas, `INT-P2-005` deverá usar allowlist explícita. `INT-P5-001`
+implementará o proxy e `INT-P5-004` o workflow. Contrato, sessão, erros e timeout
+anteriores foram preservados; nenhum código, proxy, CORS ou item P2 foi alterado.
 
 ---
 

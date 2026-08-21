@@ -115,12 +115,12 @@ Se C05 não for necessário porque o projeto usar proxy/mesma origem e o healthc
 
 | ID | Status | Commit planejado | Arquivos esperados | Evidência para `VALIDATED` | Commit real |
 |---|---|---|---|---|---|
-| INT-P1-001 | `TODO` | C02 | `docs/ARCHITECTURE.md` ou doc de integração | fronteira Angular↔FastAPI documentada | — |
-| INT-P1-002 | `TODO` | C02 | docs + schemas/DTOs posteriormente | exemplos request/response aprovados | — |
-| INT-P1-003 | `TODO` | C02 | docs | política de sessão aprovada | — |
-| INT-P1-004 | `TODO` | C02 | docs | matriz de falha definida | — |
-| INT-P1-005 | `TODO` | C02 | docs/config | timeout documentado | — |
-| INT-P1-006 | `TODO` | C02 | docs | proxy/CORS/topologia definidos | — |
+| INT-P1-001 | `VALIDATED` | C02 | `docs/integration.md` | aplicações irmãs; HTTP/JSON como fronteira exclusiva; dependências e encapsulamento documentados; nenhum contrato detalhado antecipado | — |
+| INT-P1-002 | `VALIDATED` | C02 | `docs/integration.md` | contrato factual v1, campos, exemplos, HTTP e compatibilidade documentados; divergência frontend registrada; nenhuma implementação | — |
+| INT-P1-003 | `VALIDATED` | C02 | docs | política de sessão aprovada | — |
+| INT-P1-004 | `VALIDATED` | C02 | docs | matriz de falha definida; contrato preservado; diff revisado | — |
+| INT-P1-005 | `VALIDATED` | C02 | docs/config | limites atuais mapeados; 120 s backend total < 135 s frontend; margem e semântica documentadas; nenhuma implementação | — |
+| INT-P1-006 | `VALIDATED` | C02 | docs | `/api` relativo; proxy local `:4200` → `:8000`; mesma origem preferencial; CORS condicional e explícito; nenhuma implementação | — |
 
 ### P2 — Backend
 
@@ -204,6 +204,12 @@ Adicionar uma linha **somente quando houver evento real**.
 | 20/08/2026 14:36:52 -03:00 | INT-P0-004 | Recuperação ambiental iniciada | `BLOCKED` → `IN_PROGRESS` | branch correta; histórico do bloqueio preservado; diagnóstico de manifests e ferramentas locais iniciado | — |
 | 20/08/2026 14:42:16 -03:00 | INT-P0-004 | Ambiente recuperado e baseline reexecutado | `IN_PROGRESS` → `VALIDATED` | venv local: pytest 9.1.1, 29/29 em 1,77 s; Node 24.19.0/npm 11.17.0; npm ci PASS; build PASS; testes e tsconfig.spec FAIL por 4 imports preexistentes; tsconfig.app PASS; manifests intactos; `COMMIT_REAL: —` | — |
 | 20/08/2026 16:07:15 -03:00 | INT-P0-005 | Escopo negativo da integração formalizado | `TODO` → `IN_PROGRESS` → `VALIDATED` | `docs/integration.md`; integração conservadora; frontend, backend, simulador, infraestrutura e dívida técnica delimitados; exceção exige dependência comprovada; nenhuma mudança funcional; diff documental revisado; `COMMIT_REAL: —` | — |
+| 20/08/2026 16:57:37 -03:00 | INT-P1-001 | Topologia e fronteira arquitetural formalizadas | `TODO` → `IN_PROGRESS` → `VALIDATED` | `docs/integration.md`; Angular e FastAPI como aplicações irmãs; HTTP/JSON como fronteira exclusiva; backend interno encapsulado; simulador fora do escopo; nenhuma implementação ou decisão detalhada de P1-002..006; `COMMIT_REAL: —` | — |
+| 20/08/2026 17:25:55 -03:00 | INT-P1-002 | Contrato HTTP lógico v1 congelado | `TODO` → `IN_PROGRESS` → `VALIDATED` | `POST /api/processos/chat`; request/response, obrigatoriedade, nulabilidade, normalização, campos públicos, exemplos, semântica HTTP e compatibilidade documentados; 29 testes backend aprovados; validação ASGI dirigida; nenhuma implementação; `COMMIT_REAL: —` | — |
+| 21/08/2026 12:06:01 -03:00 | INT-P1-003 | Estratégia de sessão web definida e validada | `TODO` → `IN_PROGRESS` → `VALIDATED` | UUID opaco gerado no backend; `sessionStorage`; reuso e isolamento; ID desconhecido cria contexto vazio; ciclo de vida e dívida de memória documentados; nenhuma implementação; `COMMIT_REAL: —` | — |
+| 21/08/2026 12:16:19 -03:00 | INT-P1-004 | Semântica de erros e falhas controladas definida e validada | `TODO` → `IN_PROGRESS` → `VALIDATED` | fronteira factual inspecionada; categorias e matrizes HTTP/frontend aprovadas; campos de estado e mensagens seguras definidos; timeout adiado; contrato e código inalterados; `COMMIT_REAL: —` | — |
+| 21/08/2026 13:17:01 -03:00 | INT-P1-005 | Política temporal definida e validada | `TODO` → `IN_PROGRESS` → `VALIDATED` | frontend 60 s; Ollama/embedding 60 s por chamada; Qdrant 10 s por chamada; request FastAPI sem limite total; chamadas sequenciais e RAG iterativo analisados; política 120 s backend total < 135 s cliente, margem 15 s; nenhuma implementação; `COMMIT_REAL: —` | — |
+| 21/08/2026 13:39:25 -03:00 | INT-P1-006 | Topologia de rede e política de origens definidas e validadas | `TODO` → `IN_PROGRESS` → `VALIDATED` | frontend relativo `/api/chat`, sem proxy; Angular `:4200`; FastAPI `:8000`, sem CORS/static/reverse proxy; aprovado `/api/...` + proxy local, mesma origem preferencial e fallback cross-origin com allowlist; P2-005 condicional; implementação adiada a P5; `COMMIT_REAL: —` | — |
 
 ### Registro detalhado — INT-P0-004
 
@@ -276,6 +282,177 @@ RISCOS_RESIDUAIS: decisões de contrato, sessão, CORS/proxy, DTOs e topologia p
 COMMIT_SUGERIDO: docs(integration): define conservative integration scope
 COMMIT_REAL: —
 OBSERVACOES: checkpoint P0 não criado; fase P0 não declarada fechada
+```
+
+### Registro detalhado — INT-P1-001
+
+```text
+ID: INT-P1-001
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 20/08/2026 16:57:37 -03:00
+DOCUMENTO_ALTERADO: docs/integration.md
+TOPOLOGIA_APROVADA: Browser / Angular → HTTP + JSON → FastAPI (/api/...) → orquestradores, agentes, serviços, persistência, RAG, Ollama e Qdrant
+FRONTEIRA_DE_DEPENDENCIA: Angular conhece somente a API pública; backend não conhece componentes, services, estilos ou estado interno Angular
+EVIDENCIAS_INSPECIONADAS: chatbot_processual_ai/api.py; frontend/src/app/core/services/chat.ts; estrutura superficial de frontend/src/app; estrutura superficial de agents, orchestrators e services; docs/ARCHITECTURE.md
+ARQUIVOS_MODIFICADOS: docs/integration.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+RESUMO_DIFF: decisão arquitetural, diagrama lógico, direções de dependência, responsabilidades mínimas, encapsulamento e exclusão do simulador
+AUSENCIA_DE_IMPLEMENTACAO: confirmada; nenhum código funcional alterado
+TESTES_EXECUTADOS: validação documental por busca dirigida; git status --short; revisão do diff autorizado; git diff --check
+RESULTADOS: critérios de aceite satisfeitos; nenhum detalhe de contrato, sessão, erro, timeout ou rede congelado; nenhum outro item alterado
+RISCOS_LIMITACOES: divergência /api/chat versus /api/processos/chat encaminhada a INT-P1-002; sessão a INT-P1-003; erros a INT-P1-004; timeout a INT-P1-005; proxy/CORS e rede a INT-P1-006
+COMMIT_SUGERIDO: docs(integration): formalize Angular FastAPI topology
+COMMIT_REAL: —
+OBSERVACOES: G1 permanece aberto; checkpoint P1 não criado
+```
+
+### Registro detalhado — INT-P1-002
+
+```text
+ID: INT-P1-002
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 20/08/2026 17:25:55 -03:00
+ENDPOINT_OBSERVADO: POST /api/processos/chat; request e response application/json
+SCHEMAS_ARQUIVOS_INSPECIONADOS: chatbot_processual_ai/api.py; chatbot_processual_ai/schemas/processual_contracts.py; chatbot_processual_ai/orchestrators/processual_chat_orchestrator.py; chatbot_processual_ai/agents/agent2_context_collection.py; chatbot_processual_ai/services/rag_retriever.py; chatbot_processual_ai/tests/test_rag_base.py; chatbot_processual_ai/tests/test_progress_events.py; frontend/src/app/core/services/chat.ts
+CONTRATO_V1_CONGELADO: versão lógica/documental, sem criação de /v1; request session_id + mensagem; response session_id + resultado completo
+OBRIGATORIEDADE_NULABILIDADE: session_id da request é opcional e anulável; mensagem é obrigatória e não anulável; envelope de sucesso é obrigatório e não anulável; nulabilidade dos campos de resultado registrada individualmente
+CLASSIFICACAO_DOS_CAMPOS: resposta e processo_ativo como contrato principal; tipo, intent, collection_status, failed_stage, rag_status e contêiner fontes como contrato público auxiliar; estrutura interna de fontes não congelada
+EXEMPLOS_REGISTRADOS: sucesso; processo ausente/missing_number; falha controlada em Agente 1 com HTTP 200; erro de validação HTTP 422
+SEMANTICA_HTTP: 200 para conclusão e falha controlada; 422 para request inválida; nenhum HTTPException explícito no endpoint; 404/405 do framework; falha inesperada sem handler específico resulta em 500
+POLITICA_COMPATIBILIDADE: adição ignorável pode ser compatível; rota/método, remoção/renomeação, tipo, nulabilidade, obrigatoriedade ou semântica incompatíveis são breaking
+DECISOES_ADIADAS: sessão para INT-P1-003; erro/UX para INT-P1-004; timeout para INT-P1-005; proxy/CORS/rede para INT-P1-006
+ARQUIVOS_MODIFICADOS: docs/integration.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+RESUMO_DIFF: especificação documental do contrato factual e atualização operacional exclusiva de INT-P1-002
+TESTES_EXECUTADOS: pytest backend; inspeção dirigida; validação ASGI com orquestrador controlado; revisão do diff autorizado; git diff --check
+RESULTADOS: 29 testes aprovados; ASGI confirmou normalização, strings vazias, 200, 422, 404, 405 e JSON; nenhuma mudança funcional
+AUSENCIA_DE_IMPLEMENTACAO: confirmada; backend, frontend, schemas e DTOs inalterados
+RISCOS: session_id ausente/nulo/vazio converge para default compartilhado; mensagem vazia/espaços é aceita; não há response_model; objetos de fontes não têm schema estável; frontend ainda usa /api/chat, body parcial e Observable<any>; não há testes HTTP dedicados
+COMMIT_SUGERIDO: docs(integration): freeze processual chat HTTP v1 contract
+COMMIT_REAL: —
+OBSERVACOES: G1 permanece aberto; checkpoint P1 não criado; INT-P1-003..006 permanecem TODO
+```
+
+### Registro detalhado — INT-P1-003
+
+```text
+ID: INT-P1-003
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 21/08/2026 12:06:01 -03:00
+PROBLEMA_CONFIRMADO: ausência, null, vazio ou espaços em session_id convergem para DEFAULT_SESSION_ID "default"; clientes distintos podem selecionar a mesma entrada de _SESSIONS e compartilhar conversation, active_process e last_intent
+DECISAO_GERACAO_REUSO: backend gera UUID aleatório opaco quando não há ID utilizável; ID conhecido reutiliza contexto; ID válido desconhecido cria contexto vazio sob o próprio ID; mesmo ID preserva contexto enquanto a entrada existir
+ARMAZENAMENTO_WEB: sessionStorage separado do histórico de processos
+REFRESH: mantém o ID e preserva contexto somente se o backend ainda possuir a sessão
+NOVA_ABA: independente por padrão; possível cópia inicial de sessionStorage quando há opener foi registrada como limitação a considerar em P3
+RESTART_BACKEND: _SESSIONS é perdido; ID remanescente no browser cria contexto vazio, sem falsa promessa de continuidade
+RESET_NOVA_CONVERSA: descartar ID no browser; próxima mensagem inicia nova sessão; sem deleção backend sincronizada obrigatória no MVP
+ISOLAMENTO_PROCESSO_ATIVO: active_process pertence ao estado indexado por session_id e alimenta resultado.processo_ativo; IDs distintos isolam o contexto, mesmo ID o reutiliza
+MEMORIA_MVP: _SESSIONS local ao processo, sem persistência distribuída; entradas podem permanecer após fechar aba ou reset
+DIVIDA_EXPIRACAO_LIMITE: não há TTL, limite, limpeza ou eviction confirmados; política adiada para antes de escala/produção relevante
+PRIVACIDADE: ID não contém PII, nome, CPF, número de processo, conversa ou estado serializado; não é usuário, histórico, autenticação nem autorização
+ARQUIVOS_INSPECIONADOS: AGENTS.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md; docs/integration.md; chatbot_processual_ai/api.py; chatbot_processual_ai/session_state.py; chatbot_processual_ai/orchestrators/processual_chat_orchestrator.py; frontend/src/app/core/services/local-storage.ts; frontend/src/app/features/chat/chat.ts; documentação MDN de sessionStorage e opener
+ARQUIVOS_MODIFICADOS: docs/integration.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+RESUMO_DIFF: decisão documental do ciclo de vida da sessão e atualização operacional exclusiva de INT-P1-003
+AUSENCIA_DE_IMPLEMENTACAO: confirmada; backend, frontend, DEFAULT_SESSION_ID, _SESSIONS, schemas, testes, UUID e sessionStorage não foram modificados/implementados
+DECISOES_ADIADAS: semântica de erros para INT-P1-004; geração/isolamento/testes para P2; armazenamento/captura/reset frontend para P3
+TESTES_EXECUTADOS: não aplicável; item exclusivamente documental, sem implementação funcional
+RESULTADOS: estratégia inequívoca e compatível com o contrato P1-002; critérios arquiteturais cobertos; G1 permanece aberto
+COMMIT_SUGERIDO: docs(integration): define web session lifecycle
+COMMIT_REAL: —
+OBSERVACOES: INT-P1-004..006 permanecem TODO; CHECKPOINT_P1: AINDA_NAO
+```
+
+### Registro detalhado — INT-P1-004
+
+```text
+ID: INT-P1-004
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 21/08/2026 12:16:19 -03:00
+ENDPOINT_INSPECIONADO: POST /api/processos/chat
+COMPORTAMENTO_FACTUAL: 200 com envelope também em exceção capturada pelos Agentes 1..4; 422 para validação; 404/405 pelo framework; exceção fora da proteção pode resultar em 500; transporte não possui response
+CATEGORIAS_APROVADAS: sucesso funcional; sucesso degradado; falha controlada; erro HTTP 4xx; erro de transporte; falha técnica inesperada/5xx; timeout reservado
+MATRIZ_DE_ERRO: precedência transporte → HTTP → contrato 2xx; em 2xx, failed_stage prevalece como falha controlada, depois degradação auxiliar e sucesso
+FAILED_STAGE: string|null obrigatório/anulável; Agente 1..Agente 4; presença indica exceção capturada e resposta segura; null não prova saúde total; nunca exibido diretamente
+RAG_STATUS: not_needed|success|empty|unavailable|error; indisponibilidade/erro são degradáveis quando resultado.resposta permanece utilizável; frontend não conhece Qdrant/RAG interno
+COLLECTION_STATUS: success|already_active|missing_number|not_found|not_needed; descreve coleta; ausência/não localização é resultado funcional, não 4xx
+REGRA_RESPOSTA_PUBLICA: resposta funcional ou falha controlada usa resultado.resposta; 4xx/transporte/5xx usam classe genérica segura; nunca JSON/erro bruto
+REGRA_LOGS: tipo da exceção, estágio e contexto técnico mínimo pertencem a log/trace, com sanitização e acesso adequado
+PROTECAO_EXPOSICAO: stack, path, hostname, ambiente, segredo, SQL, configuração Ollama, detalhes Qdrant, estrutura Python e IDs internos excluídos da UI
+RELACAO_HTTP_TRANSPORTE: 4xx rejeita request; 5xx é falha técnica; sem response é transporte; nenhum deles é resposta conversacional normal nem failed_stage sintético
+TIMEOUT: adiado integralmente para INT-P1-005
+MOCK: falha real nunca pode ser convertida em mock de sucesso; remoção/integração pertencem a P3
+RECUPERABILIDADE: falha deve encerrar loading e permitir tentativa posterior; implementação adiada a P3/P4
+ARQUIVOS_INSPECIONADOS: AGENTS.md; checklist; controle; docs/integration.md; api.py; schemas/processual_contracts.py; processual_chat_orchestrator.py; agent2_context_collection.py; rag_retriever.py; ChatService; ChatComponent; StateService; testes de RAG e progress events
+ARQUIVOS_MODIFICADOS: docs/integration.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+RESUMO_DIFF: política documental de erros/degradação e atualização operacional exclusiva de INT-P1-004
+AUSENCIA_DE_IMPLEMENTACAO: confirmada; backend, frontend, schemas, sessão, timeout, healthcheck, proxy/CORS e mock inalterados
+CONTRATO_P1_002: preservado; nenhum campo, tipo, nulabilidade, status HTTP ou DTO alterado
+SESSAO_P1_003: preservada; nenhuma decisão reaberta
+TESTES_EXECUTADOS: 3 testes backend focados em falha controlada e RAG; regressão backend completa 29/29; inspeção dirigida; revisão do diff autorizado; git diff --check
+RISCOS: frontend baseline ainda mascara sucesso e erro com mock; endpoint não possui handler específico fora do orquestrador; implementação e cobertura HTTP/frontend permanecem para P2/P3/P4
+COMMIT_SUGERIDO: docs(integration): define chat error semantics
+COMMIT_REAL: —
+OBSERVACOES: G1 permanece aberto; INT-P1-005 e INT-P1-006 permanecem TODO; CHECKPOINT_P1: AINDA_NAO
+```
+
+### Registro detalhado — INT-P1-005
+
+```text
+ID: INT-P1-005
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 21/08/2026 13:17:01 -03:00
+ENDPOINT_INSPECIONADO: POST /api/processos/chat
+LIMITES_ATUAIS: Angular 60 s; Ollama geração e embedding 60 s por request; Qdrant 10 s por request; FastAPI/request sem timeout total explícito
+FLUXO_DEMORADO: orquestrador sequencial Agentes 1→4; caminhos podem fazer gerações Ollama sequenciais; RAG faz embedding da consulta, chamadas Qdrant e, para cada chunk textual, embedding seguido de upsert
+RETRIES: nenhum retry automático geral; embedding tenta /api/embed e, em qualquer EmbeddingError, tenta /api/embeddings, cada tentativa com 60 s; sincronização repete por chunk
+OPERACOES_SEM_TIMEOUT: request FastAPI e pipeline completo não possuem deadline total; SQLite local não possui timeout de aplicação explícito neste fluxo
+DECISAO_APROVADA: manter 60 s como limite por operação Ollama; introduzir em P2 orçamento total backend de 120 s; introduzir em P3 timeout cliente de 135 s
+MARGEM: 15 s entre deadline backend e cliente para transporte, serialização, processamento antes/depois das dependências e emissão da resposta controlada
+REGRA_NORMATIVA: timeout por dependência < orçamento total backend < timeout cliente; qualquer alteração interna exige rever os limites externos; timeout infinito proibido
+MENSAGEM_SEGURA: A solicitação demorou mais que o esperado. Tente novamente.
+P1_004: timeout interno capturado pode ser falha controlada contratual; timeout escapado/servidor segue 5xx; timeout cliente é categoria própria sem failed_stage sintético
+P1_003: timeout não invalida session_id, não cria sessão e não limpa contexto; backend pode continuar processando após o cliente expirar
+RECUPERABILIDADE: loading deve terminar, nova tentativa deve ser permitida e timeout nunca aciona responderMock()
+CONFIGURACAO_FUTURA: backend em configuração/env existente; frontend em constante/configuração central do service; sem framework adicional
+RISCOS: laço RAG torna o total atual não limitado pelo valor de 60 s; fallback de embedding pode consumir duas tentativas; retry manual pode observar estado produzido pela request anterior; ausência atual de cancelamento distribuído
+AUSENCIA_DE_IMPLEMENTACAO: confirmada; nenhum código, env, timeout, retry, proxy, CORS, contrato ou sessão alterado
+ARQUIVOS_MODIFICADOS: docs/integration.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+TESTES_EXECUTADOS: inspeção estática dirigida; revisão do diff autorizado; git diff --check
+COMMIT_SUGERIDO: docs(integration): define chat timeout policy
+COMMIT_REAL: —
+OBSERVACOES: G1 permanece aberto; INT-P1-006 permanece TODO; CHECKPOINT_P1: AINDA_NAO
+```
+
+### Registro detalhado — INT-P1-006
+
+```text
+ID: INT-P1-006
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 21/08/2026 13:39:25 -03:00
+TOPOLOGIA_OBSERVADA: ChatService usa /api/chat relativo; nenhum proxy/environment de API; Angular documentado em localhost:4200; FastAPI documentado em localhost:8000; api.py sem CORS, frontend estático ou reverse proxy
+DECISAO_LOCAL: browser acessa Angular :4200; Angular usa /api/...; proxy de desenvolvimento encaminha /api/* ao FastAPI :8000
+PORTAS: Angular 4200; FastAPI 8000
+BASE_API: /api como base pública lógica; chat contratual em /api/processos/chat
+POLITICA_PROXY: preservar método, path, body JSON, response e status HTTP; implementação em INT-P5-001
+DECISAO_CORS: desnecessário em desenvolvimento com proxy e em produção de mesma origem; necessário somente em cross-origin real
+PRODUCAO_PREFERENCIAL: origem pública única com frontend em / e /api/* encaminhado ao FastAPI; domínio, hosting e tecnologia não definidos
+FALLBACK_CROSS_ORIGIN: base da API por configuração e allowlist explícita; sem wildcard por conveniência; credenciais somente se justificadas
+P2_005: condicional; implementar/testar CORS somente se a topologia final exigir origens distintas, ou dispensar/adiar formalmente sob mesma origem
+P5_001: responsável pela criação e configuração real do proxy Angular
+P5_004: responsável pelo workflow conjunto de desenvolvimento
+RELACAO_DECISOES: contrato P1-002, session_id JSON de P1-003, semântica HTTP de P1-004 e política temporal P1-005 preservados
+AUSENCIA_DE_IMPLEMENTACAO: confirmada; nenhum proxy, CORS, healthcheck, deploy, código ou configuração funcional alterado
+ARQUIVOS_MODIFICADOS: docs/integration.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+RESUMO_DIFF: decisão documental de topologia/origens e atualização operacional exclusiva de INT-P1-006
+TESTES_EXECUTADOS: inspeção estática dirigida; revisão do diff autorizado; git diff --check
+RISCOS: infraestrutura e origem de produção desconhecidas; CORS futuro depende da topologia real; configuração e smoke do proxy permanecem para P5
+COMMIT_SUGERIDO: docs(integration): define Angular FastAPI network topology
+COMMIT_REAL: —
+OBSERVACOES: G1 permanece aberto; P1 pronta para auditoria separada de fechamento; P2 não iniciada; CHECKPOINT_P1: AINDA_NAO
 ```
 
 ---
