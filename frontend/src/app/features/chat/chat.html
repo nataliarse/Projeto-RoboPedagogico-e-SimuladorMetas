@@ -7,7 +7,14 @@
         <div class="header-icon">⚖️</div>
         <div class="header-info">
           <h1>Assistente Jurídico PJE - Robô Orientador de Dados</h1>
-          <span><span class="status-dot"></span>Sistema disponível</span>
+          <span class="api-status" [class]="'api-status ' + apiHealthStatus()" role="status">
+            <span class="status-dot"></span>
+            @switch (apiHealthStatus()) {
+              @case ('verificando') { Verificando API... }
+              @case ('disponivel') { API disponível }
+              @case ('indisponivel') { API indisponível }
+            }
+          </span>
         </div>
         <div class="badge-mvp">MVP</div>
       </div>
@@ -66,6 +73,10 @@
             Consultando o sistema do governo...
           </div>
         </div>
+      }
+
+      @if (state.erro(); as erro) {
+        <div class="erro-chat" role="alert">{{ erro }}</div>
       }
 
       <div #fim></div>

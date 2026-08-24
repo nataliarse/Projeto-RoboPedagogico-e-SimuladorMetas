@@ -595,98 +595,154 @@ antes dele com allowlist configurável e superfície mínima. Regressão backend
 ## INT-P3-001 — Criar DTOs TypeScript do contrato HTTP
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Ações
 
-- [ ] Criar interface para request do chat.
-- [ ] Criar interface para envelope HTTP de response.
-- [ ] Criar interface para `ProcessualChatResponse`.
-- [ ] Tipar `fontes` com o mínimo público conhecido ou tipo seguro explícito.
-- [ ] Eliminar `Observable<any>` do `ChatService`.
+- [x] Criar interface para request do chat.
+- [x] Criar interface para envelope HTTP de response.
+- [x] Criar interface para `ProcessualChatResponse`.
+- [x] Tipar `fontes` com o mínimo público conhecido ou tipo seguro explícito.
+- [x] Eliminar `Observable<any>` do `ChatService`.
 
 ### Critério de aceite
 
 - TypeScript detecta incompatibilidades básicas do contrato em compilação.
+
+**Evidência:** `core/types/processual-chat.types.ts` representa request, resultado
+e envelope do contrato v1 com nulabilidade explícita, discriminador
+`'processual_chat'` e `fontes` como `ReadonlyArray<unknown>`, sem congelar sua
+estrutura interna. O `ChatService` retorna
+`Observable<ProcessualChatHttpResponse>` e tipa o `HttpClient`, preservando
+endpoint, body e timeout transitórios. `tsconfig.app` e build aprovados; o
+`tsconfig.spec` mantém somente os quatro imports preexistentes reservados a
+`INT-P4-001`, sem erro novo do DTO ou service; `git diff --check` aprovado.
 
 ---
 
 ## INT-P3-002 — Implementar armazenamento do `session_id`
 
 **Status inicial:** `TODO`  
+**Status atual:** `VALIDATED`
 **Dependência:** INT-P1-003 / INT-P2-002
 
 ### Ações
 
-- [ ] Criar responsabilidade clara para ler/gravar sessão.
-- [ ] Preferir `sessionStorage` conforme estratégia aprovada.
-- [ ] Não misturar `session_id` com histórico de processos.
-- [ ] Primeira chamada pode omitir ID; chamadas seguintes reutilizam o retornado.
-- [ ] Definir limpeza/reset de conversa.
+- [x] Criar responsabilidade clara para ler/gravar sessão.
+- [x] Preferir `sessionStorage` conforme estratégia aprovada.
+- [x] Não misturar `session_id` com histórico de processos.
+- [x] Primeira chamada pode omitir ID; chamadas seguintes reutilizam o retornado.
+- [x] Definir limpeza/reset de conversa.
 
 ### Critério de aceite
 
 - duas mensagens consecutivas do mesmo usuário usam a mesma sessão retornada pela API.
+
+**Evidência:** `ChatSessionService`, em `core/services/chat-session.ts`, mantém o
+identificador opaco sob a chave específica `processual_chat_session_id` usando
+exclusivamente `sessionStorage`. A API `getSessionId`, `setSessionId` e
+`clearSession` cobre ausência, persistência e reset local sem tocar no histórico
+mantido pelo `LocalStorageService`. Typecheck da aplicação e build aprovados; as
+specs mantêm somente os quatro imports preexistentes de `INT-P4-001`. O mecanismo
+de persistência está validado; o envio e a captura HTTP permanecem deliberadamente
+reservados a `INT-P3-003` e `INT-P3-004`.
 
 ---
 
 ## INT-P3-003 — Alinhar `ChatService` ao endpoint real
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Ações
 
-- [ ] Alterar `/api/chat` para `/api/processos/chat`.
-- [ ] Enviar `{ session_id, mensagem }` conforme contrato.
-- [ ] Retornar observable tipado.
-- [ ] Aplicar timeout conforme política P1.
-- [ ] Não adicionar regra de negócio ao service.
+- [x] Alterar `/api/chat` para `/api/processos/chat`.
+- [x] Enviar `{ session_id, mensagem }` conforme contrato.
+- [x] Retornar observable tipado.
+- [x] Aplicar timeout conforme política P1.
+- [x] Não adicionar regra de negócio ao service.
 
 ### Critério de aceite
 
 - request Angular corresponde exatamente ao contrato FastAPI.
+
+**Evidência:** `ChatService` usa `POST /api/processos/chat`, constrói
+`ProcessualChatRequest` com `mensagem` e omite `session_id` somente quando o
+`ChatSessionService` retorna `null`; quando presente, o identificador é enviado
+sem alteração. O retorno permanece `Observable<ProcessualChatHttpResponse>` e o
+timeout cliente está centralizado em `PROCESSUAL_CHAT_TIMEOUT_MS = 135_000`.
+Typecheck da aplicação e build aprovados; as specs mantêm apenas os quatro erros
+de import baseline. O backend não possui o orçamento total de 120 s previsto em
+P1, lacuna cross-phase registrada sem alteração de backend. Component, response,
+mock e itens posteriores permaneceram inalterados; `git diff --check` aprovado.
 
 ---
 
 ## INT-P3-004 — Remover mock do caminho de sucesso
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Ações
 
-- [ ] Em `next`, consumir `response.resultado.resposta`.
-- [ ] Registrar `response.session_id`.
+- [x] Em `next`, consumir `response.resultado.resposta`.
+- [x] Registrar `response.session_id`.
 - [ ] Atualizar `processo_ativo`/histórico quando disponível.
-- [ ] Em `error`, não chamar `responderMock()`.
-- [ ] Garantir `carregando=false` em sucesso e erro.
-- [ ] Evitar duplicação de finalização de estado.
+- [x] Em `error`, não chamar `responderMock()`.
+- [x] Garantir `carregando=false` em sucesso e erro.
+- [x] Evitar duplicação de finalização de estado.
 
 ### Critério de aceite
 
 - a mensagem mostrada no chat vem efetivamente do backend no caminho de sucesso.
+
+**Evidência:** o `ChatComponent` registra imediatamente o `session_id` recebido
+por meio do `ChatSessionService`, adiciona a mensagem do bot usando exclusivamente
+`response.resultado.resposta` e encerra o loading uma única vez com `finalize`,
+tanto no sucesso quanto no erro. O `responderMock` e todas as suas chamadas foram
+removidos; erro HTTP não cria mensagem falsa. Respostas contratuais 2xx continuam
+no `next` sem classificação por `failed_stage` ou `rag_status`. A atualização de
+`processo_ativo`/histórico permanece deliberadamente pendente para `INT-P3-006`,
+conforme a fronteira específica deste item. Typecheck da aplicação e build
+aprovados; as specs mantêm somente os quatro imports baseline; `git diff --check`
+aprovado.
 
 ---
 
 ## INT-P3-005 — Implementar apresentação de erro real
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Ações
 
-- [ ] Usar `StateService.erro` ou estrutura equivalente.
-- [ ] Mostrar erro de rede/timeout de forma segura e recuperável.
-- [ ] Manter resposta controlada do backend como mensagem normal quando o contrato assim definir.
-- [ ] Não mostrar stack trace ou objeto HTTP bruto.
-- [ ] Permitir nova tentativa após falha.
+- [x] Usar `StateService.erro` ou estrutura equivalente.
+- [x] Mostrar erro de rede/timeout de forma segura e recuperável.
+- [x] Manter resposta controlada do backend como mensagem normal quando o contrato assim definir.
+- [x] Não mostrar stack trace ou objeto HTTP bruto.
+- [x] Permitir nova tentativa após falha.
 
 ### Critério de aceite
 
 - falha não produz resposta mockada falsa e não deixa interface permanentemente em loading.
+
+**Evidência:** `ChatComponent` classifica `TimeoutError`, transporte
+(`HttpErrorResponse.status === 0`), HTTP `4xx` e demais falhas técnicas sem
+renderizar detalhes do erro. As quatro mensagens públicas seguem literalmente
+`docs/integration.md` e são apresentadas por `StateService.erro` em alerta com
+`role="alert"`, separado das mensagens do bot. Uma nova tentativa limpa o erro
+anterior; o único `finalize` existente encerra o loading em sucesso e falha. Não
+há mock, retry automático ou limpeza de sessão. Respostas `2xx`, inclusive
+falha controlada e degradação, permanecem no `next` e exibem somente
+`resultado.resposta`. Typecheck da aplicação e build aprovados; specs mantêm
+somente os quatro imports baseline; `git diff --check` aprovado.
 
 ---
 
 ## INT-P3-006 — Corrigir histórico de processos consultados
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Problema observado
 
@@ -694,50 +750,78 @@ A pergunta inteira é gravada atualmente como `numero_processo`.
 
 ### Ações
 
-- [ ] Usar `resultado.processo_ativo` como fonte primária do número.
-- [ ] Não adicionar histórico quando não houver processo ativo identificável, salvo regra explícita.
-- [ ] Definir deduplicação/ordenação de consultas se necessário.
-- [ ] Preservar limite atual de 3 itens ou alterar somente mediante decisão de produto.
+- [x] Usar `resultado.processo_ativo` como fonte primária do número.
+- [x] Não adicionar histórico quando não houver processo ativo identificável, salvo regra explícita.
+- [x] Definir deduplicação/ordenação de consultas se necessário.
+- [x] Preservar limite atual de 3 itens ou alterar somente mediante decisão de produto.
 
 ### Critério de aceite
 
 - perguntas como “qual foi a última movimentação?” não aparecem como número processual no histórico.
+
+**Evidência:** o `ChatComponent` atualiza o histórico somente no `next` de
+uma resposta HTTP contratual e usa exclusivamente
+`response.resultado.processo_ativo`, ignorando `null`, vazio e whitespace. O
+`LocalStorageService` preserva o modelo existente, remove a entrada anterior do
+mesmo processo, insere a consulta renovada no início e mantém no máximo três
+itens. Erro e timeout não possuem caminho de gravação; pergunta e `session_id`
+não entram no item. Typecheck da aplicação e build aprovados; specs mantêm
+somente os quatro imports baseline; `git diff --check` aprovado.
 
 ---
 
 ## INT-P3-007 — Tornar indicador de disponibilidade verdadeiro
 
 **Status inicial:** `TODO`  
+**Status atual:** `VALIDATED`
 **Dependência:** INT-P2-003 se healthcheck for adotado
 
 ### Ações
 
-- [ ] Remover interpretação estática de “Sistema disponível”.
-- [ ] Consultar healthcheck no momento apropriado ou usar estado mais neutro.
-- [ ] Definir estados: verificando / disponível / indisponível.
-- [ ] Não bloquear o carregamento inteiro da interface por diagnóstico externo pesado.
+- [x] Remover interpretação estática de “Sistema disponível”.
+- [x] Consultar healthcheck no momento apropriado ou usar estado mais neutro.
+- [x] Definir estados: verificando / disponível / indisponível.
+- [x] Não bloquear o carregamento inteiro da interface por diagnóstico externo pesado.
 
 ### Critério de aceite
 
 - indicador visual corresponde a uma evidência técnica real ou deixa explícito que não é um healthcheck.
+
+**Evidência:** `ApiHealthService` executa uma única chamada tipada a
+`GET /api/health` durante a inicialização do `ChatComponent`. O estado local
+começa em `verificando`, muda para `disponivel` somente quando o payload possui
+`status === 'ok'` e assume `indisponivel` em erro ou payload incompatível. O
+cabeçalho preserva o layout e comunica textualmente “Verificando API...”, “API
+disponível” ou “API indisponível”, sem bloquear a UI nem reutilizar loading,
+erro, sessão ou histórico do chat. Typecheck e build aprovados; specs mantêm
+somente os quatro imports baseline; `git diff --check` aprovado.
 
 ---
 
 ## INT-P3-008 — Corrigir idioma/metadados mínimos da aplicação
 
 **Status inicial:** `TODO`  
+**Status atual:** `VALIDATED`
 **Prioridade:** alinhamento, não bloqueante para contrato
 
 ### Ações
 
-- [ ] Alterar `<html lang="en">` para `pt-BR`.
-- [ ] Substituir título genérico `MeuPrimeiroApp` por nome aprovado ou título provisório do projeto.
-- [ ] Remover/ajustar `My first Angular JS Project` se não tiver função real.
-- [ ] Evitar renomear workspace/package inteiro nesta etapa sem necessidade.
+- [x] Alterar `<html lang="en">` para `pt-BR`.
+- [x] Substituir título genérico `MeuPrimeiroApp` por nome aprovado ou título provisório do projeto.
+- [x] Remover/ajustar `My first Angular JS Project` se não tiver função real.
+- [x] Evitar renomear workspace/package inteiro nesta etapa sem necessidade.
 
 ### Critério de aceite
 
 - metadados visíveis não contradizem a finalidade real do sistema.
+
+**Evidência:** `src/index.html` declara `lang="pt-BR"` e usa o título funcional
+`Chatbot Processual`, nomenclatura já adotada pela checklist de integração e pelo
+backend. O `signal` sem consumidores que continha `My first Angular JS Project`
+foi removido do componente raiz. O HTML gerado preserva idioma e título;
+workspace, package, diretórios, selectors, favicon, manifestos, specs e backend
+permanecem inalterados. Typecheck da aplicação e build aprovados; as specs mantêm
+somente os quatro imports baseline de `INT-P4-001`; `git diff --check` aprovado.
 
 ---
 

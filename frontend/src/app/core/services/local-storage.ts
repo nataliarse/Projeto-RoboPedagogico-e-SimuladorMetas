@@ -8,7 +8,9 @@ export class LocalStorageService {
   private readonly MAX = 3;
 
   salvar(processo: ProcessoConsulta): void {
-    const lista = this.carregar();
+    const lista = this.carregar().filter(
+      item => item.numero_processo !== processo.numero_processo
+    );
     lista.unshift(processo);
     localStorage.setItem(this.KEY, JSON.stringify(lista.slice(0, this.MAX)));
   }

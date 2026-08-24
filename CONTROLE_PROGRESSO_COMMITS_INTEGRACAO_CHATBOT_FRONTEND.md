@@ -136,14 +136,14 @@ Se C05 não for necessário porque o projeto usar proxy/mesma origem e o healthc
 
 | ID | Status | Commit planejado | Arquivos esperados | Evidência para `VALIDATED` | Commit real |
 |---|---|---|---|---|---|
-| INT-P3-001 | `TODO` | C06 | models/DTOs | sem `Observable<any>` na fronteira | — |
-| INT-P3-002 | `TODO` | C06 | service de sessão/storage | ID retorna e é reutilizado | — |
-| INT-P3-003 | `TODO` | C06 | `chat.ts` service | endpoint/body corretos | — |
-| INT-P3-004 | `TODO` | C06 | `features/chat/chat.ts` | resposta real exibida; mock fora do sucesso | — |
-| INT-P3-005 | `TODO` | C07 | state/component/template | erro real visível e recuperável | — |
-| INT-P3-006 | `TODO` | C07 | component/storage/model | histórico usa `processo_ativo` | — |
-| INT-P3-007 | `TODO` | C05/C07 | API + frontend | indicador baseado em evidência ou texto neutro | — |
-| INT-P3-008 | `TODO` | C07 | `index.html`, app metadata | idioma/título coerentes | — |
+| INT-P3-001 | `VALIDATED` | C06 | `core/types` + `ChatService` | DTOs compiláveis; sem `Observable<any>` na fronteira; app/build aprovados | — |
+| INT-P3-002 | `VALIDATED` | C06 | `core/services/chat-session.ts` | `sessionStorage`; get/set/clear isolados; app/build aprovados | — |
+| INT-P3-003 | `VALIDATED` | C06 | `chat.ts` service | endpoint/body corretos; app/build aprovados; lacuna do deadline backend registrada | — |
+| INT-P3-004 | `VALIDATED` | C06 | `features/chat/chat.ts` | resposta real exibida; sessão persistida; mock fora de sucesso/erro; app/build aprovados | — |
+| INT-P3-005 | `VALIDATED` | C07 | state/component/template | timeout/transporte/4xx/5xx seguros; alerta recuperável; app/build aprovados | — |
+| INT-P3-006 | `VALIDATED` | C07 | component/storage/model | `processo_ativo`; deduplicação por recência; limite 3; app/build aprovados | — |
+| INT-P3-007 | `VALIDATED` | C05/C07 | API + frontend | `GET /api/health`; três estados; app/build aprovados | — |
+| INT-P3-008 | `VALIDATED` | C07 | `index.html`, app metadata | `pt-BR`; título funcional; app/build aprovados | — |
 
 ### P4 — Testes
 
@@ -215,6 +215,17 @@ Adicionar uma linha **somente quando houver evento real**.
 | 21/08/2026 15:21:09 -03:00 | INT-P2-003 | Healthcheck mínimo da API implementado e validado | `TODO` → `IN_PROGRESS` → `VALIDATED` | `GET /api/health` retorna `200` e `{"status":"ok"}`; sem dependências pesadas ou efeito em sessão; 8/8 focados e 37/37 na regressão; `COMMIT_REAL: —` | — |
 | 21/08/2026 15:34:37 -03:00 | INT-P2-004 | Validação de mensagem e semântica HTTP implementadas e validadas | `TODO` → `IN_PROGRESS` → `VALIDATED` | vazio/whitespace `422`; texto válido preservado; sem limite adicional no MVP; domínio/falha controlada `200`; falha inesperada `500`; 14/14 focados e 43/43 na regressão; `COMMIT_REAL: —` | — |
 | 21/08/2026 15:40:40 -03:00 | INT-P2-005 | Necessidade de CORS decidida e validada | `TODO` → `IN_PROGRESS` → `VALIDATED` | dev por proxy same-origin; produção preferencial same-origin; nenhuma origem cross-origin concreta; CORS não implementado; fallback futuro exige allowlist configurável; 43/43 testes; `COMMIT_REAL: —` | — |
+| 21/08/2026 16:23:20 -03:00 | INT-P3-001 | DTOs TypeScript do contrato HTTP criados e validados | `TODO` → `IN_PROGRESS` → `VALIDATED` | request, resultado e envelope em `core/types`; `fontes` como `ReadonlyArray<unknown>`; `ChatService` sem `Observable<any>`; app typecheck e build aprovados; quatro erros de specs preexistentes inalterados; `COMMIT_REAL: —` | — |
+| 24/08/2026 07:33:43 -03:00 | INT-P3-002 | Armazenamento local do `session_id` criado e validado | `TODO` → `IN_PROGRESS` → `VALIDATED` | `ChatSessionService`; chave `processual_chat_session_id`; `sessionStorage`; get/set/clear; histórico separado; app/build aprovados; quatro erros de specs preexistentes; reuso HTTP adiado a P3-003/P3-004; `COMMIT_REAL: —` | — |
+| 24/08/2026 07:48:07 -03:00 | INT-P3-003 | Alinhamento do `ChatService` iniciado | `TODO` → `IN_PROGRESS` | branch correta; baseline e contrato frontend/backend em inspeção; `COMMIT_REAL: —` | — |
+| 24/08/2026 07:50:27 -03:00 | INT-P3-003 | `ChatService` alinhado ao contrato HTTP real | `IN_PROGRESS` → `VALIDATED` | `POST /api/processos/chat`; `ProcessualChatRequest`; sessão via `ChatSessionService`; ausência omite ID; presença preserva ID; timeout 135 s; app/build PASS; quatro erros de specs baseline; deadline backend total de 120 s não localizado; sem antecipar P3-004; `COMMIT_REAL: —` | — |
+| 24/08/2026 08:35:57 -03:00 | INT-P3-004 | Consumo da resposta real iniciado | `TODO` → `IN_PROGRESS` | branch correta; fluxo `next`/`error`, mock, loading, sessão e histórico em inspeção; `COMMIT_REAL: —` | — |
+| 24/08/2026 08:38:15 -03:00 | INT-P3-004 | Resposta real integrada e validada no componente | `IN_PROGRESS` → `VALIDATED` | `resultado.resposta` exibida; `session_id` salvo via service; mock removido; loading finalizado uma vez; app/build PASS; quatro erros de specs baseline; histórico e UX de erro adiados; `COMMIT_REAL: —` | — |
+| 24/08/2026 09:25:44 -03:00 | INT-P3-006 | Histórico alinhado ao processo ativo retornado pela API | `TODO` → `IN_PROGRESS` → `VALIDATED` | gravação somente no `next` com `resultado.processo_ativo`; null/vazio/erro ignorados; mais recente primeiro, deduplicado e limitado a 3; app/build aprovados; specs baseline preservadas; diff check aprovado; `COMMIT_REAL: —` | — |
+| 24/08/2026 09:44:01 -03:00 | INT-P3-007 | Indicador real de disponibilidade da API iniciado | `TODO` → `IN_PROGRESS` | branch correta; indicador estático, contrato do healthcheck e arquitetura frontend em inspeção; `COMMIT_REAL: —` | — |
+| 24/08/2026 09:46:54 -03:00 | INT-P3-007 | Indicador real de disponibilidade da API implementado e validado | `IN_PROGRESS` → `VALIDATED` | `GET /api/health`; verificando/disponível/indisponível; payload estrito; UI independente; app/build PASS; quatro falhas baseline de specs; `COMMIT_REAL: —` | — |
+| 24/08/2026 10:52:26 -03:00 | INT-P3-008 | Correção de idioma e metadados mínimos iniciada | `TODO` → `IN_PROGRESS` | branch correta; metadados visíveis, texto genérico e nomenclatura funcional em inspeção; `COMMIT_REAL: —` | — |
+| 24/08/2026 10:55:30 -03:00 | INT-P3-008 | Idioma e metadados mínimos corrigidos e validados | `IN_PROGRESS` → `VALIDATED` | `lang="pt-BR"`; título `Chatbot Processual`; resíduo AngularJS sem uso removido; app/build PASS; quatro falhas baseline de specs; workspace/package intactos; `COMMIT_REAL: —` | — |
 
 ### Registro detalhado — INT-P0-004
 
@@ -599,6 +610,277 @@ CHECKPOINT_P2: AINDA_NAO
 ```
 
 ---
+
+### Registro detalhado — INT-P3-001
+
+```text
+ID: INT-P3-001
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 21/08/2026 16:23:20 -03:00
+ARQUIVOS_INSPECIONADOS: AGENTS.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md; docs/integration.md; chatbot_processual_ai/api.py; chatbot_processual_ai/schemas/processual_contracts.py; chatbot_processual_ai/tests/test_api_processual_chat.py; frontend/src/app/core/services/chat.ts; estrutura e consumidores em frontend/src/app
+LOCAL_DTO: frontend/src/app/core/types/processual-chat.types.ts; `models/` foi descartado porque a regra global de .gitignore tornaria o arquivo não rastreável
+TIPOS_CRIADOS: ProcessualChatRequest; ProcessualChatResponse; ProcessualChatHttpResponse
+NULABILIDADE: request.session_id opcional e anulável; mensagem obrigatória; envelope obrigatório e não anulável; intent, processo_ativo, collection_status, failed_stage e rag_status presentes e anuláveis
+FONTES: ReadonlyArray<unknown>; contêiner público congelado, estrutura interna deliberadamente não congelada; nenhum any
+CHATSERVICE: retorno Observable<ProcessualChatHttpResponse> e post<ProcessualChatHttpResponse>; Observable<any> removido
+AMBIENTE: node/npm ausentes do PATH; runtime Node disponível do Playwright v24.14.1 utilizado diretamente; versão npm indisponível nesta sessão
+TYPECHECK_APP: PASS — node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit
+BUILD: PASS — node node_modules/@angular/cli/bin/ng.js build; warning CSS preexistente de 1,29 kB acima do budget
+SPECS: tsconfig.spec FAIL somente nos quatro imports antigos já registrados (Chat, LocalStorage, State e Chat); nenhum erro novo de DTO/service; npm test não executado
+NAO_ANTECIPACAO: endpoint /api/chat, body { mensagem }, timeout 60000, componente, mock, sessão, erros, histórico, healthcheck e metadata preservados; backend e specs inalterados; INT-P3-002..008 permanecem TODO
+ARQUIVOS_MODIFICADOS: frontend/src/app/core/types/processual-chat.types.ts; frontend/src/app/core/services/chat.ts; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+REVISAO: diff completo autorizado revisado; busca dirigida sem Observable<any>, post<any> ou get<any>; sem debug, segredo, manifestos ou arquivos fora do escopo; git diff --check aprovado
+RISCOS: integração HTTP real permanece para INT-P3-003/P3-004; sessão frontend para INT-P3-002; dívida de specs para INT-P4-001; elementos de fontes seguem desconhecidos por contrato
+COMMIT_SUGERIDO: feat(frontend): type processual chat HTTP contract
+COMMIT_REAL: —
+G3_FECHADO: NÃO
+CHECKPOINT_P3: AINDA_NAO
+```
+
+### Registro detalhado — INT-P3-002
+
+```text
+ID: INT-P3-002
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 24/08/2026 07:33:43 -03:00
+SERVICE_CRIADO: frontend/src/app/core/services/chat-session.ts; ChatSessionService com providedIn root
+CHAVE: processual_chat_session_id
+STORAGE: sessionStorage; nenhum novo uso de localStorage para session_id
+API_PUBLICA: getSessionId(): string | null; setSessionId(sessionId: string): void; clearSession(): void
+SEMANTICA: ausência retorna null; set preserva exatamente o ID opaco; leituras posteriores e refresh da mesma aba preservam o valor; clear remove somente a chave conversacional
+RESET: clearSession remove o ID local para que a futura request comece sem session_id; não chama backend nem limpa histórico
+SEPARACAO: LocalStorageService e seu histórico chatbot_historico inalterados; StateService inalterado
+TYPECHECK_APP_BASELINE: PASS — node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit
+TYPECHECK_APP_FINAL: PASS — node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit
+BUILD: PASS — node node_modules/@angular/cli/bin/ng.js build; primeira tentativa no sandbox falhou ambientalmente com spawn EPERM, repetição autorizada fora do sandbox passou; warning CSS preexistente de 1,29 kB acima do budget
+SPECS_BASELINE: tsconfig.spec FAIL somente nos quatro imports antigos já registrados (Chat, LocalStorage, State e Chat); nenhum erro novo do service; specs não corrigidas
+REUSO_HTTP_REAL: adiado para INT-P3-003/INT-P3-004
+NAO_ANTECIPACAO: ChatService, endpoint, body, timeout, componente, response, mock, erros, histórico, healthcheck, metadata, DTO, specs e backend inalterados por este item
+ARQUIVOS_MODIFICADOS: frontend/src/app/core/services/chat-session.ts; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+RISCOS: session_id não é autenticação; contexto backend permanece em memória e se perde no restart; nova aba com window.opener pode herdar cópia inicial conforme comportamento conhecido do navegador
+COMMIT_SUGERIDO: feat(frontend): persist processual chat session id
+COMMIT_REAL: —
+G3_FECHADO: NÃO
+CHECKPOINT_P3: AINDA_NAO
+```
+
+### Registro detalhado — INT-P3-003
+
+```text
+ID: INT-P3-003
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 24/08/2026 07:50:27 -03:00
+ENDPOINT_ANTERIOR: POST /api/chat
+ENDPOINT_NOVO: POST /api/processos/chat; URL relativa, sem host ou porta
+BODY_ANTERIOR: objeto não tipado { mensagem }
+REQUEST_DTO: ProcessualChatRequest; { mensagem } sem sessão; { session_id, mensagem } com sessão
+RESPONSE_DTO: Observable<ProcessualChatHttpResponse>; post<ProcessualChatHttpResponse>
+SESSION_SOURCE: ChatSessionService.getSessionId(); nenhum acesso direto a sessionStorage no ChatService
+SESSION_SEM_ID: campo session_id omitido quando getSessionId() retorna null
+SESSION_COM_ID: valor enviado exatamente como retornado pelo ChatSessionService; frontend não gera ou transforma ID
+TIMEOUT_ANTERIOR: 60000 ms inline
+TIMEOUT_NOVO: 135000 ms; constante local PROCESSUAL_CHAT_TIMEOUT_MS = 135_000
+BACKEND_TOTAL_TIMEOUT_120_IMPLEMENTADO: NÃO
+EVIDENCIA_TEMPORAL: api.py executa run_processual_chat_step sincronamente sem deadline total; busca backend encontrou apenas timeouts individuais de Ollama/embedding e Qdrant
+LACUNA_CROSS_PHASE: política P1 previa orçamento total backend de 120 s, mas implementação não foi localizada após P2; a ordem runtime 120 s backend < 135 s frontend não está garantida
+TYPECHECK_APP_BASELINE: PASS — node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit, usando runtime Node do Playwright por node ausente do PATH
+TYPECHECK_APP_FINAL: PASS — mesmo comando e runtime
+BUILD: PASS — node node_modules/@angular/cli/bin/ng.js build; tentativa no sandbox falhou ambientalmente com spawn EPERM, repetição autorizada fora do sandbox passou; warning CSS preexistente de 1,29 kB
+SPECS_BASELINE: tsconfig.spec FAIL somente nos quatro imports antigos já registrados (Chat, LocalStorage, State e Chat); nenhum erro novo de DTO, ChatService, SessionService ou DI; specs não corrigidas
+NAO_ANTECIPACAO: response.session_id não armazenado; response.resultado não consumido; responderMock preservado; sem UX de erro, retry, histórico, healthcheck, metadata, proxy ou correção de specs
+ARQUIVOS_MODIFICADOS: frontend/src/app/core/services/chat.ts; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+REVISAO: buscas dirigidas e diff completo revisados; ChatComponent, SessionService, backend, specs e manifestos não modificados pelo item; git diff --check aprovado; sem debug, segredo ou mudança fora do escopo
+RISCOS: response.session_id só será persistido no fluxo real em P3-004; proxy depende de P5-001; UX de timeout/erro depende de P3-005; deadline backend total segue ausente; dívida de specs pertence a P4-001
+COMMIT_SUGERIDO: feat(frontend): align chat service with processual API
+COMMIT_REAL: —
+G3_FECHADO: NÃO
+CHECKPOINT_P3: AINDA_NAO
+```
+
+### Registro detalhado — INT-P3-004
+
+```text
+ID: INT-P3-004
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 24/08/2026 08:38:15 -03:00
+METODO_COMPONENTE_ENVIO: ChatComponent.enviar()
+COMO_MENSAGEM_USUARIO_ENTRA_NO_CHAT: StateService.adicionarMensagem com role user antes da request
+COMO_CARREGANDO_E_ATIVADO: StateService.carregando.set(true) antes de ChatService.enviar
+NEXT_ANTERIOR: ignorava a response e chamava responderMock(pergunta)
+ERROR_ANTERIOR: chamava responderMock(pergunta), produzindo falso sucesso
+RESPONDER_MOCK_REFERENCIAS_ANTERIORES: next, error e declaração privada no ChatComponent
+HISTORICO_ATUAL: carregado do LocalStorageService; gravação da pergunta pelo mock removida; sem nova persistência neste item
+SESSION_SERVICE_ATUAL: ChatSessionService com get/set/clear sobre sessionStorage
+USO_NOVO_DA_RESPONSE: next recebe ProcessualChatHttpResponse, persiste session_id e adiciona mensagem do bot
+CAMPO_PUBLICO_EXIBIDO: response.resultado.resposta
+PERSISTENCIA_SESSION_ID: ChatSessionService.setSessionId(response.session_id); nenhum sessionStorage direto no componente
+ESTRATEGIA_LOADING: finalize no componente; uma única finalização para sucesso e erro
+DESTINO_RESPONDER_MOCK: método e todas as referências removidos por ficarem sem uso legítimo
+PROCESSO_ATIVO_OBSERVADO: disponível no DTO como response.resultado.processo_ativo; não consumido neste item
+HISTORICO_ADIADO: SIM — semântica definitiva reservada a INT-P3-006
+ERROS_ADIADOS: SIM — apresentação visual e StateService.erro reservados a INT-P3-005
+TYPECHECK_APP_INICIAL: PASS — node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit
+TYPECHECK_APP_FINAL: PASS — mesmo comando
+BUILD: PASS — node node_modules/@angular/cli/bin/ng.js build; tentativa no sandbox falhou com spawn EPERM, repetição autorizada fora do sandbox passou; warning CSS preexistente de 1,29 kB
+SPECS_BASELINE: tsconfig.spec FAIL somente nos quatro imports antigos (Chat, LocalStorage, State e Chat); nenhuma falha nova
+CONTINUIDADE_ESTATICA_COMPLETA: SIM — response X → setSessionId(X) → getSessionId() → request futura com X
+CONTINUIDADE_E2E_EXECUTADA: NÃO
+ARQUIVOS_MODIFICADOS: frontend/src/app/features/chat/chat.ts; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+RESUMO_DIFF: response real exibida, session_id persistido via responsabilidade existente, mock removido e loading finalizado por finalize
+RISCOS: erro HTTP fica temporariamente sem apresentação visual; proxy e smoke integrado ainda indisponíveis; histórico correto permanece pendente
+REVISAO: busca dirigida e diff completo revisados; ChatService, SessionService, DTOs, specs, backend e itens posteriores preservados; sem retry, debug, segredo ou fallback falso; git diff --check aprovado
+COMMIT_SUGERIDO: feat(frontend): consume real processual chat response
+COMMIT_REAL: —
+G3_FECHADO: NÃO
+CHECKPOINT_P3: AINDA_NAO
+```
+
+### Registro detalhado — INT-P3-005
+
+```text
+ID: INT-P3-005
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 24/08/2026 09:11:20 -03:00
+BRANCH: feat/integra_chatbot_frontend
+STATUS_INICIAL: worktree com alterações preexistentes de INT-P3-001..004 preservadas; nenhum arquivo staged
+CLASSIFICACAO: TimeoutError → timeout; HttpErrorResponse status 0 → transporte; status 400..499 → HTTP 4xx; demais erros, incluindo 5xx, → falha técnica
+MENSAGENS_PUBLICAS: timeout “A solicitação demorou mais que o esperado. Tente novamente.”; transporte “Não foi possível conectar ao serviço.”; 4xx “Não foi possível enviar a solicitação.”; técnica “Não foi possível concluir a solicitação.”
+FONTE_MENSAGENS: docs/integration.md, Política do frontend e mensagens públicas + Política de timeout
+STATE_SERVICE: StateService.erro reutilizado; StateService não modificado; erro limpo antes de nova request legítima
+TEMPLATE: alerta mínimo dentro da área de mensagens com role=alert; CSS local mínimo; nenhum redesign
+LOADING: finalize único de INT-P3-004 preservado; success e error liberam input/botão
+RETRY: nenhum retry/retryWhen; nova tentativa manual permitida
+SESSAO: session_id preservado; clearSession não chamado em erro
+FALHA_CONTROLADA: responses 2xx permanecem no next e usam response.resultado.resposta; failed_stage/rag_status não são classificados no error handler
+SEGURANCA: nenhum error.message, error.error, stack, URL, headers, statusText, body técnico ou objeto HttpErrorResponse renderizado
+TYPECHECK_APP_BASELINE: PASS — runtime Node local + node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit
+TYPECHECK_APP_FINAL: PASS — mesmo comando
+BUILD: PASS — runtime Node local + node_modules/@angular/cli/bin/ng.js build; repetição fora do sandbox após spawn EPERM; warning CSS baseline de 1,42 kB acima do budget
+SPECS_BASELINE: tsconfig.spec FAIL somente nos quatro imports antigos (Chat, LocalStorage, State e Chat); nenhuma falha nova
+ARQUIVOS_MODIFICADOS: frontend/src/app/features/chat/chat.ts; frontend/src/app/features/chat/chat.html; frontend/src/app/features/chat/chat.css; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+NAO_ANTECIPACAO: ChatService, SessionService, StateService, DTOs, histórico P3-006, healthcheck P3-007, metadata P3-008, specs e backend não modificados
+REVISAO: diff completo revisado; buscas dirigidas sem mock, retry ou exposição técnica; git diff --check aprovado
+RISCOS: testes frontend completos permanecem para P4; proxy real para P5; smoke integrado para P4/P5/P7; histórico para P3-006; healthcheck visual para P3-007
+COMMIT_SUGERIDO: fix(frontend): present recoverable chat request errors
+COMMIT_REAL: —
+G3_FECHADO: NÃO
+CHECKPOINT_P3: AINDA_NAO
+```
+
+### Registro detalhado — INT-P3-006
+
+```text
+ID: INT-P3-006
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 24/08/2026 09:25:44 -03:00
+BRANCH: feat/integra_chatbot_frontend
+STATUS_INICIAL: worktree com alterações preexistentes de INT-P3-001..005 preservadas; nenhum arquivo staged
+HISTORICO_ATUAL_EXISTE: SIM; carregado no ngOnInit e exibido no card de últimos processos
+LOCAL_DE_PERSISTENCIA: LocalStorageService; localStorage sob a chave chatbot_historico
+MODELO_DO_ITEM: ProcessoConsulta com numero_processo, data_consulta e resposta_resumo
+PONTO_ANTERIOR_DE_GRAVACAO: responderMock, antes de P3-004, gravava pergunta como numero_processo em sucesso e erro
+GRAVACAO_APOS_P3_004: nenhuma; a remoção do mock deixou o histórico sem novos itens
+PONTO_NOVO_DE_GRAVACAO: next de ChatComponent.enviar, após response HTTP contratual
+FONTE_NUMERO_PROCESSO: response.resultado.processo_ativo; nenhuma regex ou fallback para pergunta
+PROCESSO_ATIVO_NULL_OU_VAZIO: não adiciona item; guarda simples com trim
+FALHA_CONTROLADA_2XX: atualiza conforme a mesma regra quando processo_ativo é utilizável; failed_stage não decide o histórico
+ERRO_HTTP_OU_TIMEOUT: error handler não grava histórico
+DEDUP_POLICY: igualdade de numero_processo; remove ocorrência anterior e mantém uma única entrada
+ORDER_POLICY: mais recente primeiro; consulta repetida move o processo para o início e renova data/resumo
+EXEMPLO_A_B_A: [A] -> [B, A] -> [A, B]
+LIMITE_ANTERIOR_E_FINAL: 3; quarto processo novo produz [D, A, B] quando o estado anterior é [A, B, C]
+LOCAL_STORAGE_SERVICE_ALTERADO: SIM; somente deduplicação por recência no método salvar
+SEPARACAO_STORAGES: histórico continua em localStorage; session_id continua em sessionStorage via ChatSessionService
+RESET_SESSAO: clearSession inalterado e não apaga histórico
+TYPECHECK_APP_BASELINE: PASS — runtime Node local + node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit; tentativa inicial com node no PATH não iniciou porque o executável não estava resolvível
+TYPECHECK_APP_FINAL: PASS — runtime Node local + node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit
+BUILD: PASS — runtime Node local + node_modules/@angular/cli/bin/ng.js build; repetição fora do sandbox após spawn EPERM; warning CSS baseline de 1,42 kB
+SPECS_BASELINE: tsconfig.spec FAIL somente nos quatro imports antigos (Chat, LocalStorage, State e Chat); nenhuma falha nova
+ARQUIVOS_MODIFICADOS_NO_ITEM: frontend/src/app/features/chat/chat.ts; frontend/src/app/core/services/local-storage.ts; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+NAO_ANTECIPACAO: ChatService, ChatSessionService, StateService, DTOs, templates, CSS, healthcheck P3-007, metadata P3-008, specs e backend não modificados pelo item
+REVISAO: buscas dirigidas e diff completo revisados; pergunta não é atribuída a numero_processo; sem regex, fallback, retry, debug ou segredo; git diff --check aprovado
+RISCOS: testes automatizados específicos permanecem para P4-003; smoke integrado permanece posterior; histórico confia no processo_ativo do backend; ausência desse campo deliberadamente não cria entrada
+COMMIT_SUGERIDO: fix(frontend): align process history with active process
+COMMIT_REAL: —
+G3_FECHADO: NÃO
+CHECKPOINT_P3: AINDA_NAO
+```
+
+### Registro detalhado — INT-P3-007
+
+```text
+ID: INT-P3-007
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 24/08/2026 09:46:54 -03:00
+BRANCH: feat/integra_chatbot_frontend
+STATUS_INICIAL: worktree com alterações preexistentes de INT-P3-001..006 preservadas; nenhum arquivo staged
+INDICADOR_ANTERIOR: texto hardcoded “Sistema disponível” e ponto sempre verde no cabeçalho; nenhum estado ou evidência HTTP
+ESTADO_IMPLEMENTADO: ApiHealthStatus discriminado em verificando, disponivel e indisponivel; signal local iniciado em verificando
+ENDPOINT: GET /api/health; URL relativa, sem host ou porta
+TIPO_RESPONSE: ApiHealthResponse com status literal 'ok'; HttpClient.get<ApiHealthResponse>; nenhum any
+MOMENTO_VERIFICACAO: uma vez em ngOnInit do ChatComponent, paralelamente ao restante da interface
+SUCESSO: somente response.status === 'ok' define disponivel
+FALHA: erro HTTP/transporte e payload incompatível definem indisponivel sem detalhes técnicos na UI
+SEMANTICA_VISUAL: Verificando API... com ponto neutro; API disponível com ponto verde; API indisponível com ponto vermelho; texto não depende apenas de cor
+SEPARACAO: health local e dedicado; ChatService, StateService.erro, carregando, ChatSessionService, LocalStorageService, mensagens e histórico não utilizados pelo healthcheck
+REDE: sem localhost, proxy ou CORS; proxy real permanece para P5-001
+POLLING_RETRY: ausentes; uma verificação por inicialização; nenhum timeout arbitrário novo
+TYPECHECK_APP_INICIAL: primeira tentativa não iniciou porque node não estava no PATH; runtime Node do VS Code localizado
+TYPECHECK_APP_FINAL: PASS — runtime Node v22.22.1 + node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit
+BUILD: PASS — runtime Node local + node_modules/@angular/cli/bin/ng.js build; tentativa no sandbox falhou com spawn EPERM e repetição autorizada fora do sandbox passou
+SPECS_BASELINE: tsconfig.spec FAIL somente nos quatro imports antigos (Chat, LocalStorage, State e Chat); nenhuma falha nova de health
+ARQUIVOS_CRIADOS: frontend/src/app/core/services/api-health.ts
+ARQUIVOS_MODIFICADOS_NO_ITEM: frontend/src/app/features/chat/chat.ts; frontend/src/app/features/chat/chat.html; frontend/src/app/features/chat/chat.css; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+NAO_ANTECIPACAO: backend, ChatService, StateService, SessionService, histórico, specs, manifestos, metadata P3-008, proxy e CORS não modificados pelo item
+REVISAO: buscas dirigidas e diff completo revisados; sem polling, retry, diagnóstico profundo, debug, segredo ou falso estado disponível; git diff --check aprovado
+RISCOS: healthcheck prova somente resposta contratual da fronteira FastAPI; não prova Ollama, Qdrant, RAG, agentes, banco ou chatbot integral; sem polling, representa a verificação inicial
+COMMIT_SUGERIDO: feat(frontend): show API availability from healthcheck
+COMMIT_REAL: —
+G3_FECHADO: NÃO
+CHECKPOINT_P3: AINDA_NAO
+```
+
+### Registro detalhado — INT-P3-008
+
+```text
+ID: INT-P3-008
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 24/08/2026 10:55:30 -03:00
+BRANCH: feat/integra_chatbot_frontend
+STATUS_INICIAL: worktree com alterações preexistentes de INT-P3-001..007 preservadas; nenhum arquivo staged
+HTML_LANG_ANTERIOR: en
+HTML_LANG_NOVO: pt-BR
+DOCUMENT_TITLE_ANTERIOR: MeuPrimeiroApp
+DOCUMENT_TITLE_NOVO: Chatbot Processual
+TITLE_SOURCE: nome funcional existente em docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md e sustentado pelo backend FastAPI
+TEXTO_TEMPLATE_GENERICO: My first Angular JS Project; signal sem consumidores em frontend/src/app/app.ts
+ACAO_TEMPLATE: propriedade morta e import signal removidos; nenhum texto substituto inventado
+WORKSPACE_NAME: meu-primeiro-app; preservado
+PACKAGE_NAME: meu-primeiro-app; preservado
+CLASSIFICACAO: lang/title = metadados visíveis; My first Angular JS Project = resíduo técnico de template sem função; meu-primeiro-app em package/angular/spec = identificador técnico ou teste histórico fora do escopo
+TYPECHECK_APP_INICIAL: PASS — runtime Node v24.14.1 + node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit
+TYPECHECK_APP_FINAL: PASS — mesmo comando e runtime
+BUILD: PASS — runtime Node local + node_modules/@angular/cli/bin/ng.js build; tentativa no sandbox falhou com spawn EPERM e repetição autorizada fora do sandbox passou; warning CSS preexistente de 1,54 kB acima do budget
+HTML_GERADO: dist/meu-primeiro-app/browser/index.html contém lang="pt-BR" e title Chatbot Processual; artefato não versionado nem editado
+SPECS_BASELINE: tsconfig.spec FAIL somente nos quatro imports antigos (Chat, LocalStorage, State e Chat); nenhuma falha nova; specs não corrigidas
+BUSCA_FINAL: nenhuma ocorrência ativa de lang="en", MeuPrimeiroApp ou My first Angular JS Project no código fonte relevante
+ARQUIVOS_MODIFICADOS_NO_ITEM: frontend/src/index.html; frontend/src/app/app.ts; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+ESCOPO_PRESERVADO: package.json, package-lock.json, angular.json, workspace, diretórios, selectors, favicon, manifest/PWA, proxy, DTOs, sessão, ChatService, response real, erros, histórico, healthcheck, specs e backend não modificados pelo item
+REVISAO: diff completo revisado; HTML gerado inspecionado; sem branding fictício, debug, segredo ou alteração fora do escopo; git diff --check aprovado
+RISCOS: package/workspace e spec legado conservam meu-primeiro-app como identificador interno; favicon Angular não solicitado permanece; testes frontend completos ficam para P4; proxy fica para P5
+COMMIT_SUGERIDO: fix(frontend): align application language and metadata
+COMMIT_REAL: —
+G3_FECHADO: NÃO
+CHECKPOINT_P3: AINDA_NAO
+```
 
 ## 7. Modelo de atualização após cada item
 
