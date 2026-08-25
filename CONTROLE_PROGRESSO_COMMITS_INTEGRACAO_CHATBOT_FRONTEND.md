@@ -149,17 +149,17 @@ Se C05 não for necessário porque o projeto usar proxy/mesma origem e o healthc
 
 | ID | Status | Commit planejado | Arquivos esperados | Evidência para `VALIDATED` | Commit real |
 |---|---|---|---|---|---|
-| INT-P4-001 | `READY` | C08 | specs existentes | `tsconfig.spec` compila + testes passam | — |
-| INT-P4-002 | `TODO` | C08 | `chat.spec.ts` ou teste dedicado | request HTTP assertado | — |
-| INT-P4-003 | `TODO` | C08 | component spec | sucesso/erro/histórico testados | — |
-| INT-P4-004 | `TODO` | C11 | relatório/controle | duas mensagens reais em sequência | — |
-| INT-P4-005 | `TODO` | C11 | testes/relatório | cenários de degradação registrados | — |
+| INT-P4-001 | `VALIDATED` | C08 | specs existentes | `tsconfig.spec` compila + testes passam | — |
+| INT-P4-002 | `VALIDATED` | C08 | `chat.spec.ts` ou teste dedicado | request HTTP assertado | — |
+| INT-P4-003 | `VALIDATED` | C08 | component spec | sucesso/erro/histórico testados | — |
+| INT-P4-004 | `VALIDATED` | C11 | relatório/controle | duas mensagens reais em sequência | — |
+| INT-P4-005 | `VALIDATED` | C11 | testes/relatório | cenários de degradação registrados | — |
 
 ### P5 — Execução local
 
 | ID | Status | Commit planejado | Arquivos esperados | Evidência para `VALIDATED` | Commit real |
 |---|---|---|---|---|---|
-| INT-P5-001 | `TODO` | C09 | proxy config + Angular config/package | `/api` funciona localmente sem URL hardcoded | — |
+| INT-P5-001 | `VALIDATED` | C09 | proxy config + Angular config/package | `/api` funciona localmente sem URL hardcoded | — |
 | INT-P5-002 | `TODO` | C09/C10 | docs/frontend README | clone limpo → `npm ci` → build/test | — |
 | INT-P5-003 | `TODO` | C09/C10 | docs/backend README | setup backend reproduzível | — |
 | INT-P5-004 | `TODO` | C09 | docs/scripts opcionais | fluxo integrado documentado e testado | — |
@@ -880,6 +880,253 @@ COMMIT_SUGERIDO: fix(frontend): align application language and metadata
 COMMIT_REAL: —
 G3_FECHADO: NÃO
 CHECKPOINT_P3: AINDA_NAO
+```
+
+### Registro detalhado — INT-P4-001
+
+```text
+ID: INT-P4-001
+STATUS_ANTERIOR: READY
+STATUS_FINAL: VALIDATED
+DATA_HORA: 24/08/2026 12:02:03 -03:00
+BRANCH: feat/integra_chatbot_frontend
+CHECKPOINT_P3_BASELINE: 5cd265a2334c34dded14cfda9bd668fc75fcaa53 feat(frontend): complete processual chatbot integration
+STATUS_INICIAL: worktree limpo; nenhuma alteração nova ou preexistente após o checkpoint P3
+NODE: v24.19.0; runtime real do pacote OpenJS.NodeJS.LTS usado por caminho absoluto
+NPM: 11.17.0; npm-cli.js executado pelo mesmo runtime e diretório adicionado ao PATH dos subprocessos
+BASELINE_TSC_APP: PASS
+BASELINE_TSC_SPEC: FAIL — TS2305 em core/services/chat.spec.ts (Chat), core/services/local-storage.spec.ts (LocalStorage), core/services/state.spec.ts (State) e features/chat/chat.spec.ts (Chat)
+BASELINE_TEST_RUNNER: primeira tentativa não iniciou por node fora do PATH; com PATH explícito, build do runner falhou no sandbox por spawn EPERM antes da coleta
+IMPORTS_CORRIGIDOS: Chat -> ChatService; LocalStorage -> LocalStorageService; State -> StateService; Chat -> ChatComponent
+APP_EXPECTATION: h1 “Hello, meu-primeiro-app” do scaffold removido; smoke atual verifica que App hospeda router-outlet
+TESTBED_MOCKS: provideHttpClient no smoke do ChatService; ChatService, ChatSessionService, LocalStorageService e ApiHealthService mínimos no ChatComponent; healthcheck retorna Observable de { status: 'ok' }; scrollIntoView stubado e restaurado para jsdom
+HTTP_REAL_USADO: NÃO
+BACKEND_NECESSARIO: NÃO
+NPM_CI: PASS fora do sandbox após spawn EPERM; 468 pacotes; 28 vulnerabilidades reportadas (3 low, 5 moderate, 19 high, 1 critical); npm audit fix não executado
+TYPECHECK_APP_FINAL: PASS
+TYPECHECK_SPEC_FINAL: PASS
+TESTES: npm test -- --watch=false PASS; Vitest coletou 6 arquivos e executou 7 testes; 7 passaram, 0 falharam
+BUILD: PASS
+WARNINGS: budget CSS preexistente de chat.css excedido em 1,54 kB; npm ci reportou 28 vulnerabilidades e scripts pendentes de allowScripts
+MANIFESTS: frontend/package.json e frontend/package-lock.json intactos; nenhuma dependência adicionada
+ARQUIVOS_MODIFICADOS: frontend/src/app/app.spec.ts; frontend/src/app/core/services/chat.spec.ts; frontend/src/app/core/services/local-storage.spec.ts; frontend/src/app/core/services/state.spec.ts; frontend/src/app/features/chat/chat.spec.ts; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+RESUMO_DIFF: specs antigas alinhadas às classes reais; expectativa obsoleta do App substituída por responsabilidade atual; providers/mocks mínimos adicionados somente para instanciação determinística
+NAO_ANTECIPACAO: sem assertions de contrato HTTP P4-002; sem matriz funcional do componente P4-003; sem backend/navegador/proxy/smoke ou degradações P4-004/P4-005
+REVISAO: diff completo revisado; imports antigos, expectativa do scaffold e specs desabilitadas ausentes; produção, backend, proxy e manifests intactos; sem aliases, dependências, debug ou segredos; git diff --check aprovado
+RISCOS: cobertura HTTP detalhada permanece P4-002; comportamento completo do ChatComponent permanece P4-003; smoke integrado depende de P5/proxy antes de P4-004; degradações integradas permanecem P4-005
+COMMIT_SUGERIDO: test(frontend): repair existing angular specs
+COMMIT_REAL: —
+CHECKPOINT_P4: AINDA_NAO
+```
+
+### Registro detalhado — INT-P4-002
+
+```text
+ID: INT-P4-002
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 25/08/2026 11:36:10 -03:00
+BRANCH: feat/integra_chatbot_frontend
+STATUS_INICIAL: sete arquivos modificados exclusivamente pelo checkpoint P4-001 preservados; nenhum arquivo staged
+BASELINE_P4_001: PASS — tsconfig.app e tsconfig.spec aprovados; 6 arquivos/7 testes aprovados antes da nova cobertura
+SPEC: frontend/src/app/core/services/chat.spec.ts
+HTTP_TESTING: provideHttpClient + provideHttpClientTesting + HttpTestingController; verify após cada teste
+SESSION_MOCK: stub mínimo tipado com Pick<ChatSessionService, 'getSessionId'>; null e sessao-123 controlados sem sessionStorage real
+SEM_SESSAO: POST /api/processos/chat com body exato { mensagem: 'Olá' }; session_id ausente
+COM_SESSAO: POST /api/processos/chat com session_id sessao-123 e mensagem integralmente preservados; nenhum ID gerado
+RESPONSE: fixture explicitamente ProcessualChatHttpResponse; envelope completo emitido sem mapeamento
+TIMEOUT: 135000 ms; timers virtuais do Vitest; ausência de erro em 134999 ms; TimeoutError após 135001 ms; request cancelada; nenhuma espera real
+HTTP_ERROR: flush 500; HttpErrorResponse propagado com status 500; nenhum next, fallback, retry ou mensagem de UI
+TYPECHECK_APP: PASS — node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit
+TYPECHECK_SPEC: PASS — node node_modules/typescript/bin/tsc -p tsconfig.spec.json --noEmit
+SPEC_FOCADA: PASS — 1 arquivo/5 testes aprovados
+SUITE: PASS — 6 arquivos/11 testes aprovados; 11 passed, 0 failed
+BUILD: PASS — warning CSS preexistente de chat.css, 1,54 kB acima do budget
+MANIFESTS: frontend/package.json e frontend/package-lock.json intactos; nenhuma dependência adicionada
+NPM_CI: não executado; node_modules existente, ambiente preservado e lockfile inalterado
+ARQUIVOS_MODIFICADOS_NO_ITEM: frontend/src/app/core/services/chat.spec.ts; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+PRODUCAO_BACKEND_PROXY: intactos; nenhum ChatComponent, healthcheck, histórico, navegador ou FastAPI testado
+REVISAO: busca dirigida sem endpoint antigo ou any na fronteira; diff completo revisado; git diff --check aprovado; sem debug ou segredo
+RISCOS: HttpClient simulado não prova conectividade FastAPI; proxy permanece P5; sessão no componente permanece P4-003/P4-004; deadline backend total de 120 s continua lacuna conhecida; smoke E2E é posterior
+COMMIT_SUGERIDO: test(frontend): cover chat service http contract
+COMMIT_REAL: —
+CHECKPOINT_P4: AINDA_NAO
+```
+
+### Registro detalhado — INT-P4-003
+
+```text
+ID: INT-P4-003
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 25/08/2026 12:07:00 -03:00
+BRANCH: feat/integra_chatbot_frontend
+STATUS_INICIAL: sete arquivos modificados exclusivamente por P4-001/P4-002 preservados; nenhum arquivo staged
+BASELINE_P4_001: VALIDATED — specs reparadas, typechecks e 7/7 testes aprovados
+BASELINE_P4_002: VALIDATED — fronteira HTTP coberta por 5 testes; suíte anterior com 11/11 testes aprovados
+TESTS_BEFORE: typechecks app/spec PASS; 6 arquivos/11 testes aprovados, 0 falharam
+CHAT_COMPONENT_TESTS_BEFORE: 1 smoke de instanciação
+SPEC: frontend/src/app/features/chat/chat.spec.ts
+STATE_SERVICE: real e reinicializado pelo TestBed em cada teste
+CHAT_SERVICE: double tipado; Subject para sucesso, erro e request pendente; nenhum HttpTestingController
+SESSION_SERVICE: double tipado; setSessionId validado com response.session_id
+LOCAL_STORAGE_SERVICE: doubles tipados de carregar/salvar; objeto persistido inspecionado por numero_processo
+API_HEALTH_SERVICE: check mockado com of({ status: 'ok' }); nenhuma chamada real a /api/health
+RESPONSE_FIXTURE: ProcessualChatHttpResponse tipada; resposta, session_id, processo_ativo e failed_stage controláveis; sem any
+ENVIO: mensagem integral válida entregue uma vez ao ChatService e adicionada ao estado como user
+BLOQUEIO_DUPLICADO: Subject pendente mantém loading true; segunda tentativa não aumenta call count; Subject sempre finalizado
+SUCESSO: resultado.resposta vira mensagem bot e aparece no DOM; loading final false
+SESSAO: response.session_id entregue uma vez a ChatSessionService.setSessionId
+ERROS: TimeoutError, status 0, 422 e 500 cobertos com copies documentais; detalhe bruto ausente; sem bot fake, histórico ou retry
+NOVA_TENTATIVA: erro anterior limpo, segunda chamada permitida e loading concluído após sucesso
+HISTORICO: response.resultado.processo_ativo entregue como numero_processo; pergunta livre não persistida; null e erro não salvam
+FALHA_CONTROLADA: failed_stage Agente 2 em response 2xx preserva resultado.resposta como bot e não preenche erro
+SPEC_FOCADA: PASS — 1 arquivo/9 testes aprovados
+TYPECHECK_APP: PASS — node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit
+TYPECHECK_SPEC: PASS — node node_modules/typescript/bin/tsc -p tsconfig.spec.json --noEmit
+TESTS_AFTER: PASS — 6 arquivos/19 testes aprovados; 19 passed, 0 failed
+P4_003_TESTS: 9 passed, 0 failed
+P4_002_REGRESSAO: NÃO — suíte completa verde
+BUILD: PASS — warning CSS preexistente de chat.css, 1,54 kB acima do budget
+MANIFESTS: frontend/package.json e frontend/package-lock.json intactos; nenhuma dependência adicionada
+NPM_CI: não executado; node_modules válido e manifests inalterados
+NPM_AUDIT_FIX: não executado
+ARQUIVOS_MODIFICADOS_NO_ITEM: frontend/src/app/features/chat/chat.spec.ts; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+PRODUCAO_BACKEND_PROXY: intactos; sem endpoint/body, navegador, FastAPI, proxy ou E2E
+REVISAO: diff completo revisado; busca dirigida sem responderMock, endpoint, HttpTestingController ou any no component spec; git diff --check aprovado; sem debug ou segredo
+RISCOS: doubles não provam integração Angular→FastAPI; endpoint/body pertencem a P4-002; smoke de duas mensagens depende de P5-001; P4-004/P4-005 pendentes; deadline backend total de 120 s permanece dívida conhecida
+COMMIT_SUGERIDO: test(frontend): cover chat component behavior
+COMMIT_REAL: —
+CHECKPOINT_P4: AINDA_NAO
+```
+
+### Registro detalhado — INT-P5-001
+
+```text
+ID: INT-P5-001
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 25/08/2026 13:10:45 -03:00
+BRANCH: feat/integra_chatbot_frontend
+STATUS_INICIAL: alterações preexistentes de P4 em checklist, controle e cinco specs preservadas; nenhum proxy existente; serve sem proxyConfig; npm start executava ng serve
+PROXY_CONFIG: frontend/proxy.conf.json
+PROXY_TARGET: http://localhost:8000
+PROXY_PATH: /api preservado; sem pathRewrite
+ANGULAR_SERVE: frontend/angular.json associa serve.options.proxyConfig a proxy.conf.json; npm start preservado
+CHAT_URL: /api/processos/chat relativa e preservada
+HEALTH_URL: /api/health relativa e preservada
+FASTAPI_DIRETO: GET http://localhost:8000/api/health → 200 {"status":"ok"}
+ANGULAR_PROXY: GET http://localhost:4200/api/health → 200 {"status":"ok"}
+PROCESSOS_TEMPORARIOS: FastAPI PID 55564; Angular PID 51332; ambos encerrados; nenhum listener restante em 8000/4200; nenhum processo preexistente alterado
+CONFIG_VALIDATION: angular.json e proxy.conf.json válidos; Angular CLI retornou proxy.conf.json para serve.options.proxyConfig
+TYPECHECK_APP: PASS
+TYPECHECK_SPEC: PASS
+TESTES: PASS — 6 arquivos; 19/19 testes aprovados
+BUILD: PASS — warning CSS preexistente de chat.css, 1,54 kB acima do budget
+MANIFESTS: frontend/package.json e frontend/package-lock.json intactos; nenhuma dependência adicionada; npm install/npm audit fix não executados
+CORS: não adicionado
+PRODUCAO: não acoplada ao proxy de desenvolvimento
+CODIGO_PRODUCAO: ChatService, ApiHealthService e ChatComponent intactos; nenhum localhost adicionado
+BACKEND: intacto; apenas iniciado temporariamente pelo comando existente via uvicorn
+ARQUIVOS_DO_ITEM: frontend/proxy.conf.json; frontend/angular.json; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+NAO_ANTECIPACAO: INT-P4-004, INT-P4-005 e INT-P5-002..004 inalterados
+REVISAO: diff completo revisado; git diff --check aprovado; sem dependência, debug, segredo, CORS, pathRewrite ou alteração incidental de lockfile
+RISCOS: warning CSS preexistente; runtime Node fora do PATH exigiu caminho absoluto; primeiras tentativas de coleta HTTP falharam por peculiaridades do PowerShell, sem falha dos serviços e com limpeza confirmada
+COMMIT_SUGERIDO: chore(frontend): configure local api proxy
+COMMIT_REAL: —
+```
+
+### Registro detalhado — INT-P4-004
+
+```text
+ID: INT-P4-004
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 25/08/2026 13:46:55 -03:00
+BRANCH: feat/integra_chatbot_frontend
+DEPENDENCIAS: INT-P4-001, INT-P4-002, INT-P4-003 e INT-P5-001 VALIDATED
+PROCESSO_SMOKE: 0011000-82.1981.5.18.0051
+FONTE_DO_PROCESSO: chatbot_processual_ai/data/sample_processes.json, fixture sintética oficial também referenciada nos testes HTTP
+MOTIVO_DE_SER_VALIDO: entrada determinística da base local, com cinco movimentações e última movimentação conhecida
+PERGUNTA_1: Consulte o processo 0011000-82.1981.5.18.0051
+PERGUNTA_2: Qual foi a última movimentação?
+DEPENDENCIAS_EXTERNAS: Ollama não necessário; Qdrant não necessário; SQLite/base local necessária e usada pelo fluxo normal; nenhum serviço adicional iniciado
+BACKEND_COMMAND: .venv/Scripts/python.exe -m uvicorn api:app --host 127.0.0.1 --port 8000
+FRONTEND_COMMAND: runtime Node LTS local + node_modules/@angular/cli/bin/ng.js serve --host 127.0.0.1 --port 4200, usando serve.options.proxyConfig de P5-001
+HEALTH_DIRETO: PASS — GET http://127.0.0.1:8000/api/health → 200 {"status":"ok"}
+HEALTH_PROXY: PASS — GET http://127.0.0.1:4200/api/health → 200 {"status":"ok"}
+BROWSER: Microsoft Edge real em modo headless, automatizado pelo Playwright já instalado; nenhuma dependência adicionada
+REQUEST_1: POST http://127.0.0.1:4200/api/processos/chat → 200; request inicial sem session_id
+RESPONSE_1: session S1 presente; processo_ativo=0011000-82.1981.5.18.0051; failed_stage=null; rag_status=not_needed; resposta utilizável
+UI_1: resposta real exibida e equivalente a resultado.resposta após normalização visual de whitespace; loading observado e encerrado; sem erro visual
+SESSION: valor bruto não registrado; response 1 S1 = sessionStorage S1 = request 2 S1 = response 2 S1
+REQUEST_2: POST http://127.0.0.1:4200/api/processos/chat → 200; mensagem contextual exata, sem número; session_id=S1
+RESPONSE_2: session S1; processo_ativo=0011000-82.1981.5.18.0051; failed_stage=null; rag_status=not_needed; resposta informa Arquivado definitivamente em 05/02/1984
+UI_2: resposta real exibida e equivalente a resultado.resposta após normalização visual de whitespace; loading observado e encerrado; sem erro visual
+HISTORICO_1: [0011000-82.1981.5.18.0051]
+HISTORICO_2: [0011000-82.1981.5.18.0051]; pergunta livre ausente; uma ocorrência do processo; sem duplicata indevida
+CONSOLE: zero erros relevantes; zero warnings relevantes
+NETWORK: /api/health e dois /api/processos/chat aprovados; zero 404, 5xx, CORS, connection refused ou request cancelada durante o cenário validado
+PREFLIGHT_BACKEND: .venv/Scripts/python.exe -m pytest tests -q → 43 passed; um PytestCacheWarning ambiental de acesso negado ao cache
+PREFLIGHT_FRONTEND: tsconfig.app PASS; tsconfig.spec PASS; 6 arquivos/19 testes PASS; build PASS; warning CSS preexistente de 1,54 kB acima do budget
+TENTATIVAS_PREVIAS: inicialização relativa do Python não subiu FastAPI e gerou ECONNREFUSED antes do cenário; primeira coleta de browser teve conversão de Unicode e foi descartada; execução final acima foi limpa e integral
+ARQUIVOS_DO_ITEM: docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+CODIGO_PRODUCAO: inalterado
+SPECS_BACKEND_PROXY_MANIFESTS: inalterados
+PROCESSOS_TEMPORARIOS: FastAPI PID 54588 e Angular PID 54256 iniciados pelo item e encerrados; portas 8000/4200 liberadas; nenhum processo preexistente alterado
+NAO_ANTECIPACAO: INT-P4-005 e INT-P5-002 inalterados
+RISCOS: smoke prova apenas o cenário escolhido; sessão continua em memória e sem persistência distribuída; P4-005 cobrirá degradações/lifecycle; deadline backend total de 120 s continua dívida conhecida
+COMMIT_SUGERIDO: test(integration): record two-message browser smoke
+COMMIT_REAL: —
+```
+
+### Registro detalhado — INT-P4-005
+
+```text
+ID: INT-P4-005
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 25/08/2026 14:29:55 -03:00
+BRANCH: feat/integra_chatbot_frontend
+DEPENDENCIAS: INT-P4-001, INT-P4-002, INT-P4-003, INT-P4-004 e INT-P5-001 VALIDATED
+MATRIZ: BACKEND_UNAVAILABLE | REAL_BROWSER | FastAPI ausente com Angular/proxy ativo | PASS | proxy 500/ECONNREFUSED; copy segura; zero bot; loading finalizado; sessão e histórico preservados; tentativa manual 200 após retorno
+MATRIZ: TIMEOUT | AUTOMATED_SERVICE_TEST + AUTOMATED_COMPONENT_TEST | request ultrapassa 135000 ms por timers virtuais e TimeoutError no componente | PASS | request cancelada; copy documental; loading finalizado; sem bot/histórico/retry
+MATRIZ: MISSING_CONTEXT_OR_PROCESS | REAL_BROWSER | sessão limpa + "Qual foi a última movimentação?" | PASS | HTTP 200; processo_ativo=null; resposta segura; histórico ausente; novo session_id
+MATRIZ: RAG_UNAVAILABLE | REAL_BROWSER + AUTOMATED_BACKEND_TEST | processo ativo + "O que a sentença decidiu?" com RAG desabilitado no fluxo normal | PASS | HTTP 200; rag_status=unavailable; failed_stage=null; resposta exibida; sem erro UI; loading finalizado; sessão preservada
+MATRIZ: FAILED_STAGE | AUTOMATED_BACKEND_TEST + AUTOMATED_COMPONENT_TEST | exceção controlada no Agente 1 e fixture 2xx no componente | PASS | HTTP 200; mensagem segura; marcador técnico ausente; response tratada como bot normal; sem erro artificial
+MATRIZ: REFRESH | REAL_BROWSER | reload da mesma aba com processo ativo e backend preservado | PASS | sessionStorage antes=depois=response; pergunta contextual reutilizou processo ativo; mensagens visuais anteriores não foram exigidas
+MATRIZ: NEW_SESSION_OR_TAB | REAL_BROWSER | nova página independente na mesma origem, sem opener | PASS | session inicial ausente; novo ID diferente; contexto backend não compartilhado; localStorage compartilhado classificado separadamente
+BACKEND_UNAVAILABLE_PUBLIC_MESSAGE: Não foi possível concluir a solicitação.
+BACKEND_UNAVAILABLE_NETWORK: proxy retornou 500 para /api/health e /api/processos/chat; log confirmou ECONNREFUSED; sem CORS, 404, loop ou exception Angular
+BACKEND_RECOVERY: retry manual retornou 200, limpou o erro anterior e reutilizou p4-005-preserved-session sem limpar storage
+TIMEOUT_PUBLIC_MESSAGE: A solicitação demorou mais que o esperado. Tente novamente.
+TIMEOUT_REAL_135S_WAIT: NÃO; política real validada deterministicamente com timers virtuais
+MISSING_CONTEXT: HTTP 200; collection_status=not_needed; processo_ativo=null; resposta solicitou número completo; sem histórico ou falso processo
+RAG_UNAVAILABLE: HTTP 200; resultado.resposta utilizável; StateService.erro não acionado; chat estruturado e sessão válidos
+FAILED_STAGE: teste HTTP focado confirmou failed_stage=Agente 1 e ausência de segredo/stack/path; spec do componente confirmou resultado.resposta no bot e erro nulo
+REFRESH: sessionStorage sobreviveu ao reload; backend in-memory permaneceu ativo; contexto processual foi reutilizado
+NEW_TAB: context.new_page independente, window.opener=false; sessionStorage inicial ausente; primeiro request gerou ID diferente; localStorage da origem estava compartilhado
+SESSION_STATE: por aba; preservado em erro e refresh; independente na nova aba sem opener
+HISTORY_STATE: localStorage compartilhado por origem; inalterado no erro; pergunta sem processo não persistida
+CONSOLE_REDE: dois erros esperados de resource 500 no cenário offline (/api/health e /api/processos/chat); zero erros inesperados, CORS, 404, loops ou page errors
+PREFLIGHT_BACKEND: .venv/Scripts/python.exe -m pytest tests -q → 43 passed; PytestCacheWarning ambiental de acesso negado ao cache
+PREFLIGHT_TSC_APP: PASS
+PREFLIGHT_TSC_SPEC: PASS
+PREFLIGHT_FRONTEND: npm test -- --watch=false → 6 arquivos/19 testes passed
+PREFLIGHT_BUILD: PASS; warning CSS preexistente de chat.css 1,54 kB acima do budget
+TESTE_FOCADO_BACKEND: 2 passed — failed_stage HTTP seguro e RAG unavailable por falha de embedding
+BROWSER: Microsoft Edge real headless automatizado por Playwright já instalado; nenhuma dependência adicionada
+PROCESSOS_TEMPORARIOS: Angular e FastAPI iniciados pelo item e encerrados; portas 4200/8000 liberadas; nenhum processo preexistente alterado
+ARQUIVOS_DO_ITEM: docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+SPECS_PRODUCAO_BACKEND_PROXY_MANIFESTS: inalterados
+MOCK_FALSE_SUCCESS_LOADING_TECH_DETAILS: nenhum mock, falso sucesso, loading permanente ou detalhe técnico exposto
+SESSION_HISTORY_CORRUPTION: não observada
+AUTOMATIC_RETRY: não adicionado; recuperação exclusivamente manual
+NAO_ANTECIPACAO: INT-P5-002 e demais itens inalterados; nenhum checkpoint criado
+RISCOS: _SESSIONS continua em memória do processo Python; refresh não equivale a restart backend; aba com opener pode copiar inicialmente sessionStorage e não foi usada; healthcheck prova somente FastAPI; deadline backend total de 120 s continua dívida conhecida
+COMMIT_SUGERIDO: test(integration): validate degradation and session lifecycle
+COMMIT_REAL: —
+CHECKPOINT_P4: AINDA_NAO
 ```
 
 ## 7. Modelo de atualização após cada item

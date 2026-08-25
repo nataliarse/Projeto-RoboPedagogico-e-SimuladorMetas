@@ -830,6 +830,7 @@ somente os quatro imports baseline de `INT-P4-001`; `git diff --check` aprovado.
 ## INT-P4-001 — Reparar testes preexistentes do frontend
 
 **Status inicial:** `READY`
+**Status atual:** `VALIDATED`
 
 ### Falhas observadas
 
@@ -839,59 +840,92 @@ somente os quatro imports baseline de `INT-P4-001`; `git diff --check` aprovado.
 
 ### Ações
 
-- [ ] Atualizar imports/classes sem mascarar comportamento.
-- [ ] Remover ou reescrever expectativa obsoleta do título conforme interface atual.
-- [ ] Confirmar compilação de `tsconfig.spec.json`.
-- [ ] Executar testes reais após `npm ci`.
+- [x] Atualizar imports/classes sem mascarar comportamento.
+- [x] Remover ou reescrever expectativa obsoleta do título conforme interface atual.
+- [x] Confirmar compilação de `tsconfig.spec.json`.
+- [x] Executar testes reais após `npm ci`.
 
 ### Critério de aceite
 
 - testes existentes compilam e representam o código atual.
+
+**Evidência:** as cinco specs desatualizadas agora usam `ChatService`,
+`StateService`, `LocalStorageService` e `ChatComponent`; o smoke do componente
+possui apenas providers mínimos e um stub restaurável de `scrollIntoView` para o
+DOM de teste. `app.spec.ts` verifica a responsabilidade atual do componente raiz
+de hospedar o `router-outlet`, sem expectativa do scaffold antigo. Após
+`npm ci`, os typechecks da aplicação e das specs passaram, e o runner executou
+6 arquivos/7 testes com 7 aprovados. O build passou com o warning CSS
+preexistente; manifests permaneceram intactos e `git diff --check` foi aprovado.
+Nenhuma cobertura de `INT-P4-002` ou `INT-P4-003` foi antecipada.
 
 ---
 
 ## INT-P4-002 — Testar `ChatService` como fronteira HTTP
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Cobertura mínima
 
-- [ ] método correto `POST`;
-- [ ] URL `/api/processos/chat`;
-- [ ] body contém `mensagem` e sessão conforme estado;
-- [ ] response é interpretada com DTO correto;
-- [ ] timeout/erro segue política aprovada.
+- [x] método correto `POST`;
+- [x] URL `/api/processos/chat`;
+- [x] body contém `mensagem` e sessão conforme estado;
+- [x] response é interpretada com DTO correto;
+- [x] timeout/erro segue política aprovada.
 
 ### Critério de aceite
 
 - regressão de endpoint/body é detectada sem depender de E2E.
+
+**Evidência:** `core/services/chat.spec.ts` usa `provideHttpClient`,
+`provideHttpClientTesting` e `HttpTestingController` com stub determinístico do
+`ChatSessionService`. Cinco testes cobrem POST e URL relativa, payload exato com
+e sem `session_id`, envelope tipado como `ProcessualChatHttpResponse`, timeout
+de 135 s por timers virtuais do Vitest com `TimeoutError` e cancelamento da
+request, além da propagação de `HttpErrorResponse` 500 sem fallback. Typechecks
+app/spec, spec focada (5/5), suíte completa (11/11), build e
+`git diff --check` passaram; somente a spec, checklist e controle foram alterados
+por este item, sem mudança de produção, backend, proxy ou manifests.
 
 ---
 
 ## INT-P4-003 — Testar comportamento do `ChatComponent`
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Cobertura mínima
 
-- [ ] envia mensagem do usuário;
-- [ ] bloqueia envio duplicado enquanto carrega;
-- [ ] renderiza resposta real recebida;
-- [ ] finaliza loading no sucesso;
-- [ ] finaliza loading no erro;
-- [ ] apresenta erro seguro;
-- [ ] salva processo ativo correto no histórico;
-- [ ] não salva pergunta livre como processo.
+- [x] envia mensagem do usuário;
+- [x] bloqueia envio duplicado enquanto carrega;
+- [x] renderiza resposta real recebida;
+- [x] finaliza loading no sucesso;
+- [x] finaliza loading no erro;
+- [x] apresenta erro seguro;
+- [x] salva processo ativo correto no histórico;
+- [x] não salva pergunta livre como processo.
 
 ### Critério de aceite
 
 - componente possui testes para sucesso e falha sem depender do backend real.
+
+**Evidência:** `features/chat/chat.spec.ts` usa `StateService` real e doubles
+tipados de `ChatService`, `ChatSessionService`, `LocalStorageService` e
+`ApiHealthService`, sem HTTP real. Nove testes cobrem envio e bloqueio durante
+Observable pendente, resposta real no estado e DOM, sessão, loading no sucesso e
+erro, quatro classes de erro com mensagens públicas seguras, nova tentativa sem
+retry automático, histórico derivado de `processo_ativo`, processo ausente e
+falha controlada 2xx. Typechecks app/spec, spec focada (9/9), suíte completa
+(19/19), build e `git diff --check` passaram; produção, backend, proxy e
+manifests permaneceram intactos.
 
 ---
 
 ## INT-P4-004 — Adicionar smoke test integrado da conversa
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Cenário obrigatório
 
@@ -908,25 +942,52 @@ somente os quatro imports baseline de `INT-P4-001`; `git diff --check` aprovado.
 
 - fluxo completo navegador → FastAPI → orquestrador → resposta → navegador funciona em duas mensagens encadeadas.
 
+**Evidência:** em 25/08/2026, FastAPI e Angular reais foram iniciados nas
+portas aprovadas; `GET /api/health` direto e pelo proxy retornaram `200`. Um
+Microsoft Edge real, automatizado em modo headless pelo Playwright já disponível
+no ambiente, consultou a fixture sintética `0011000-82.1981.5.18.0051` e depois
+perguntou “Qual foi a última movimentação?” sem repetir o número. Os dois
+`POST /api/processos/chat` retornaram `200`, sem `failed_stage` e com
+`rag_status=not_needed`; a segunda request reutilizou a sessão criada na primeira
+e as duas respostas preservaram o mesmo `session_id` e `processo_ativo`. O
+`sessionStorage`, as mensagens exibidas e o histórico foram confirmados em
+runtime; o histórico permaneceu com um único item do processo, sem a pergunta
+livre. Loading iniciou e encerrou nas duas chamadas. Console, warnings, falhas de
+request e erros visuais permaneceram vazios. Regressões: backend 43/43, frontend
+19/19, ambos os typechecks e build aprovados; somente o warning CSS preexistente
+foi observado. Nenhum mock, dependência nova ou código funcional foi introduzido.
+
 ---
 
 ## INT-P4-005 — Testar cenários de degradação
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Cenários
 
-- [ ] backend indisponível;
-- [ ] timeout;
-- [ ] processo inexistente/entrada sem contexto suficiente;
-- [ ] `rag_status=unavailable` sem derrubar o chat estruturado;
-- [ ] falha controlada com `failed_stage`;
-- [ ] refresh da página conforme política de sessão;
-- [ ] nova sessão/nova aba conforme política aprovada.
+- [x] backend indisponível;
+- [x] timeout;
+- [x] processo inexistente/entrada sem contexto suficiente;
+- [x] `rag_status=unavailable` sem derrubar o chat estruturado;
+- [x] falha controlada com `failed_stage`;
+- [x] refresh da página conforme política de sessão;
+- [x] nova sessão/nova aba conforme política aprovada.
 
 ### Critério de aceite
 
 - falhas previsíveis não geram estado falso, mock ou travamento permanente.
+
+**Evidência:** Edge real headless com Playwright e os serviços temporários
+Angular/FastAPI comprovou backend indisponível e recuperável, contexto ausente,
+`rag_status=unavailable`, refresh e nova aba independente sem `opener`. A sessão
+foi preservada em erro e reload, um novo ID foi criado na aba independente, e o
+histórico compartilhado por `localStorage` permaneceu distinto do estado da
+sessão. Os testes existentes de service/component comprovaram o timeout real de
+135 s com tempo virtual, copy segura e recuperabilidade; testes FastAPI e do
+componente comprovaram `failed_stage` 2xx sem vazamento. Baseline: backend 43/43,
+frontend 19/19, ambos os typechecks e build aprovados. Nenhum código de produção,
+spec, proxy ou manifest foi alterado; `git diff --check` aprovado.
 
 ---
 
@@ -935,17 +996,29 @@ somente os quatro imports baseline de `INT-P4-001`; `git diff --check` aprovado.
 ## INT-P5-001 — Configurar proxy de desenvolvimento Angular
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Ações
 
-- [ ] Criar configuração de proxy versionada para `/api` → FastAPI local, se estratégia P1 aprovada.
-- [ ] Integrar ao comando `npm start` ou documentar comando explícito.
-- [ ] Não codificar URL local em componentes.
-- [ ] Confirmar que chamadas `/api/...` funcionam via navegador.
+- [x] Criar configuração de proxy versionada para `/api` → FastAPI local, se estratégia P1 aprovada.
+- [x] Integrar ao comando `npm start` ou documentar comando explícito.
+- [x] Não codificar URL local em componentes.
+- [x] Confirmar que chamadas `/api/...` funcionam via navegador.
 
 ### Critério de aceite
 
 - desenvolvedor consegue subir front e back localmente sem editar código-fonte para trocar URL.
+
+**Evidência:** `frontend/proxy.conf.json` encaminha `/api` para
+`http://localhost:8000` sem reescrever o path, e o target `serve` de
+`frontend/angular.json` referencia essa configuração; portanto, o `npm start`
+existente (`ng serve`) usa o proxy sem argumento manual. Com processos temporários,
+`GET http://localhost:8000/api/health` e
+`GET http://localhost:4200/api/health` retornaram `200` e `{"status":"ok"}`;
+os processos foram encerrados e as portas ficaram livres. URLs relativas dos
+services, backend, CORS, produção, manifests e lockfile permaneceram intactos.
+JSON/configuração Angular, typechecks app/spec, 19/19 testes, build e
+`git diff --check` passaram; o warning CSS preexistente permaneceu.
 
 ---
 

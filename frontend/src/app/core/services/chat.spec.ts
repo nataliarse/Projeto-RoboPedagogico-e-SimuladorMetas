@@ -1,16 +1,125 @@
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
+import {
+  HttpTestingController,
+  provideHttpClientTesting
+} from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { TimeoutError } from 'rxjs';
 
-import { Chat } from './chat';
+import { ProcessualChatHttpResponse } from '../types/processual-chat.types';
+import { ChatService } from './chat';
+import { ChatSessionService } from './chat-session';
 
-describe('Chat', () => {
-  let service: Chat;
+describe('ChatService', () => {
+  let service: ChatService;
+  let httpTesting: HttpTestingController;
+  let sessionId: string | null;
+
+  const sessionStub: Pick<ChatSessionService, 'getSessionId'> = {
+    getSessionId: () => sessionId
+  };
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(Chat);
+    sessionId = null;
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: ChatSessionService, useValue: sessionStub }
+      ]
+    });
+    service = TestBed.inject(ChatService);
+    httpTesting = TestBed.inject(HttpTestingController);
   });
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
+  afterEach(() => {
+    httpTesting.verify();
+  });
+
+  it('envia POST sem session_id quando não há sessão', () => {
+    service.enviar('Olá').subscribe();
+
+    const request = httpTesting.expectOne('/api/processos/chat');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ mensagem: 'Olá' });
+    expect(request.request.body).not.toHaveProperty('session_id');
+
+    request.flush({});
+  });
+
+  it('preserva session_id e mensagem no POST quando há sessão', () => {
+    sessionId = 'sessao-123';
+
+    service.enviar('Qual foi a última movimentação?').subscribe();
+
+    const request = httpTesting.expectOne('/api/processos/chat');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({
+      session_id: 'sessao-123',
+      mensagem: 'Qual foi a última movimentação?'
+    });
+
+    request.flush({});
+  });
+
+  it('emite o envelope HTTP contratual recebido', () => {
+    const response: ProcessualChatHttpResponse = {
+      session_id: 'sessao-123',
+      resultado: {
+        tipo: 'processual_chat',
+        intent: null,
+        resposta: 'Resposta real',
+        processo_ativo: null,
+        collection_status: null,
+        failed_stage: null,
+        rag_status: 'not_needed',
+        fontes: []
+      }
+    };
+    let emitted: ProcessualChatHttpResponse | undefined;
+
+    service.enviar('Olá').subscribe(value => emitted = value);
+    const request = httpTesting.expectOne('/api/processos/chat');
+    request.flush(response);
+
+    expect(emitted).toEqual(response);
+  });
+
+  it('aplica timeout cliente de 135 segundos sem espera real', () => {
+    let observedError: unknown;
+
+    vi.useFakeTimers();
+    try {
+      service.enviar('Olá').subscribe({ error: error => observedError = error });
+      const request = httpTesting.expectOne('/api/processos/chat');
+
+      vi.advanceTimersByTime(134_999);
+      expect(observedError).toBeUndefined();
+
+      vi.advanceTimersByTime(2);
+      expect(observedError).toBeInstanceOf(TimeoutError);
+      expect(request.cancelled).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('propaga erro HTTP ao consumidor sem transformá-lo em sucesso', () => {
+    let emitted: ProcessualChatHttpResponse | undefined;
+    let observedError: unknown;
+
+    service.enviar('Olá').subscribe({
+      next: value => emitted = value,
+      error: error => observedError = error
+    });
+    const request = httpTesting.expectOne('/api/processos/chat');
+    request.flush(
+      { detail: 'falha técnica' },
+      { status: 500, statusText: 'Internal Server Error' }
+    );
+
+    expect(emitted).toBeUndefined();
+    expect(observedError).toBeInstanceOf(HttpErrorResponse);
+    expect((observedError as HttpErrorResponse).status).toBe(500);
   });
 });
