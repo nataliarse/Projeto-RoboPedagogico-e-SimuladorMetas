@@ -1025,40 +1025,62 @@ JSON/configuração Angular, typechecks app/spec, 19/19 testes, build e
 ## INT-P5-002 — Documentar bootstrap limpo do frontend
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Ações
 
-- [ ] `cd frontend`.
-- [ ] versão recomendada de Node/npm documentada a partir do projeto real.
-- [ ] `npm ci` como instalação reproduzível.
-- [ ] `npm start`.
-- [ ] `npm run build`.
-- [ ] comando de testes.
-- [ ] explicar que `node_modules` e `.angular/cache` não devem ser transferidos/versionados.
+- [x] `cd frontend`.
+- [x] versão recomendada de Node/npm documentada a partir do projeto real.
+- [x] `npm ci` como instalação reproduzível.
+- [x] `npm start`.
+- [x] `npm run build`.
+- [x] comando de testes.
+- [x] explicar que `node_modules` e `.angular/cache` não devem ser transferidos/versionados.
 
 ### Critério de aceite
 
 - novo desenvolvedor consegue reconstruir dependências a partir de `package-lock.json`.
+
+**Evidência:** `frontend/README.md` registra o fluxo `npm ci` → `npm start` →
+testes sem watch → build, Node.js 24.x/npm 11.x como recomendação e as versões
+observadas Node.js 24.19.0/npm 11.17.0. Após reconstruir 468 pacotes pelo
+lockfile, os hashes de `package.json` e `package-lock.json` permaneceram
+inalterados; typechecks app/spec, 6 arquivos/19 testes, build e acesso HTTP 200
+ao Angular em `localhost:4200` passaram. O proxy `/api` validado em P5-001 foi
+preservado. `node_modules` e `.angular/cache` estão ignorados, não rastreados e
+documentados como artefatos locais que não devem ser transportados/versionados.
 
 ---
 
 ## INT-P5-003 — Documentar bootstrap limpo do backend
 
 **Status inicial:** `TODO`
+**Status atual:** `IMPLEMENTED`
 
 ### Ações
 
-- [ ] `cd chatbot_processual_ai`.
-- [ ] criar/ativar venv.
-- [ ] instalar `requirements.txt`.
-- [ ] copiar `.env.example` para `.env` local.
-- [ ] documentar Ollama/Qdrant opcionais/necessários por cenário.
-- [ ] `uvicorn api:app --reload`.
-- [ ] comando oficial de testes a partir do diretório correto.
+- [x] `cd chatbot_processual_ai`.
+- [x] criar/ativar venv.
+- [x] instalar `requirements.txt`.
+- [x] copiar `.env.example` para `.env` local.
+- [x] documentar Ollama/Qdrant opcionais/necessários por cenário.
+- [x] `uvicorn api:app --reload`.
+- [x] comando oficial de testes a partir do diretório correto.
 
 ### Critério de aceite
 
 - instrução reproduz exatamente a premissa dos imports atuais.
+
+**Evidência:** `chatbot_processual_ai/README.md` documenta o diretório
+operacional, Python 3.12.10 observado, reconstrução e ativação do venv,
+`requirements.txt`, configuração local, matriz factual de Ollama/Qdrant,
+Uvicorn, healthcheck e testes. Em venv limpo, a instalação declarada concluiu,
+FastAPI iniciou e `GET /api/health` retornou HTTP 200 com `{"status":"ok"}`.
+A suíte existente passou com 43/43 no venv anterior, a partir do diretório
+correto, e falhou na coleta a partir da raiz, preservando a premissa dos imports.
+O item permanece `IMPLEMENTED`, não `VALIDATED`: `requirements.txt` não declara
+`pytest`, e o venv limpo falhou no comando oficial com `No module named pytest`.
+Nenhum pacote extra foi instalado para mascarar a lacuna.
 
 ---
 

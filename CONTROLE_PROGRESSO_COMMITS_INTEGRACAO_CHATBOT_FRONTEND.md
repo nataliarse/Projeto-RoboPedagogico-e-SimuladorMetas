@@ -160,8 +160,8 @@ Se C05 não for necessário porque o projeto usar proxy/mesma origem e o healthc
 | ID | Status | Commit planejado | Arquivos esperados | Evidência para `VALIDATED` | Commit real |
 |---|---|---|---|---|---|
 | INT-P5-001 | `VALIDATED` | C09 | proxy config + Angular config/package | `/api` funciona localmente sem URL hardcoded | — |
-| INT-P5-002 | `TODO` | C09/C10 | docs/frontend README | clone limpo → `npm ci` → build/test | — |
-| INT-P5-003 | `TODO` | C09/C10 | docs/backend README | setup backend reproduzível | — |
+| INT-P5-002 | `VALIDATED` | C09/C10 | docs/frontend README | clone limpo → `npm ci` → build/test | — |
+| INT-P5-003 | `IMPLEMENTED` | C09/C10 | docs/backend README | setup documentado; validação pendente porque pytest não está em requirements.txt | — |
 | INT-P5-004 | `TODO` | C09 | docs/scripts opcionais | fluxo integrado documentado e testado | — |
 
 ### P6 — Documentação
@@ -226,6 +226,9 @@ Adicionar uma linha **somente quando houver evento real**.
 | 24/08/2026 09:46:54 -03:00 | INT-P3-007 | Indicador real de disponibilidade da API implementado e validado | `IN_PROGRESS` → `VALIDATED` | `GET /api/health`; verificando/disponível/indisponível; payload estrito; UI independente; app/build PASS; quatro falhas baseline de specs; `COMMIT_REAL: —` | — |
 | 24/08/2026 10:52:26 -03:00 | INT-P3-008 | Correção de idioma e metadados mínimos iniciada | `TODO` → `IN_PROGRESS` | branch correta; metadados visíveis, texto genérico e nomenclatura funcional em inspeção; `COMMIT_REAL: —` | — |
 | 24/08/2026 10:55:30 -03:00 | INT-P3-008 | Idioma e metadados mínimos corrigidos e validados | `IN_PROGRESS` → `VALIDATED` | `lang="pt-BR"`; título `Chatbot Processual`; resíduo AngularJS sem uso removido; app/build PASS; quatro falhas baseline de specs; workspace/package intactos; `COMMIT_REAL: —` | — |
+| 25/08/2026 15:36:47 -03:00 | INT-P5-002 | Bootstrap limpo do frontend documentado e validado | `TODO` → `IN_PROGRESS` → `VALIDATED` | Node 24.19.0/npm 11.17.0; `npm ci` 468 pacotes em 51,257 s; manifests intactos; app/spec PASS; 6 arquivos/19 testes PASS; build PASS; `npm start` HTTP 200 em `:4200`; artefatos locais ignorados e não rastreados; `COMMIT_REAL: —` | — |
+| 26/08/2026 09:11:43 -03:00 | INT-P5-003 | Bootstrap limpo do backend iniciado | `TODO` → `IN_PROGRESS` | branch correta; alterações preexistentes de P5-002 preservadas; Python 3.12.10; requirements, configuração, imports e serviços externos em diagnóstico; `COMMIT_REAL: —` | — |
+| 26/08/2026 09:15:09 -03:00 | INT-P5-003 | Bootstrap documentado; validação limpa incompleta | `IN_PROGRESS` → `IMPLEMENTED` | requirements instala FastAPI/Uvicorn; API e health 200 PASS no venv limpo; pytest ausente no requirements bloqueia a suíte limpa; 43/43 PASS no venv anterior; execução da raiz falha por imports atuais; nenhum pacote extra instalado; `COMMIT_REAL: —` | — |
 
 ### Registro detalhado — INT-P0-004
 
@@ -1127,6 +1130,101 @@ RISCOS: _SESSIONS continua em memória do processo Python; refresh não equivale
 COMMIT_SUGERIDO: test(integration): validate degradation and session lifecycle
 COMMIT_REAL: —
 CHECKPOINT_P4: AINDA_NAO
+```
+
+### Registro detalhado — INT-P5-002
+
+```text
+ID: INT-P5-002
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 25/08/2026 15:36:47 -03:00
+BRANCH: feat/integra_chatbot_frontend
+STATUS_INICIAL: worktree limpo; avisos de acesso negado somente em caches pytest fora do escopo; frontend/README.md e frontend/.gitignore inexistentes
+CHECKPOINT_P4_BASELINE: d007433 — test(integracao): valida fluxo do chatbot e proxy local; HEAD real no início do item
+P5_001: VALIDATED; proxy /api versionado em proxy.conf.json e associado a serve.options.proxyConfig
+NODE_OBSERVADO: v24.19.0; runtime Node LTS local já validado, fora do PATH desta sessão
+NPM_OBSERVADO: 11.17.0; package.json declara packageManager npm@11.11.1 e não possui engines
+POLITICA_VERSAO: Node.js 24.x com npm 11.x recomendado; validado com Node.js 24.19.0/npm 11.17.0; versões locais não declaradas como únicas compatíveis
+FUNDAMENTO_VERSAO: Angular 21.2.x do lockfile aceita Node ^20.19.0, ^22.12.0 ou linha 24 compatível; execução real pós-npm ci aprovada com Node 24.19.0/npm 11.17.0
+ANGULAR: @angular/core 21.2.6; @angular/cli 21.2.5; @angular/build 21.2.5
+TYPESCRIPT: 5.9.3
+SCRIPTS: start=ng serve; test=ng test; build=ng build; watch=ng build --watch --configuration development
+MANIFESTS_ANTES: package.json SHA-256 B2E747A3F63E93B70AD5DC63BE0D6D62BB90E7B97AA9807891FA9F3E7DCF1657; package-lock.json SHA-256 75DBAB39C5ABF49BF0C84B14E73629344D20410873D4150E94984332CA34D030
+NPM_CI: PASS fora do sandbox após spawn EPERM ambiental; 468 pacotes adicionados, 469 auditados em 51,257 s
+NPM_CI_WARNINGS: 109 pacotes buscando funding; 4 scripts pendentes de allowScripts (@parcel/watcher, esbuild, lmdb e msgpackr-extract)
+AUDIT_REPORT: 28 vulnerabilidades — 3 low, 5 moderate, 19 high e 1 critical; npm audit fix não executado
+MANIFESTS_DEPOIS: hashes idênticos aos anteriores; git diff vazio para package.json e package-lock.json
+TYPECHECK_APP: PASS — node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit
+TYPECHECK_SPEC: PASS — node node_modules/typescript/bin/tsc -p tsconfig.spec.json --noEmit
+TESTES: PASS — npm test -- --watch=false; 6 arquivos, 19/19 testes, 0 falhas
+BUILD: PASS — npm run build; output dist/meu-primeiro-app; warning CSS preexistente de chat.css 1,54 kB acima do budget
+NPM_START: PASS — npm start executou ng serve; listener Angular em localhost:4200; GET / retornou HTTP 200 com 459 bytes
+PROCESSOS_TEMPORARIOS: tentativas destacadas com EPIPE foram limpas; execução em primeiro plano criou listener PID 34616, confirmado como ng.js serve e encerrado; porta 4200 livre ao final
+PROXY: angular.json preservado com serve.options.proxyConfig=proxy.conf.json; proxy.conf.json preservado com /api → http://localhost:8000
+BACKEND_NECESSARIO_PARA_START: NÃO; necessário somente ao efetuar chamadas /api
+URL_API: produção usa caminhos relativos /api/health e /api/processos/chat; nenhuma ocorrência de localhost:8000 ou 127.0.0.1:8000 em frontend/src
+NODE_MODULES: existe localmente após npm ci; não rastreado; ignorado pela regra node_modules/ do .gitignore raiz
+ANGULAR_CACHE: existe localmente após validações; frontend/.angular não rastreado; ignorado pela regra .angular/ do .gitignore raiz
+DOCUMENTACAO: frontend/README.md criado com seção operacional curta de pré-requisito, npm ci, npm start, teste sem watch, build, proxy relativo e política de artefatos locais
+TRANSPORTE: README proíbe versionar, copiar de outra máquina, enviar por ZIP ou reutilizar node_modules/.angular/cache entre sistemas operacionais
+ARQUIVOS_DO_ITEM: frontend/README.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+ESCOPO_PRESERVADO: package.json, package-lock.json, angular.json, proxy.conf.json, código de produção, specs, backend, simulador e docs/development.md intactos
+NAO_ANTECIPACAO: INT-P5-003, INT-P5-004, INT-P6-002 e INT-P6-006 inalterados; nenhum setup backend, workflow integrado ou reescrita completa do README
+REVISAO: diff completo revisado; artefatos locais não rastreados; sem dependência, caminho absoluto no README, debug, segredo, mudança de URL ou alteração incidental de manifest
+RISCOS: versões validadas no ambiente atual não são as únicas compatíveis; instalação pode exigir registry npm; 28 vulnerabilidades permanecem como baseline; runtime do executor fora do PATH; warning CSS preexistente; backend só é necessário em chamadas /api
+COMMIT_SUGERIDO: docs(frontend): document reproducible bootstrap
+COMMIT_REAL: —
+CHECKPOINT_P5: AINDA_NAO
+```
+
+### Registro detalhado — INT-P5-003
+
+```text
+ID: INT-P5-003
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: IMPLEMENTED
+DATA_HORA: 26/08/2026 09:15:09 -03:00
+BRANCH: feat/integra_chatbot_frontend
+STATUS_INICIAL: alterações preexistentes de P5-002 no controle/checklist e frontend/README.md preservadas; caches pytest com acesso negado preexistentes
+CHECKPOINT_P4: d007433 — test(integracao): valida fluxo do chatbot e proxy local
+P5_001: VALIDATED
+P5_002: VALIDATED; evidência local no controle, checklist e frontend/README.md
+PYTHON_OBSERVADO: 3.12.10
+PYTHON_EXECUTOR: python e py; ambos 3.12.10
+POLITICA_PYTHON: versão observada, sem restrição formal criada
+REQUIREMENTS: requests, python-dotenv, rich, psutil, fastapi e uvicorn; arquivo intacto
+VENV_LIMPO: C:\Users\filipe.duarte\AppData\Local\Temp\int-p5-003-clean-validation; criado exclusivamente para o item
+CRIACAO_VENV: python -m venv <TEMP_VENV>; primeira tentativa sofreu PermissionError ambiental no TEMP do sandbox; repetição fora do sandbox PASS
+INTERPRETER_VALIDACAO: <TEMP_VENV>\Scripts\python.exe; Python 3.12.10; pip 25.0.1
+PIP_INSTALL: <TEMP_VENV_PYTHON> -m pip install -r requirements.txt; PASS; nenhum conflito; aviso apenas de pip 26.2.1 disponível
+FASTAPI: 0.141.1; disponível no venv limpo
+UVICORN: 0.52.4; disponível no venv limpo
+PYTEST: não declarado e indisponível no venv limpo
+DEPENDENCIA_EXTRA_INSTALADA: NÃO
+REQUIREMENTS_SUFFICIENT: NÃO para executar a suíte oficial; SIM para importar/subir API e healthcheck
+MISSING_PACKAGE: pytest
+COMMAND_BLOCKED: <TEMP_VENV_PYTHON> -m pytest tests -q → No module named pytest
+ENV_EXAMPLE: rastreado; contém defaults locais não secretos para Ollama, SQLite e RAG/Qdrant
+ENV_REAL: preexistente, ignorado e não rastreado; não lido nem sobrescrito
+ENV_EXAMPLE_GAP: SIM; AGENT4_USE_OLLAMA é chave opcional com default desabilitado e não consta no exemplo; não impede import/start/health
+DEPENDENCIAS_EXTERNAS: health sem Ollama/Qdrant; chat básico e consulta estruturada possuem caminhos locais; Ollama é condicional para interpretação/redação; RAG completo usa Ollama embeddings e Qdrant, com degradação registrada; metas atuais são locais
+API_IMPORT_REQUIRES_EXTERNAL_SERVICE: NÃO
+UVICORN: <TEMP_VENV_PYTHON> -m uvicorn api:app --host 127.0.0.1 --port 8000; PASS; processo temporário encerrado; porta livre ao final
+HEALTH: GET http://127.0.0.1:8000/api/health → HTTP 200; {"status":"ok"}; sem Ollama/Qdrant
+DIRETORIO_OFICIAL: chatbot_processual_ai
+COMANDO_OFICIAL_TESTES: python -m pytest tests -q
+TESTE_VENV_LIMPO: FAIL antes da coleta; pytest ausente
+REGRESSAO_VENV_ANTERIOR: 43 passed, 1 PytestCacheWarning ambiental, 2,06 s
+EXECUCAO_RAIZ: FAIL na coleta; 3 ModuleNotFoundError para api, main e ollama_client; premissa atual confirmada; nenhum PYTHONPATH hack
+DOCUMENTACAO: chatbot_processual_ai/README.md criado; bootstrap, env, matriz externa, uvicorn, health, testes e limitação do requirements
+ARTEFATOS: .venv/.env/__pycache__/.pytest_cache não rastreados; .env.example rastreado; novos caches com acesso negado não foram adicionados
+ARQUIVOS_DO_ITEM: chatbot_processual_ai/README.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+ESCOPO_PRESERVADO: código Python, testes, requirements, .env.example, frontend, simulador e docs de P6 inalterados
+RISCO: bootstrap ainda não executa testes somente com dependências versionadas; requisitos sem versões fixadas podem resolver versões diferentes; sessão backend permanece em memória; deadline total de 120 s continua dívida conhecida
+COMMIT_SUGERIDO: docs(backend): document reproducible bootstrap
+COMMIT_REAL: —
+CHECKPOINT_P5: AINDA_NAO
 ```
 
 ## 7. Modelo de atualização após cada item
