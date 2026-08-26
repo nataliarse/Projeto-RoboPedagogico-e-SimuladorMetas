@@ -69,7 +69,7 @@
 | G2 | Backend preparado | `TODO` | testes HTTP + sessão isolada + política de entrada validada |
 | G3 | Frontend integrado | `TODO` | DTOs + sessão + endpoint + resposta real + erro/histórico |
 | G4 | Testes e execução local | `TODO` | specs reparados, testes de fronteira, proxy e smoke aprovados |
-| G5 | Documentação | `TODO` | docs/README refletem implementação final |
+| G5 | Documentação | `VALIDATED` | P6-001..006 validados; docs/README refletem implementação final e auditoria cruzada aprovada |
 | G6 | Fechamento | `TODO` | regressão, segurança, diff e smoke final aprovados |
 
 ---
@@ -168,12 +168,12 @@ Se C05 não for necessário porque o projeto usar proxy/mesma origem e o healthc
 
 | ID | Status | Commit planejado | Arquivos esperados | Evidência para `VALIDATED` | Commit real |
 |---|---|---|---|---|---|
-| INT-P6-001 | `TODO` | C10 | `docs/ARCHITECTURE.md` | arquitetura final refletida | — |
-| INT-P6-002 | `READY` | C10 | `docs/development.md` | onboarding executável | — |
-| INT-P6-003 | `READY` | C10 | `docs/orchestration.md` | fluxo integrado descrito | — |
-| INT-P6-004 | `READY` | C10 | `docs/design_philosophy.md` | princípios comuns descritos | — |
-| INT-P6-005 | `TODO` | C10 | `README.md` | README sem arquitetura histórica enganosa | — |
-| INT-P6-006 | `TODO` | C10 | `frontend/README.md` | README específico do projeto | — |
+| INT-P6-001 | `VALIDATED` | C10 | `docs/ARCHITECTURE.md` | Angular/FastAPI, HTTP, sessão, rede e fronteiras finais refletidos | — |
+| INT-P6-002 | `VALIDATED` | C10 | `docs/development.md` | onboarding executável, incluindo lacuna pytest/requirements | — |
+| INT-P6-003 | `VALIDATED` | C10 | `docs/orchestration.md` | fluxo integrado, responsabilidades e degradações descritos | — |
+| INT-P6-004 | `VALIDATED` | C10 | `docs/design_philosophy.md` | princípios aplicados ao sistema real | — |
+| INT-P6-005 | `VALIDATED` | C10 | `README.md` | entrada atual sem arquitetura histórica enganosa | — |
+| INT-P6-006 | `VALIDATED` | C10 | `frontend/README.md` | README específico do projeto e da integração | — |
 
 ### P7 — Fechamento
 
@@ -1325,17 +1325,17 @@ RISCO_RESIDUAL:
 
 | Dimensão | Estado | Bloqueio principal |
 |---|---|---|
-| Arquitetura | 🟡 Parcial | frontend ainda não incorporado formalmente aos docs |
-| Contrato HTTP | 🔴 Não alinhado | `/api/chat` vs `/api/processos/chat`; body/response divergentes |
-| Sessão | 🔴 Não segura para múltiplos clientes | fallback `default` compartilhado |
-| Backend | 🟢 Base funcional | falta cobertura HTTP específica |
-| Frontend | 🟡 Base funcional | ainda usa mock e specs estão desatualizados |
-| Testes integrados | 🔴 Ausentes | nenhum smoke navegador→API registrado |
-| Desenvolvimento local | 🟡 Parcial | falta fluxo conjunto/proxy; pacote recebido traz `node_modules` de Windows |
-| Documentação | 🟡 Em construção | 3 docs centrais vazios + READMEs desalinhados |
+| Arquitetura | 🟢 Documentada | Angular/FastAPI, fronteira HTTP, sessão, rede e domínios reconciliados em P6 |
+| Contrato HTTP | 🟢 Alinhado | `POST /api/processos/chat` e envelope tipado documentados e implementados |
+| Sessão | 🟡 Local | UUID opaco; `_SESSIONS` em memória, sem autenticação ou persistência distribuída |
+| Backend | 🟢 Base funcional | testes HTTP e regressão registrados nas fases anteriores |
+| Frontend | 🟢 Integrado | resposta real, sessão, histórico, health e erros cobertos |
+| Testes integrados | 🟢 Executados | smoke navegador→Angular→FastAPI registrado em P5 |
+| Desenvolvimento local | 🟢 Documentado | bootstraps e fluxo conjunto/proxy consolidados; pytest ausente de requirements permanece dívida |
+| Documentação | 🟢 Validada | P6-001..006 e auditoria cruzada aprovados |
 | Governança Codex | 🟡 Boa base | verificar versionamento de `.codex/rules/safety.rules` |
-| Segurança da integração | 🟡 A validar | sessão, CORS/origem e erros ainda não fechados |
-| Merge | 🔴 `NOT_READY` | gates G0–G6 abertos |
+| Segurança da integração | 🟡 A validar em P7 | sessão local, CORS same-origin e erros documentados; revisão final pertence a P7 |
+| Merge | 🔴 `NOT_READY` | G6 e fechamento P7 ainda abertos |
 
 ---
 
@@ -1369,7 +1369,10 @@ Somente quando:
 
 ---
 
-## 11. Próximo passo recomendado a partir do baseline
+## 11. Registro histórico do próximo passo a partir do baseline
+
+O bloco abaixo registra a recomendação original do baseline e não representa o
+estado operacional atual depois de P0–P6.
 
 **Não iniciar alterando `ChatService` ainda.**
 
@@ -1383,3 +1386,91 @@ Ordem imediata recomendada:
 6. somente então começar mudanças de backend/frontend.
 
 Isso mantém a integração reversível e impede que decisões arquiteturais sejam tomadas incidentalmente por um patch de código.
+
+---
+
+## Registro consolidado — FASE P6
+
+```text
+FASE: P6
+DOCUMENTOS_AUDITADOS: README.md; frontend/README.md; chatbot_processual_ai/README.md; docs/ARCHITECTURE.md; docs/integration.md; docs/development.md; docs/orchestration.md; docs/design_philosophy.md; checklist e controle; código/config/testes relevantes de frontend e backend
+DOCUMENTOS_ALTERADOS: README.md; frontend/README.md; docs/ARCHITECTURE.md; docs/integration.md; docs/development.md; docs/orchestration.md; docs/design_philosophy.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+CROSS_DOC_AUDIT: PASS — endpoint, sessão, histórico, health, proxy, CORS, erros, RAG, dependências, timeout, testes e fronteira do simulador coerentes
+RESULTADO: INT-P6-001..006 VALIDATED
+G5_READY: SIM
+G5: VALIDATED
+CHECKPOINT_P6_READY: SIM
+CHECKPOINT_P6_CRIADO: NÃO
+P7_STARTED: NÃO
+COMMIT_REAL: —
+```
+
+### Evidência por item
+
+```text
+ID: INT-P6-001
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+ARQUIVO_PRINCIPAL: docs/ARCHITECTURE.md
+CONTEUDO_COBERTO: Angular/FastAPI; HTTP; chat/health; sessão; processo ativo; proxy/same-origin; encapsulamento; chat/metas/híbrido; limitações
+FONTES_FACTUAIS: api.py; contratos; serviços Angular; angular.json; proxy.conf.json; orquestradores; testes; P5
+CONTRADICOES_REMOVIDAS: frontend pendente; /api/chat; arquitetura sem Angular
+LIMITACOES_PRESERVADAS: _SESSIONS em memória; health mínimo; deadline backend ausente; produção indefinida
+VALIDACAO: critério individual e auditoria cruzada PASS
+COMMIT_REAL: —
+
+ID: INT-P6-002
+STATUS_ANTERIOR: READY
+STATUS_FINAL: VALIDATED
+ARQUIVO_PRINCIPAL: docs/development.md
+CONTEUDO_COBERTO: pré-requisitos; bootstrap; start; test/build/typecheck; env; rede; Git; ignores; troubleshooting
+FONTES_FACTUAIS: package.json; angular.json; proxy.conf.json; requirements.txt; .env.example; READMEs P5; controle de validações
+CONTRADICOES_REMOVIDAS: frontend /api/chat; proxy pendente; bootstrap que ocultava lacuna de pytest
+LIMITACOES_PRESERVADAS: pytest ausente de requirements; imports exigem diretório backend; dependências condicionais
+VALIDACAO: comandos conferidos contra manifests/configuração e auditoria cruzada PASS
+COMMIT_REAL: —
+
+ID: INT-P6-003
+STATUS_ANTERIOR: READY
+STATUS_FINAL: VALIDATED
+ARQUIVO_PRINCIPAL: docs/orchestration.md
+CONTEUDO_COBERTO: Browser→API→orquestrador→agentes/services→response; sessão; processo ativo; falhas; RAG; fronteiras
+FONTES_FACTUAIS: ChatComponent; ChatService; api.py; processual_chat_orchestrator.py; session_state.py; services
+CONTRADICOES_REMOVIDAS: fluxo sem frontend integrado e referências a decisões ainda futuras
+LIMITACOES_PRESERVADAS: RAG condicional; sessão volátil; metas provisórias
+VALIDACAO: critério individual e auditoria cruzada PASS
+COMMIT_REAL: —
+
+ID: INT-P6-004
+STATUS_ANTERIOR: READY
+STATUS_FINAL: VALIDATED
+ARQUIVO_PRINCIPAL: docs/design_philosophy.md
+CONTEUDO_COBERTO: determinismo; papel da LLM; estado real; falha explícita; contratos; mudanças focadas; proteção de detalhes
+FONTES_FACTUAIS: orquestrador; agentes; contratos; UI integrada; regras de metas; AGENTS.md
+CONTRADICOES_REMOVIDAS: princípios que tratavam a integração atual como pendente
+LIMITACOES_PRESERVADAS: resultados provisórios e planejamento não descrito como implementação
+VALIDACAO: princípios ligados ao repositório e auditoria cruzada PASS
+COMMIT_REAL: —
+
+ID: INT-P6-005
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+ARQUIVO_PRINCIPAL: README.md
+CONTEUDO_COBERTO: finalidade; estrutura; Angular/FastAPI; começo rápido; docs; fronteiras e limites
+FONTES_FACTUAIS: documentação reconciliada; código/configuração; validações P5
+CONTRADICOES_REMOVIDAS: frontend em integração; /api/chat; componentes históricos como arquitetura vigente
+LIMITACOES_PRESERVADAS: metas não homologadas; sessão local; deadline; produção; pytest
+VALIDACAO: porta de entrada atual e auditoria de termos PASS
+COMMIT_REAL: —
+
+ID: INT-P6-006
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+ARQUIVO_PRINCIPAL: frontend/README.md
+CONTEUDO_COBERTO: finalidade; API/proxy; npm ci/start/test/build/typecheck; sessão; histórico; health; erros
+FONTES_FACTUAIS: package.json; angular.json; proxy.conf.json; ChatService; ChatSessionService; ApiHealthService; ChatComponent; LocalStorageService
+CONTRADICOES_REMOVIDAS: README de bootstrap genérico e ausência de comportamento integrado
+LIMITACOES_PRESERVADAS: health mínimo; storage por aba; restart backend; proxy dev-only
+VALIDACAO: README específico e auditoria cruzada PASS
+COMMIT_REAL: —
+```

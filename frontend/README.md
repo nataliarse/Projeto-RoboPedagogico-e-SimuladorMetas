@@ -1,14 +1,13 @@
-# Frontend Angular
+# Frontend do Chatbot Processual
 
-## Bootstrap local
+Aplicação Angular que apresenta o chat processual e consome exclusivamente a
+API pública FastAPI por HTTP/JSON. Ela não conhece agentes, SQLite, Ollama,
+Qdrant ou outros detalhes internos do backend.
 
-O frontend usa Angular 21.2.x. Use uma versão do Node.js compatível com essa
-versão do Angular e deixe `node` e `npm` disponíveis no `PATH`. Para este
-repositório, recomenda-se Node.js 24.x com npm 11.x; o bootstrap foi validado
-com Node.js 24.19.0 e npm 11.17.0. O `package.json` declara npm 11.11.1 como
-gerenciador do projeto, sem exigir que essa seja a única versão 11 compatível.
+## Preparação e execução
 
-A partir da raiz do repositório:
+O bootstrap foi validado com Node.js 24.19.0 e npm 11.17.0. O projeto usa
+Angular 21.2.x e mantém o grafo reproduzível em `package-lock.json`.
 
 ```text
 cd frontend
@@ -16,29 +15,47 @@ npm ci
 npm start
 ```
 
-`npm ci` reconstrói as dependências exatamente a partir de `package-lock.json`.
-Não use `npm install` no fluxo normal de bootstrap, pois ele pode recalcular o
-grafo e alterar o lockfile.
+A interface fica em `http://localhost:4200`. `npm start` carrega o proxy
+versionado em `proxy.conf.json`: chamadas relativas `/api/*` são encaminhadas
+para o FastAPI local em `http://localhost:8000`, sem reescrever o caminho. Não
+edite `ChatService` nem adicione uma URL absoluta para o fluxo normal.
 
-O servidor de desenvolvimento fica disponível em `http://localhost:4200/`.
-As chamadas da aplicação usam URLs relativas sob `/api`; o proxy de
-desenvolvimento já está versionado, portanto não é necessário editar o código
-para trocar a URL da API. O backend só precisa estar disponível quando uma
-funcionalidade que chama `/api` for utilizada.
+O chat envia `POST /api/processos/chat`; o indicador de disponibilidade consulta
+`GET /api/health`. Um health 200 comprova apenas que a fronteira FastAPI responde
+ao contrato mínimo, não que banco, agentes, Ollama, Qdrant ou RAG estejam
+saudáveis.
 
-## Testes e build
-
-Depois de `npm ci`, execute:
+## Testes, build e typecheck
 
 ```text
 npm test -- --watch=false
 npm run build
+npx tsc -p tsconfig.app.json --noEmit
 ```
 
-## Dependências e caches locais
+## Sessão, histórico e erros
 
-`node_modules/` e `.angular/cache/` são artefatos locais reconstruíveis e não
-devem ser versionados, copiados de outra máquina, enviados em ZIP nem
-reutilizados entre sistemas operacionais. Não transfira esses diretórios: em
-cada ambiente de destino, execute `npm ci` para reconstruí-los a partir do
-lockfile versionado.
+- `session_id` fica em `sessionStorage`. A primeira chamada pode omiti-lo; o
+  backend gera um ID opaco, e as chamadas seguintes da aba o reutilizam.
+- O histórico visual fica em `localStorage`, é alimentado por
+  `resultado.processo_ativo`, deduplica o processo mais recente e mantém até
+  três registros. Histórico não é sessão.
+- A interface exibe `resultado.resposta`, inclusive em resposta controlada 2xx.
+  `failed_stage` e `rag_status` descrevem falha/degradação sem transformar a
+  resposta automaticamente em erro de transporte.
+- Timeout, falha HTTP ou indisponibilidade não geram resposta mock, não iniciam
+  retry automático e sempre liberam o estado de carregamento.
+
+`sessionStorage` normalmente sobrevive ao refresh da mesma aba. Nova aba tem
+contexto próprio, embora uma aba aberta com `opener` possa receber uma cópia
+inicial do storage conforme o browser. Reiniciar o backend perde a sessão do
+lado servidor, mesmo que o ID permaneça no browser.
+
+## Artefatos locais
+
+Não versione nem transporte `node_modules/`, `.angular/cache/` ou `dist/` entre
+máquinas/sistemas operacionais. Reconstrua-os com `npm ci`.
+
+Detalhes: [integração](../docs/integration.md),
+[arquitetura](../docs/ARCHITECTURE.md) e
+[desenvolvimento](../docs/development.md).

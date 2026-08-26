@@ -1115,18 +1115,24 @@ dependência, container, manifest ou código de produção foi alterado.
 
 **Status inicial:** `TODO`
 
+**Status atual:** `VALIDATED`
+
 ### Ações
 
-- [ ] adicionar frontend Angular à visão arquitetural;
-- [ ] registrar fronteira HTTP;
-- [ ] registrar sessão web;
-- [ ] registrar estratégia de rede/proxy;
-- [ ] preservar separação entre chat processual, simulador e fluxo híbrido;
-- [ ] atualizar pendência “Frontend visual” porque o frontend agora existe.
+- [x] adicionar frontend Angular à visão arquitetural;
+- [x] registrar fronteira HTTP;
+- [x] registrar sessão web;
+- [x] registrar estratégia de rede/proxy;
+- [x] preservar separação entre chat processual, simulador e fluxo híbrido;
+- [x] atualizar pendência “Frontend visual” porque o frontend agora existe.
 
 ### Critério de aceite
 
 - arquitetura documentada corresponde ao repositório depois da integração.
+
+**Evidência:** `docs/ARCHITECTURE.md` foi reconciliado com Angular, FastAPI,
+`POST /api/processos/chat`, health mínimo, sessão UUID em memória, proxy local,
+produção preferencialmente same-origin, RAG condicional e fronteiras de metas.
 
 ---
 
@@ -1134,21 +1140,26 @@ dependência, container, manifest ou código de produção foi alterado.
 
 **Status inicial:** `READY`
 
+**Status atual:** `VALIDATED`
+
 ### Conteúdo mínimo
 
-- [ ] requisitos locais;
-- [ ] instalação limpa frontend/backend;
-- [ ] comandos de execução;
-- [ ] comandos de testes/build/typecheck;
-- [ ] proxy/CORS;
-- [ ] variáveis de ambiente;
-- [ ] convenção de branches/commits relevante;
-- [ ] itens que não devem ser versionados;
-- [ ] troubleshooting mínimo.
+- [x] requisitos locais;
+- [x] instalação limpa frontend/backend;
+- [x] comandos de execução;
+- [x] comandos de testes/build/typecheck;
+- [x] proxy/CORS;
+- [x] variáveis de ambiente;
+- [x] convenção de branches/commits relevante;
+- [x] itens que não devem ser versionados;
+- [x] troubleshooting mínimo.
 
 ### Critério de aceite
 
 - documento é suficiente para onboarding técnico básico.
+
+**Evidência:** `docs/development.md` consolida o workflow validado em P5 e
+preserva explicitamente a lacuna de `pytest` em `requirements.txt`.
 
 ---
 
@@ -1156,18 +1167,23 @@ dependência, container, manifest ou código de produção foi alterado.
 
 **Status inicial:** `READY`
 
+**Status atual:** `VALIDATED`
+
 ### Conteúdo mínimo
 
-- [ ] fluxo Browser → API → orquestrador → agentes → resposta;
-- [ ] responsabilidades de cada camada;
-- [ ] fluxo de sessão/processo ativo;
-- [ ] comportamento em falha controlada;
-- [ ] papel do RAG sem acoplar frontend;
-- [ ] fronteiras entre chat processual, metas e híbrido.
+- [x] fluxo Browser → API → orquestrador → agentes → resposta;
+- [x] responsabilidades de cada camada;
+- [x] fluxo de sessão/processo ativo;
+- [x] comportamento em falha controlada;
+- [x] papel do RAG sem acoplar frontend;
+- [x] fronteiras entre chat processual, metas e híbrido.
 
 ### Critério de aceite
 
 - agente/humano entende o fluxo sem inferir a partir de dezenas de arquivos.
+
+**Evidência:** `docs/orchestration.md` descreve sequência, responsabilidades,
+sessão, processo ativo, falha controlada, RAG e fronteiras de domínio.
 
 ---
 
@@ -1175,19 +1191,24 @@ dependência, container, manifest ou código de produção foi alterado.
 
 **Status inicial:** `READY`
 
+**Status atual:** `VALIDATED`
+
 ### Conteúdo mínimo
 
-- [ ] determinismo antes de LLM onde houver regra verificável;
-- [ ] LLM explica, não inventa regra de negócio;
-- [ ] frontend apresenta estado real, não sucesso aparente;
-- [ ] falha explícita > fallback silencioso;
-- [ ] contratos claros > acoplamento entre camadas;
-- [ ] mudanças pequenas, reversíveis e testáveis;
-- [ ] dados sensíveis e detalhes internos não vazam para UI.
+- [x] determinismo antes de LLM onde houver regra verificável;
+- [x] LLM explica, não inventa regra de negócio;
+- [x] frontend apresenta estado real, não sucesso aparente;
+- [x] falha explícita > fallback silencioso;
+- [x] contratos claros > acoplamento entre camadas;
+- [x] mudanças pequenas, reversíveis e testáveis;
+- [x] dados sensíveis e detalhes internos não vazam para UI.
 
 ### Critério de aceite
 
 - decisões de projeto recorrentes têm princípios explícitos.
+
+**Evidência:** `docs/design_philosophy.md` relaciona cada princípio obrigatório
+com contratos, estado, degradação, privacidade e limitações reais do projeto.
 
 ---
 
@@ -1195,17 +1216,22 @@ dependência, container, manifest ou código de produção foi alterado.
 
 **Status inicial:** `TODO`
 
+**Status atual:** `VALIDATED`
+
 ### Ações
 
-- [ ] substituir recomendações históricas que pareçam arquitetura vigente quando já não são;
-- [ ] apresentar estrutura atual do repositório;
-- [ ] apontar `docs/` como fonte técnica aprofundada;
-- [ ] explicar brevemente frontend Angular + backend FastAPI;
-- [ ] não prometer Playwright/LangGraph/Streamlit como já implementados.
+- [x] substituir recomendações históricas que pareçam arquitetura vigente quando já não são;
+- [x] apresentar estrutura atual do repositório;
+- [x] apontar `docs/` como fonte técnica aprofundada;
+- [x] explicar brevemente frontend Angular + backend FastAPI;
+- [x] não prometer Playwright/LangGraph/Streamlit como já implementados.
 
 ### Critério de aceite
 
 - README não induz humano ou agente a uma arquitetura diferente da real.
+
+**Evidência:** `README.md` agora é uma porta de entrada curta para a topologia
+Angular–FastAPI atual, separa metas e aponta às fontes detalhadas.
 
 ---
 
@@ -1213,17 +1239,22 @@ dependência, container, manifest ou código de produção foi alterado.
 
 **Status inicial:** `TODO`
 
+**Status atual:** `VALIDATED`
+
 ### Ações
 
-- [ ] remover caráter puramente template do Angular CLI;
-- [ ] explicar finalidade do frontend;
-- [ ] documentar API/proxy;
-- [ ] documentar instalação, build e testes;
-- [ ] registrar política de sessão relevante ao frontend.
+- [x] remover caráter puramente template do Angular CLI;
+- [x] explicar finalidade do frontend;
+- [x] documentar API/proxy;
+- [x] documentar instalação, build e testes;
+- [x] registrar política de sessão relevante ao frontend.
 
 ### Critério de aceite
 
 - README do frontend serve ao projeto, não apenas ao template Angular.
+
+**Evidência:** `frontend/README.md` documenta finalidade, endpoint/proxy,
+bootstrap, validações, sessão, histórico, health e erros específicos do projeto.
 
 ---
 

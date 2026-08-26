@@ -1,124 +1,52 @@
 # Filosofia de design
 
-## Propósito
+## Determinismo antes de LLM
 
-Este documento registra os princípios usados para evoluir o sistema. Eles não
-substituem regras de negócio nem descrevem funcionalidades ainda inexistentes;
-servem como critérios para decisões técnicas e revisão de mudanças.
+Número processual, roteamento, consulta estruturada, validações e regras
+verificáveis devem ser resolvidos por código e dados. A LLM entra onde há ganho
+linguístico real, reduzindo variabilidade e mantendo caminhos úteis sem modelo.
 
-## 1. Verdade estruturada antes de texto gerado
+## A LLM explica; não inventa regra
 
-Dados processuais, cálculos e critérios de metas devem vir de fontes e regras
-determinísticas. A LLM pode interpretar uma mensagem ou explicar um resultado,
-mas não deve criar fatos, fórmulas, indicadores ou regras normativas.
+O modelo pode interpretar e redigir a partir de fatos validados. Ele não define
+fórmulas de metas, estados processuais ou fatos ausentes. Enquanto critérios do
+simulador não forem homologados, a resposta deve preservar seu caráter
+provisório ou inconclusivo.
 
-Consequências práticas:
+## O frontend apresenta o estado real
 
-- consultar SQLite e contratos antes de recorrer ao modelo;
-- identificar fato, inferência e limitação separadamente;
-- validar toda saída estruturada produzida por modelo;
-- responder que não há informação suficiente quando a evidência não existe.
+A interface usa `resultado.resposta`, `processo_ativo`, health e estados de erro
+reais. Pergunta do usuário não vira número de histórico; indisponibilidade não
+vira resposta mock; health da API não vira promessa de sistema inteiro saudável.
 
-## 2. Determinismo primeiro, IA quando agrega valor
+## Falha explícita é melhor que fallback silencioso
 
-O sistema prioriza regras locais para intenção, roteamento, leitura de campos e
-respostas previsíveis. Ollama é usado em ambiguidades e tarefas linguísticas nas
-quais oferece ganho real. Essa escolha reduz latência, consumo de recursos e
-variabilidade, além de manter parte do sistema útil sem o modelo.
+Degradação preserva o caminho seguro restante e informa a limitação por estados
+como `rag_status` ou `failed_stage`. Fallback não pode transformar erro em
+sucesso aparente nem ausência de evidência em afirmação.
 
-## 3. Degradação explícita e segura
+## Contratos claros reduzem acoplamento
 
-Dependências opcionais podem falhar. Qdrant, embeddings ou geração local não
-devem ocultar dados estruturados que continuam disponíveis. A degradação deve:
+Angular depende apenas da API HTTP/JSON; FastAPI adapta o contrato público aos
+orquestradores; schemas delimitam os dados internos. Mudança de contrato exige
+revisão dos consumidores, sem acesso direto do frontend a agentes, banco ou RAG.
 
-- preservar o caminho seguro restante;
-- registrar um status observável;
-- informar a limitação sem expor detalhes internos;
-- nunca converter ausência de evidência em resposta afirmativa.
+## Mudanças pequenas, reversíveis e testáveis
 
-Os estados de RAG e o campo `failed_stage` materializam esse princípio.
+Prefere-se alteração focada, adaptadores nas integrações e testes proporcionais
+ao risco. Dados sintéticos e fixtures sanitizadas permitem validar regras sem
+alterar baselines ou depender de dados reais.
 
-## 4. Contratos nas fronteiras
+## Detalhes internos e sensíveis não chegam à UI
 
-Entradas e saídas entre API, orquestradores, serviços e frontend devem ter
-formas explícitas. Dataclasses representam os contratos internos atuais, e
-modelos Pydantic validam os payloads HTTP de entrada.
+Stack traces, paths, objetos HTTP crus, credenciais e identificadores internos
+não fazem parte da resposta pública. Dados pessoais só devem alcançar modelos e
+interface quando necessários e governados; sanitização é defesa em profundidade,
+não autorização de uso.
 
-Mudanças de contrato exigem revisão de todos os consumidores. Enquanto o
-frontend não estiver alinhado ao endpoint e ao envelope reais, a divergência
-deve permanecer documentada, e não escondida por suposição.
+## Estado e limitações são nomeados
 
-## 5. Separação de responsabilidades
-
-- interfaces recebem e apresentam dados;
-- orquestradores controlam sequência, progresso e falhas;
-- agentes executam responsabilidades linguísticas delimitadas;
-- repositórios cuidam de persistência;
-- serviços executam recuperação, normalização e regras;
-- schemas definem contratos;
-- prompts orientam modelos, mas não concentram regra de negócio.
-
-Uma camada não deve acessar detalhes internos de outra quando um contrato mais
-estável estiver disponível.
-
-## 6. Privacidade por minimização
-
-Somente os dados necessários devem chegar ao modelo ou à interface. CPF, CNPJ,
-identificadores internos e detalhes técnicos devem ser removidos quando não são
-essenciais para a resposta. Dados reais e credenciais permanecem fora do Git.
-
-Sanitização é defesa em profundidade, não autorização para usar dados sensíveis
-sem governança, base legal e controles operacionais adequados.
-
-## 7. Estado local assumido, não disfarçado
-
-O estado atual é em memória e adequado à execução local. Ele não oferece
-durabilidade, compartilhamento entre workers, expiração ou escalabilidade
-horizontal. Qualquer evolução para produção deve tornar essas propriedades
-explícitas e escolher uma estratégia de sessão antes de escalar a API.
-
-## 8. Resultados provisórios devem parecer provisórios
-
-O domínio de metas ainda aguarda critérios oficiais. Nomes de status, motivos e
-observações devem impedir que uma heurística seja interpretada como cálculo
-homologado. `not_integrated`, `inconclusivo` e as advertências atuais são parte
-do contrato de segurança semântica.
-
-## 9. Observabilidade sem vazamento
-
-Eventos de progresso devem ajudar a localizar etapas e tempos sem registrar
-conteúdo sensível. O modo normal comunica apenas o necessário; o modo de trace
-oferece diagnóstico controlado. Exceções técnicas não devem ser devolvidas
-diretamente ao usuário.
-
-## 10. Evolução incremental e testável
-
-Mudanças devem ser pequenas, coerentes com os padrões existentes e cobertas de
-forma proporcional ao risco. Prefere-se:
-
-- funções puras para classificação e regras;
-- adaptadores nas integrações externas;
-- fallbacks testáveis;
-- dados sintéticos e fixtures sanitizadas;
-- integração gradual em vez de substituição ampla.
-
-## 11. Fonte única para cada responsabilidade
-
-- `README.md`: visão geral, instalação e primeiros comandos;
-- `docs/ARCHITECTURE.md`: componentes, limites e estado técnico;
-- este documento: princípios de decisão;
-- `docs/development.md`: rotina de contribuição e validação;
-- `docs/orchestration.md`: sequência dos fluxos;
-- checklist de integração: trabalho rastreável, sem ser redefinido por estes
-  documentos.
-
-## Critérios para novas decisões
-
-Antes de introduzir uma solução, verifique:
-
-1. qual problema e contrato ela resolve;
-2. qual fonte de verdade será usada;
-3. como ela falha e qual caminho permanece disponível;
-4. quais dados ela recebe e expõe;
-5. como será testada sem depender de dados reais;
-6. se a mudança representa implementação atual ou apenas intenção futura.
+Sessão em memória, dependências condicionais, regras provisórias e decisões de
+produção ainda abertas devem ser documentadas como tais. Planejamento não pode
+ser descrito como implementação — exemplo atual: 135 s existe no cliente, mas o
+deadline total backend de 120 s permanece não implementado.
