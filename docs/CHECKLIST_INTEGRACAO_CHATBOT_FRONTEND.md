@@ -1087,16 +1087,25 @@ Nenhum pacote extra foi instalado para mascarar a lacuna.
 ## INT-P5-004 — Definir comando/workflow integrado de desenvolvimento
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Ações
 
-- [ ] Documentar ordem para subir dependências externas, backend e frontend.
-- [ ] Se útil, criar script não destrutivo para desenvolvimento local; não é obrigatório.
-- [ ] Evitar adicionar Docker/Compose apenas por estética se não houver necessidade real nesta fase.
+- [x] Documentar ordem para subir dependências externas, backend e frontend.
+- [x] Se útil, criar script não destrutivo para desenvolvimento local; não é obrigatório.
+- [x] Evitar adicionar Docker/Compose apenas por estética se não houver necessidade real nesta fase.
 
 ### Critério de aceite
 
 - fluxo de execução completo cabe em uma seção curta e verificável da documentação.
+
+**Evidência:** `docs/integration.md` consolida a rotina posterior ao bootstrap em
+sete passos: dependências condicionais, FastAPI, health direto, Angular, health
+pelo proxy, browser/chat e encerramento. O workflow real iniciou o backend com
+`python -m uvicorn api:app --reload` e o frontend com `npm start`; os dois
+healthchecks retornaram `200` com `{"status":"ok"}` e a página Angular retornou
+`200`. Ollama e Qdrant não foram iniciados para esse smoke. Nenhum script,
+dependência, container, manifest ou código de produção foi alterado.
 
 ---
 

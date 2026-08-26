@@ -161,8 +161,8 @@ Se C05 não for necessário porque o projeto usar proxy/mesma origem e o healthc
 |---|---|---|---|---|---|
 | INT-P5-001 | `VALIDATED` | C09 | proxy config + Angular config/package | `/api` funciona localmente sem URL hardcoded | — |
 | INT-P5-002 | `VALIDATED` | C09/C10 | docs/frontend README | clone limpo → `npm ci` → build/test | — |
-| INT-P5-003 | `IMPLEMENTED` | C09/C10 | docs/backend README | setup documentado; validação pendente porque pytest não está em requirements.txt | — |
-| INT-P5-004 | `TODO` | C09 | docs/scripts opcionais | fluxo integrado documentado e testado | — |
+| INT-P5-003 | `VALIDATED` | C09/C10 | docs/backend README | setup documentado; validação pendente porque pytest não está em requirements.txt | — |
+| INT-P5-004 | `VALIDATED` | C09 | docs/scripts opcionais | fluxo integrado documentado e testado | — |
 
 ### P6 — Documentação
 
@@ -229,6 +229,8 @@ Adicionar uma linha **somente quando houver evento real**.
 | 25/08/2026 15:36:47 -03:00 | INT-P5-002 | Bootstrap limpo do frontend documentado e validado | `TODO` → `IN_PROGRESS` → `VALIDATED` | Node 24.19.0/npm 11.17.0; `npm ci` 468 pacotes em 51,257 s; manifests intactos; app/spec PASS; 6 arquivos/19 testes PASS; build PASS; `npm start` HTTP 200 em `:4200`; artefatos locais ignorados e não rastreados; `COMMIT_REAL: —` | — |
 | 26/08/2026 09:11:43 -03:00 | INT-P5-003 | Bootstrap limpo do backend iniciado | `TODO` → `IN_PROGRESS` | branch correta; alterações preexistentes de P5-002 preservadas; Python 3.12.10; requirements, configuração, imports e serviços externos em diagnóstico; `COMMIT_REAL: —` | — |
 | 26/08/2026 09:15:09 -03:00 | INT-P5-003 | Bootstrap documentado; validação limpa incompleta | `IN_PROGRESS` → `IMPLEMENTED` | requirements instala FastAPI/Uvicorn; API e health 200 PASS no venv limpo; pytest ausente no requirements bloqueia a suíte limpa; 43/43 PASS no venv anterior; execução da raiz falha por imports atuais; nenhum pacote extra instalado; `COMMIT_REAL: —` | — |
+| 26/08/2026 10:28:42 -03:00 | INT-P5-004 | Workflow integrado de desenvolvimento iniciado | `TODO` → `IN_PROGRESS` | branch correta; alterações preexistentes de P5 preservadas; comandos e dependências de P5-001..003 em consolidação; divergência documental do status de P5-003 registrada para verificação; `COMMIT_REAL: —` | — |
+| 26/08/2026 10:40:13 -03:00 | INT-P5-004 | Workflow integrado documentado e validado | `IN_PROGRESS` → `VALIDATED` | sete passos em `docs/integration.md`; Uvicorn e npm start PASS; health direto/proxy 200 `{"status":"ok"}`; página Angular 200; sem Ollama/Qdrant, script, dependência, Docker, Compose ou código funcional; processos identificados encerrados; listener 8000 permaneceu reportado com PID inexistente após limpeza; `COMMIT_REAL: —` | — |
 
 ### Registro detalhado — INT-P0-004
 
@@ -1223,6 +1225,58 @@ ARQUIVOS_DO_ITEM: chatbot_processual_ai/README.md; docs/CHECKLIST_INTEGRACAO_CHA
 ESCOPO_PRESERVADO: código Python, testes, requirements, .env.example, frontend, simulador e docs de P6 inalterados
 RISCO: bootstrap ainda não executa testes somente com dependências versionadas; requisitos sem versões fixadas podem resolver versões diferentes; sessão backend permanece em memória; deadline total de 120 s continua dívida conhecida
 COMMIT_SUGERIDO: docs(backend): document reproducible bootstrap
+COMMIT_REAL: —
+CHECKPOINT_P5: AINDA_NAO
+```
+
+### Registro detalhado — INT-P5-004
+
+```text
+ID: INT-P5-004
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+DATA_HORA: 26/08/2026 10:40:13 -03:00
+BRANCH: feat/integra_chatbot_frontend
+STATUS_INICIAL: controle possuía alteração preexistente promovendo P5-003 para VALIDATED; checklist e registro detalhado de P5-003 ainda dizem IMPLEMENTED; divergência preservada e não reaberta
+P5_001: VALIDATED
+P5_002: VALIDATED
+P5_003: VALIDATED conforme premissa do item e tabela de controle; divergência documental residual descrita acima
+FRONTEND_INSTALL: cd frontend; npm ci
+FRONTEND_START: cd frontend; npm start
+FRONTEND_TEST: cd frontend; npm test -- --watch=false
+FRONTEND_BUILD: cd frontend; npm run build
+BACKEND_VENV: cd chatbot_processual_ai; python -m venv .venv; ativação por .\.venv\Scripts\Activate.ps1 ou source .venv/bin/activate
+BACKEND_INSTALL: python -m pip install -r requirements.txt
+BACKEND_START: python -m uvicorn api:app --reload
+BACKEND_TEST: python -m pytest tests -q; pytest ausente em requirements permanece limitação conhecida de P5-003
+HEALTH_DIRETO: GET http://localhost:8000/api/health
+HEALTH_PROXY: GET http://localhost:4200/api/health
+DEPENDENCIAS_EXTERNAS: SQLite local sem servidor; Ollama condicional para geração; Ollama e Qdrant necessários para RAG completo; nenhuma necessária para health
+OLLAMA_STARTED: NÃO
+QDRANT_STARTED: NÃO
+OTHER_STARTED: NÃO
+SCRIPT_INTEGRADO_NECESSARIO: NÃO
+SCRIPT_CRIADO: NÃO
+MOTIVO_SCRIPT: rotina cabe em dois terminais e sete passos; script adicionaria lifecycle de processos e reduziria transparência para dependências condicionais
+DOCUMENTACAO: seção Desenvolvimento local integrado adicionada a docs/integration.md; bootstraps referenciados sem duplicação
+ORDEM: dependências condicionais; backend; health direto; frontend; health proxy; browser/chat; Ctrl+C
+BACKEND_VALIDACAO: PASS — .venv\Scripts\python.exe -m uvicorn api:app --reload; PIDs 54320/48876
+HEALTH_DIRETO_RESULTADO: PASS — HTTP 200; {"status":"ok"}
+FRONTEND_VALIDACAO: PASS — npm start; ng serve compilou em 1,661 s; PIDs temporários 61896/65368/22348 e 56836/37704/55808/54632 entre tentativas do harness
+HEALTH_PROXY_RESULTADO: PASS — HTTP 200; {"status":"ok"}
+BROWSER_URL: http://localhost:4200
+PAGINA_RESULTADO: PASS — HTTP 200
+CHAT_SMOKE: NÃO repetido; evidência funcional anterior INT-P4-004 preservada
+PROCESSOS_ENCERRADOS: todos os PIDs identificados foram finalizados; nenhum processo preexistente foi alterado
+LIMPEZA_AMBIENTAL: porta 4200 livre; Windows continuou reportando listener 8000 associado ao PID 48876 já inexistente após Stop-Process/tasklist, registrado sem nova ação destrutiva
+REDE: frontend preserva /api relativo; proxy /api para localhost:8000; FastAPI localhost:8000; CORS local desnecessário; nenhuma URL hardcoded adicionada
+ARQUIVOS_DO_ITEM: docs/integration.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_FRONTEND.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_FRONTEND.md
+CODIGO_FRONTEND_BACKEND: inalterado
+SPECS_MANIFESTS_DOCKER_COMPOSE: inalterados; nenhuma dependência adicionada
+NAO_ANTECIPACAO: P6-001..006 não iniciados; docs/development.md apenas inspecionado
+REVISAO: diff completo revisado; git diff --check aprovado; sem debug, segredo, script, CORS, dependência ou alteração funcional
+RISCOS: workflow pressupõe bootstraps P5-002/P5-003; Ollama/Qdrant condicionais; health prova somente FastAPI; sessão em memória; não representa produção; produção prefere mesma origem; documentação ampla pertence a P6; deadline backend total de 120 s continua dívida; divergência documental residual de P5-003
+COMMIT_SUGERIDO: docs(integration): document integrated local workflow
 COMMIT_REAL: —
 CHECKPOINT_P5: AINDA_NAO
 ```

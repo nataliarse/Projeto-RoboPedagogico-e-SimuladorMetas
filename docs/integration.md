@@ -805,7 +805,7 @@ request cross-origin ao FastAPI. Portanto, CORS não é necessário em
 desenvolvimento apenas para a integração Angular–FastAPI. A diferença entre as
 tecnologias não justifica middleware de CORS.
 
-Fluxo operacional esperado, ainda não implementado:
+Fluxo operacional adotado:
 
 ```text
 Terminal A: FastAPI em localhost:8000
@@ -814,6 +814,36 @@ Browser: http://localhost:4200
 Angular: /api/processos/chat
 Proxy Angular: /api/* → http://localhost:8000
 ```
+
+## Desenvolvimento local integrado
+
+Este fluxo é a rotina diária depois dos bootstraps descritos em
+`chatbot_processual_ai/README.md` e `frontend/README.md`. Ele pressupõe que o
+`.venv`, o `.env` local e `node_modules/` já estejam preparados; não recrie nem
+reinstale esses ambientes a cada início.
+
+1. Inicie somente as dependências externas exigidas pelo cenário. O healthcheck
+   e as consultas processuais estruturadas usam apenas o SQLite local; Ollama é
+   condicional para geração e Qdrant com Ollama é necessário para a capacidade
+   RAG completa.
+2. No primeiro terminal, entre em `chatbot_processual_ai`, ative o venv
+   (`.\.venv\Scripts\Activate.ps1` no PowerShell ou
+   `source .venv/bin/activate` em POSIX) e execute
+   `python -m uvicorn api:app --reload`.
+3. Confirme `http://localhost:8000/api/health`: deve responder HTTP 200 com
+   `{"status":"ok"}`.
+4. No segundo terminal, entre em `frontend` e execute `npm start`.
+5. Confirme `http://localhost:4200/api/health`: deve responder HTTP 200 com o
+   mesmo payload, comprovando o caminho Angular dev server → proxy → FastAPI.
+6. Abra `http://localhost:4200` e use o chatbot. O frontend mantém URLs
+   relativas `/api/...`; não edite a URL da API e não habilite CORS para esta
+   topologia local.
+7. Para encerrar, use `Ctrl+C` em cada terminal.
+
+Se a porta 8000 não responder, verifique o backend. Se o health direto funcionar
+e o health pela porta 4200 falhar, verifique o dev server e o proxy Angular. A
+indisponibilidade de Ollama ou Qdrant afeta somente as capacidades condicionais
+descritas no bootstrap do backend.
 
 ### Produção preferencial
 
