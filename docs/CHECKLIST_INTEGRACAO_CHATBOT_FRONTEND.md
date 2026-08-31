@@ -1263,23 +1263,31 @@ bootstrap, validações, sessão, histórico, health e erros específicos do pro
 ## INT-P7-001 — Executar regressão backend
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Ações
 
-- [ ] executar testes focados da API/sessão;
-- [ ] executar suite completa existente;
-- [ ] comparar com baseline;
-- [ ] investigar qualquer falha nova.
+- [x] executar testes focados da API/sessão;
+- [x] executar suite completa existente;
+- [x] comparar com baseline;
+- [x] investigar qualquer falha nova.
 
 ### Critério de aceite
 
 - nenhuma regressão backend não explicada.
+
+**Evidência P7:** Python 3.12.10/pytest 9.1.1 no venv existente. A spec
+`tests/test_api_processual_chat.py` passou com 14/14 e a suíte oficial
+`python -m pytest tests -q`, executada dentro de `chatbot_processual_ai/`,
+passou com 43/43 em 2,61 s. A contagem coincide com a baseline final registrada;
+permaneceu somente o `PytestCacheWarning` ambiental já conhecido.
 
 ---
 
 ## INT-P7-002 — Executar regressão frontend
 
 **Status inicial:** `TODO`
+**Status atual:** `BLOCKED`
 
 ### Ações
 
@@ -1294,31 +1302,49 @@ bootstrap, validações, sessão, histórico, health e erros específicos do pro
 
 - build e testes acordados passam em ambiente limpo.
 
+**Evidência P7:** Node 24.19.0/npm 11.17.0 foram localizados no runtime LTS já
+instalado, mas `npm ci` falhou dentro e fora do sandbox com `EPERM` ao tentar
+substituir binários nativos em `node_modules`. Dois processos Node preexistentes
+estavam ativos e não foram encerrados pelo gate. A tentativa parcial removeu o
+TypeScript instalado, portanto app/spec, runner e build não puderam ser
+reexecutados com integridade. `package.json` e `package-lock.json` conservaram
+os hashes registrados e não foram modificados.
+
 ---
 
 ## INT-P7-003 — Revisar segurança da fronteira
 
 **Status inicial:** `TODO`
+**Status atual:** `VALIDATED`
 
 ### Ações
 
-- [ ] nenhum `.env` real no diff;
-- [ ] nenhum token/credencial no frontend;
-- [ ] nenhum path local/ID interno exposto em response pública;
-- [ ] CORS restrito se usado;
-- [ ] `session_id` não contém dado sensível;
-- [ ] erros não exibem stack traces;
-- [ ] fontes RAG permanecem sanitizadas conforme contrato.
+- [x] nenhum `.env` real no diff;
+- [x] nenhum token/credencial no frontend;
+- [x] nenhum path local/ID interno exposto em response pública;
+- [x] CORS restrito se usado;
+- [x] `session_id` não contém dado sensível;
+- [x] erros não exibem stack traces;
+- [x] fontes RAG permanecem sanitizadas conforme contrato.
 
 ### Critério de aceite
 
 - revisão de segurança concluída sem vazamento conhecido.
+
+**Evidência P7:** buscas dirigidas no conteúdo rastreado e inspeção de API,
+sessão, orquestrador, RAG e frontend não localizaram segredo real ou credencial
+embutida. `.env` não é rastreado; `.env.example` contém somente nomes/defaults
+de configuração. A topologia same-origin usa proxy e não habilita CORS. IDs
+novos são UUIDs opacos, não autenticação. Exceções são convertidas em resposta
+segura e testadas contra token, traceback e paths; fontes públicas contêm apenas
+tipo, título, data e tipo de conteúdo.
 
 ---
 
 ## INT-P7-004 — Revisar diff e higiene final
 
 **Status inicial:** `TODO`
+**Status atual:** `IMPLEMENTED`
 
 ### Ações
 
@@ -1334,11 +1360,19 @@ bootstrap, validações, sessão, histórico, health e erros específicos do pro
 
 - diff é focado, legível e reversível.
 
+**Evidência P7:** merge-base factual `cce4751` (`main`/`origin/main`), diff da
+branch e histórico foram revisados; `git diff --check` passou, nenhum arquivo de
+`simulador-de-metas/` mudou e nenhum artefato local foi rastreado. A validação
+final ficou pendente porque o worktree já continha uma mudança não explicada em
+`frontend/angular.json`, adicionando um identificador de analytics do Angular.
+O gate não a removeu nem a atribuiu silenciosamente.
+
 ---
 
 ## INT-P7-005 — Smoke integrado final
 
 **Status inicial:** `TODO`
+**Status atual:** `BLOCKED`
 
 ### Cenário mínimo de aceite
 
@@ -1357,11 +1391,19 @@ bootstrap, validações, sessão, histórico, health e erros específicos do pro
 
 - integração é funcional do ponto de vista do usuário e da arquitetura.
 
+**Evidência P7:** serviços preexistentes responderam `200` no health direto e
+via proxy, e a página Angular respondeu `200`, mas não foram iniciados por este
+gate. O `npm ci` bloqueado impediu reconstruir/subir o frontend do estado atual;
+o backend preexistente também não podia ser controladamente desligado para o
+cenário offline. As evidências manuais e os smokes P4/P5 permanecem apenas
+suplementares e não substituem a reprodução final exigida.
+
 ---
 
 ## INT-P7-006 — Gate de prontidão para merge
 
 **Status inicial:** `TODO`
+**Status atual:** `BLOCKED`
 
 A branch só pode ser declarada **READY_FOR_MERGE** quando:
 
@@ -1379,6 +1421,12 @@ A branch só pode ser declarada **READY_FOR_MERGE** quando:
 - [ ] controle de progresso contém hashes reais dos commits efetuados.
 
 **Saída permitida:** `READY_FOR_MERGE` ou `NOT_READY` com justificativa objetiva.
+
+**Resultado P7:** `NOT_READY`. Bloqueiam o gate: regressão frontend não
+reproduzida após `npm ci`; smoke final não reproduzido; alteração não explicada
+no worktree; inconsistências documentais preexistentes (`INT-P5-003` detalhado
+como `IMPLEMENTED` e G1–G4 ainda `TODO` no controle macro); e ausência do
+checkpoint final P7, que este prompt não autoriza criar.
 
 ---
 

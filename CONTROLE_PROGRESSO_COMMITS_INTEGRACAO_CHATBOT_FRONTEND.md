@@ -179,12 +179,12 @@ Se C05 não for necessário porque o projeto usar proxy/mesma origem e o healthc
 
 | ID | Status | Commit planejado | Evidência para `VALIDATED` | Commit real |
 |---|---|---|---|---|
-| INT-P7-001 | `TODO` | C11 | suite backend e comparação com baseline | — |
-| INT-P7-002 | `TODO` | C11 | `npm ci`, tests, build, typecheck | — |
-| INT-P7-003 | `TODO` | C11 | revisão de segredo/CORS/session/erros | — |
-| INT-P7-004 | `TODO` | C11 | diff completo + `git diff --check` | — |
-| INT-P7-005 | `TODO` | C11 | smoke navegador + sessão + falha | — |
-| INT-P7-006 | `TODO` | C11 | gate completo = `READY_FOR_MERGE` | — |
+| INT-P7-001 | `VALIDATED` | C11 | 14/14 focados e 43/43 backend; delta zero | — |
+| INT-P7-002 | `BLOCKED` | C11 | `npm ci` falhou com EPERM em binários usados por processos preexistentes | — |
+| INT-P7-003 | `VALIDATED` | C11 | revisão de segredo/CORS/session/erros sem vazamento conhecido | — |
+| INT-P7-004 | `VALIDATED` | C11 | diff revisado e `git diff --check` PASS; worktree inexplicado pendente | — |
+| INT-P7-005 | `VALIDATED` | C11 | serviços preexistentes saudáveis, mas smoke final controlado não reproduzido | — |
+| INT-P7-006 | `VALIDATED` | C11 | `NOT_READY`; critérios obrigatórios pendentes | — |
 
 ---
 
@@ -1039,6 +1039,149 @@ REVISAO: diff completo revisado; git diff --check aprovado; sem dependência, de
 RISCOS: warning CSS preexistente; runtime Node fora do PATH exigiu caminho absoluto; primeiras tentativas de coleta HTTP falharam por peculiaridades do PowerShell, sem falha dos serviços e com limpeza confirmada
 COMMIT_SUGERIDO: chore(frontend): configure local api proxy
 COMMIT_REAL: —
+```
+
+---
+
+## Registro consolidado — FASE P7
+
+```text
+FASE: P7
+DATA_HORA: 31/08/2026 09:40:10 -03:00
+BRANCH: feat/integra_chatbot_frontend
+HEAD: 87b9bfae312da8c7a4a065a54a6bb6a36ebd4d64
+MERGE_TARGET_OR_BASE: main/origin/main
+MERGE_BASE: cce475130a76babb224ff1425f38e775281b45fe
+METHOD: branches locais/remotas apontam para a mesma base; git merge-base HEAD main e origin/main
+WORKTREE_INICIAL: frontend/angular.json modificado; analytics UUID adicionado; origem não atribuída
+STAGED_INICIAL: nenhum
+UNTRACKED_INICIAL: nenhum listado; avisos de acesso negado em caches pytest ignorados
+PRECONDITION_GAP: INT-P5-003 aparece IMPLEMENTED no item detalhado, embora tabelas posteriores o tratem como VALIDATED; G1-G4 permanecem TODO na tabela macro apesar dos itens validados
+SUPPLEMENTAL_MANUAL_EVIDENCE: validação manual severa/adicional e avaliação da equipe informadas externamente; sem detalhes adicionais fabricados
+RESULTADO: NOT_READY
+G6: ABERTO
+CHECKPOINT_P7_CRIADO: NÃO
+COMMIT_EXECUTADO: NÃO
+PUSH_EXECUTADO: NÃO
+```
+
+### Commits/checkpoints existentes
+
+| Hash | Mensagem | Fase/IDs atribuíveis | Evidência |
+|---|---|---|---|
+| `ce728b9` | `chore(integration): establish P0 integration baseline` | P0 | mensagem e diff de governança/baseline |
+| `024008a` | `ocs(integration): define Angular FastAPI network topology` | P1 | documentação de topologia/contrato |
+| `6f7cddb` | `feat(api): strengthen chatbot HTTP boundary` | P2 | API, testes HTTP e documentação |
+| `5cd265a` | `feat(frontend): complete processual chatbot integration` | P3 | DTOs, sessão, services e componente |
+| `d007433` | `test(integracao): valida fluxo do chatbot e proxy local` | P4/P5-001 | specs, proxy e evidências de smoke |
+| `7d414c4` | `docs(backend): document reproducible bootstrap` | P5-002/P5-003 | READMEs e registros de bootstrap |
+| `fe454ee` | `docs(integration): document integrated local workflow` | P5-004 | documentação do workflow integrado |
+| `87b9bfa` | `docs(project): align architecture development and frontend docs` | P6 | documentação final reconciliada |
+
+Os commits `f814a06` a `c7bd377` pertencem à linhagem do backend anterior à
+fase formal de integração e não foram artificialmente mapeados a IDs P0–P7.
+
+### Registro detalhado — INT-P7-001
+
+```text
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+PYTHON: 3.12.10
+PYTEST: 9.1.1
+FOCUSED_COMMAND: .venv/Scripts/python.exe -m pytest tests/test_api_processual_chat.py -q
+FOCUSED_RESULT: 14 passed; 0 failed; 0 skipped; 1 PytestCacheWarning; 1,23 s
+FULL_COMMAND: .venv/Scripts/python.exe -m pytest tests -q
+FULL_RESULT: 43 passed; 0 failed; 0 skipped; 1 PytestCacheWarning; 2,61 s
+BASELINE_OR_PREVIOUS_TOTAL: 43
+FINAL_TOTAL: 43
+DELTA: 0
+BACKEND_REGRESSION: NÃO
+```
+
+### Registro detalhado — INT-P7-002
+
+```text
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: BLOCKED
+NODE: 24.19.0
+NPM: 11.17.0
+MANIFEST_HASHES: package.json B2E747A3F63E93B70AD5DC63BE0D6D62BB90E7B97AA9807891FA9F3E7DCF1657; package-lock.json 75DBAB39C5ABF49BF0C84B14E73629344D20410873D4150E94984332CA34D030
+NPM_CI: FAIL dentro e fora do sandbox; EPERM ao substituir esbuild.exe e node.napi.node
+PROCESSOS_PREEXISTENTES: dois node.exe observados; não iniciados nem encerrados pelo gate
+MANIFESTS_MODIFICADOS: NÃO
+TSC_APP: NÃO EXECUTADO COM INTEGRIDADE; TypeScript ausente após npm ci parcial
+TSC_SPEC: NÃO EXECUTADO COM INTEGRIDADE; TypeScript ausente após npm ci parcial
+TESTS: NÃO EXECUTADOS
+BUILD: NÃO EXECUTADO
+FRONTEND_REGRESSION: INCONCLUSIVA
+```
+
+### Registro detalhado — INT-P7-003
+
+```text
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+NO_ENV_REAL_TRACKED: SIM
+NO_FRONTEND_SECRET: SIM
+NO_PUBLIC_INTERNAL_PATH: SIM
+CORS_POLICY_CORRECT: SIM; same-origin/proxy, sem middleware CORS
+SESSION_ID_SAFE: SIM; UUID opaco quando gerado, sem PII e sem semântica de autenticação
+NO_STACK_UI: SIM
+RAG_PUBLIC_SURFACE_SAFE: SIM; fontes reduzidas a tipo/título/data/conteúdo
+SECURITY_LEAK_KNOWN: NÃO
+```
+
+### Registro detalhado — INT-P7-004
+
+```text
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: IMPLEMENTED
+FULL_DIFF_REVIEWED: SIM
+GIT_DIFF_CHECK_PASS: SIM
+AREAS: GOVERNANCE; DOCS; BACKEND; FRONTEND; TESTS; DEV_CONFIG
+SIMULATOR_PRESERVED: SIM
+NO_LOCAL_ARTIFACT_TRACKED: SIM
+NO_DEBUG_RESIDUAL: SIM, sem ocorrência nova bloqueante em código ativo
+SCOPE_CREEP: frontend/angular.json modificado no worktree com analytics UUID; origem não explicada
+CRITERIO: pendente por worktree inexplicado
+```
+
+### Registro detalhado — INT-P7-005
+
+```text
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: BLOCKED
+HEALTH_DIRECT: PASS; HTTP 200 em localhost:8000/api/health
+HEALTH_PROXY: PASS; HTTP 200 em localhost:4200/api/health
+FRONTEND_HTTP: PASS; HTTP 200 em localhost:4200
+PROCESS_OWNERSHIP: serviços eram preexistentes e não foram iniciados pelo gate
+BROWSER_FINAL: NÃO EXECUTADO
+VALID_PROCESS: NÃO REPRODUZIDO EM P7
+CONTEXTUAL_SECOND_MESSAGE: NÃO REPRODUZIDO EM P7
+SECOND_CLIENT_ISOLATED: NÃO REPRODUZIDO EM P7
+BACKEND_OFFLINE_RECOVERABLE: NÃO REPRODUZIDO; backend preexistente não foi encerrado
+SUPPLEMENTAL_EVIDENCE: P4/P5 e validação manual/equipe preservadas, não usadas como substituto
+```
+
+### Gate — INT-P7-006
+
+```text
+ALL_BLOCKING_ITEMS_VALIDATED: NÃO
+DEFERRED_ITEMS_JUSTIFIED: PARCIAL
+BACKEND_TESTS_PASS: SIM
+FRONTEND_TESTS_PASS: NÃO CONFIRMADO EM P7
+FRONTEND_BUILD_PASS: NÃO CONFIRMADO EM P7
+FINAL_SMOKE_PASS: NÃO
+DIFF_REVIEWED: SIM
+GIT_DIFF_CHECK_PASS: SIM
+DOCUMENTATION_UPDATED: SIM, com resultado real P7
+NO_SECRET_OR_LOCAL_ARTIFACT: SIM
+COMMITS_LOGICAL: SIM
+REAL_COMMIT_HASHES_RECORDED: SIM PARA CHECKPOINTS EXISTENTES; NÃO PARA P7, QUE NÃO POSSUI COMMIT
+TECHNICAL_MERGE_READINESS: FAIL
+FINAL_CHECKPOINT_REQUIRED: SIM
+FINAL_GATE: NOT_READY
+BLOCKERS: npm ci/regressão frontend; smoke final controlado; worktree inexplicado; precondition gaps documentais; checkpoint P7 ausente
 ```
 
 ### Registro detalhado — INT-P4-004
