@@ -22,6 +22,18 @@ O Angular não acessa agentes, banco, filesystem, RAG, Ollama ou Qdrant. A
 fronteira detalhada está em [integration.md](integration.md), e a sequência
 interna em [orchestration.md](orchestration.md).
 
+O módulo autônomo `entrada-de-dados/` adiciona uma fronteira de aquisição e
+normalização dos processos do TRT18:
+
+```text
+PJe TRT18 → Playwright/CAPTCHA → bruto auditável → normalização Pydantic → árvore JSON
+```
+
+Sua fachada planejada é `servico.obter_processo()`, mas o backend FastAPI ainda
+não a chama. O SQLite continua sendo a fonte estruturada do fluxo web atual. O
+fluxo, os caches e o contrato do novo módulo estão detalhados em
+[data-ingestion.md](data-ingestion.md).
+
 ## Fronteira web
 
 O chat usa `POST /api/processos/chat`; o health mínimo usa `GET /api/health`.
@@ -70,6 +82,8 @@ planejada, mas não foi implementado e não deve ser tratado como garantia.
 
 - **Chatbot Processual:** fluxo Angular–FastAPI integrado, com consulta
   estruturada e RAG condicional.
+- **Entrada de dados TRT18:** coletor e normalizador autônomos, com fronteira de
+  serviço pronta, ainda não conectados ao orquestrador/FastAPI.
 - **Simulador de Metas:** `simulador-de-metas/` contém estudos próprios; os
   contratos backend atuais ainda retornam estado provisório/não integrado e não
   representam regras oficiais homologadas.
@@ -84,4 +98,6 @@ planejada, mas não foi implementado e não deve ser tratado como garantia.
 - proxy Angular é apenas de desenvolvimento;
 - deadline total backend de 120 s não implementado;
 - dependências externas são condicionais à capacidade escolhida;
+- coleta TRT18 ainda não integrada ao backend e dependente de portal/CAPTCHA;
+- artefatos brutos podem conter dados pessoais e exigem retenção controlada;
 - regras oficiais do simulador de metas não integradas.

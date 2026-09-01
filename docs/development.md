@@ -6,6 +6,8 @@
 - Node.js 24.19.0 e npm 11.17.0 foram validados com Angular 21.2.x.
 - Ollama e Qdrant são condicionais à capacidade: não são usados pelo health nem
   pelo caminho estruturado; RAG completo exige ambos.
+- A coleta ao vivo requer um navegador compatível, Playwright/Chromium e
+  autorização institucional para consultar o PJe e processar o CAPTCHA.
 
 ## Backend
 
@@ -55,6 +57,34 @@ npx tsc -p tsconfig.app.json --noEmit
 Use `npm ci`, não reutilize `node_modules` recebido de outra máquina/SO e não
 altere o lockfile no bootstrap normal.
 
+## Entrada de dados do TRT18
+
+As dependências Python foram centralizadas no arquivo do backend. Para preparar
+o módulo e instalar o navegador do Playwright:
+
+```powershell
+cd chatbot_processual_ai
+python -m pip install -r requirements.txt
+python -m playwright install chromium
+cd ..\entrada-de-dados
+```
+
+Consulta somente com cache, sem acesso externo:
+
+```powershell
+python app.py 0011000-82.1981.5.18.0051 --so-cache
+```
+
+Validação offline com o exemplo sanitizado:
+
+```powershell
+python -c "import json; from pathlib import Path; from normalizador import normalizar; bruto=json.loads(Path('exemplos/exemplo_bruto.json').read_text(encoding='utf-8')); print(normalizar(bruto).model_dump_json(indent=2))"
+```
+
+Não execute o notebook com `COLETAR_AGORA = True` por padrão: isso inicia a
+coleta em lote e pode acionar os limites do portal. Para detalhes de execução,
+cache, status e privacidade, consulte [data-ingestion.md](data-ingestion.md).
+
 ## Execução integrada e rede
 
 1. Suba o FastAPI em `localhost:8000`.
@@ -88,6 +118,11 @@ mantenha commits focados. Não versione:
   chamadas do browser devem continuar relativas e passar pelo proxy.
 - **RAG degradado:** verifique Ollama, modelo de embeddings, Qdrant e `.env`
   somente quando a consulta exigir capacidade semântica.
+- **cache da coleta ignorado:** o bruto existe, mas não contém uma resposta com
+  `itensProcesso`, `poloAtivo` ou `poloPassivo`; use `--so-cache` para impedir
+  acesso ao portal ou autorize conscientemente uma nova coleta.
+- **HTTP 403/429 no PJe:** interrompa as consultas e aguarde; não aumente
+  tentativas nem reduza intervalos para contornar a limitação.
 
 Veja também [integration.md](integration.md) e os READMEs específicos de
 [frontend](../frontend/README.md) e [backend](../chatbot_processual_ai/README.md).

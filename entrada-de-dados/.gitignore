@@ -1,0 +1,48 @@
+# ---------------------------------------------------------------------------
+# DADOS PESSOAIS — NUNCA versionar
+# ---------------------------------------------------------------------------
+# Os JSONs coletados contêm CPF/CNPJ completos e nomes de partes, advogados e
+# servidores (inclusive dentro do texto das movimentações). Versionar isso seria
+# incompatível com a LGPD (Lei nº 13.709/2018), mesmo em repositório privado.
+data/brutos/
+data/saida/
+data/debug/
+data/*.log
+
+# Imagens e recortes gerados na resolução do captcha
+captcha/img_captured.png
+captcha/DCF_CODE/char_recortes/
+captcha/DCF_CODE/char_recortes_sem_ruido/
+captcha/DCF_CODE/*_sem_ruido*.png
+captcha/DCF_CODE/*_recorte_letras*.png
+
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Browsers/binários locais instalados para automação (não pertencem ao módulo)
+browser/
+browsers/
+playwright-browsers/
+.local-browsers/
+ms-playwright/
+
+# ---------------------------------------------------------------------------
+# Jupyter
+# ---------------------------------------------------------------------------
+.ipynb_checkpoints/
+
+# ---------------------------------------------------------------------------
+# Sistema operacional / editores
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

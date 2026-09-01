@@ -68,3 +68,13 @@ O chat processual é o fluxo web integrado. O simulador em
 `simulador-de-metas/` permanece uma frente distinta. O orquestrador híbrido do
 backend produz avaliação provisória processo × meta, sem incorporar o simulador
 ao chat nem homologar regras de negócio.
+
+## Fronteira futura de entrada de dados
+
+`entrada-de-dados/servico.py` oferece `obter_processo(numero)` como fachada para
+cache, coleta e normalização. Nenhum componente de `chatbot_processual_ai/` a
+invoca atualmente; logo, ela não faz parte das etapas do orquestrador descritas
+acima. Uma integração futura deve definir explicitamente timeout, execução do
+navegador, autorização para CAPTCHA, tratamento dos cinco estados da coleta,
+retenção de dados pessoais e conversão do contrato `Processo` para a fonte
+estruturada usada pelo chatbot. Veja [data-ingestion.md](data-ingestion.md).

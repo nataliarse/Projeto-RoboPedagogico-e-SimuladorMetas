@@ -4,3 +4,19 @@ rich
 psutil
 fastapi
 uvicorn
+
+# Estruturação e modelagem dos dados (entrada-de-dados/pesquisa/pipeline.ipynb)
+pandas
+openpyxl
+pydantic>=2
+
+# Notebook
+jupyter
+ipykernel
+
+# Coleta e raspagem (entrada-de-dados/coletor_trt18.py)
+# Necessárias apenas para a coleta real.
+playwright
+ddddocr
+opencv-python
+numpy
