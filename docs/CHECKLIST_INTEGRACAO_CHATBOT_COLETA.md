@@ -299,7 +299,7 @@ falhas preexistentes ou ambientais.
 
 ## INT-COL-P1-001 — Mapear o contrato produtor do coletor
 
-**Status inicial:** `READY`
+**Status:** `VALIDATED`
 **Dependência:** P0 fechada
 
 ### Objetivo
@@ -308,12 +308,12 @@ Comprovar o que `servico.obter_processo()` retorna, grava e pode lançar.
 
 ### Ações
 
-- [ ] Mapear parâmetros, defaults, side effects e importações tardias.
-- [ ] Mapear a árvore Pydantic completa e nulabilidade dos campos.
-- [ ] Mapear cache aproveitável, coleta real e arquivos produzidos.
-- [ ] Mapear `ValueError`, `FileNotFoundError`, falhas técnicas e os cinco
+- [x] Mapear parâmetros, defaults, side effects e importações tardias.
+- [x] Mapear a árvore Pydantic completa e nulabilidade dos campos.
+- [x] Mapear cache aproveitável, coleta real e arquivos produzidos.
+- [x] Mapear `ValueError`, `FileNotFoundError`, falhas técnicas e os cinco
   valores de `status_coleta`.
-- [ ] Identificar estados em que existe um `dict` válido estruturalmente, mas
+- [x] Identificar estados em que existe um `dict` válido estruturalmente, mas
   que não representa sucesso persistível.
 
 ### Critério de aceite
@@ -324,7 +324,7 @@ Comprovar o que `servico.obter_processo()` retorna, grava e pode lançar.
 
 ## INT-COL-P1-002 — Mapear o contrato consumidor do chatbot
 
-**Status inicial:** `TODO`
+**Status:** `VALIDATED`
 **Dependência:** `INT-COL-P1-001`
 
 ### Objetivo
@@ -334,11 +334,11 @@ esperam receber.
 
 ### Ações
 
-- [ ] Mapear `find_process_by_number()` e `ingest_processes()`.
-- [ ] Mapear sanitização, campos persistidos, campos descartados e round-trip.
-- [ ] Mapear como `None`, exceções e `collection_status` afetam o Agent 2.
-- [ ] Mapear consumidores estruturados e RAG da árvore carregada.
-- [ ] Identificar divergências como `data_distribuicao`, `documento` de parte e
+- [x] Mapear `find_process_by_number()` e `ingest_processes()`.
+- [x] Mapear sanitização, campos persistidos, campos descartados e round-trip.
+- [x] Mapear como `None`, exceções e `collection_status` afetam o Agent 2.
+- [x] Mapear consumidores estruturados e RAG da árvore carregada.
+- [x] Identificar divergências como `data_distribuicao`, `documento` de parte e
   `id_documento`, sem alterar regras ainda.
 
 ### Critério de aceite
@@ -348,7 +348,7 @@ esperam receber.
 
 ## INT-COL-P1-003 — Definir contrato mínimo do `collector_adapter`
 
-**Status inicial:** `TODO`
+**Status:** `VALIDATED`
 **Dependências:** `INT-COL-P1-001`, `INT-COL-P1-002`
 
 ### Objetivo
@@ -358,13 +358,13 @@ falha em sucesso aparente.
 
 ### Ações
 
-- [ ] Definir resultado tipado ou estrutura equivalente para lookup/aquisição.
-- [ ] Congelar a matriz `LOCAL_HIT`, `COLLECTED`, `NOT_FOUND`, `PARTIAL`,
+- [x] Definir resultado tipado ou estrutura equivalente para lookup/aquisição.
+- [x] Congelar a matriz `LOCAL_HIT`, `COLLECTED`, `NOT_FOUND`, `PARTIAL`,
   `BLOCKED`, `FAILED` e `INVALID_NUMBER`, com nomes finais comprovados no código.
-- [ ] Definir quais estados podem ser ingeridos e quais nunca podem virar
+- [x] Definir quais estados podem ser ingeridos e quais nunca podem virar
   `not_found`.
-- [ ] Definir exceções controladas, mensagens públicas e detalhes apenas internos.
-- [ ] Preservar uma fronteira testável por injeção/fake, sem rede em testes unitários.
+- [x] Definir exceções controladas, mensagens públicas e detalhes apenas internos.
+- [x] Preservar uma fronteira testável por injeção/fake, sem rede em testes unitários.
 
 ### Critério de aceite
 
@@ -374,7 +374,7 @@ falha em sucesso aparente.
 
 ## INT-COL-P1-004 — Definir importação, ownership e política de dados
 
-**Status inicial:** `TODO`
+**Status:** `VALIDATED`
 **Dependência:** `INT-COL-P1-003`
 
 ### Objetivo
@@ -384,18 +384,23 @@ diretório atual, `PYTHONPATH` manual ou path absoluto de máquina.
 
 ### Ações
 
-- [ ] Comparar a menor adaptação de package/import com alternativas mais
+- [x] Comparar a menor adaptação de package/import com alternativas mais
   invasivas e registrar a decisão.
-- [ ] Manter `entrada-de-dados` como dono de coleta, CAPTCHA e normalização.
-- [ ] Manter chatbot como dono de lookup local, persistência consumidora e conversa.
-- [ ] Preservar sanitização de CPF/CNPJ e IDs internos já aplicada na ingestão.
-- [ ] Definir limites de log e proibir payload bruto/dado pessoal desnecessário.
+- [x] Manter `entrada-de-dados` como dono de coleta, CAPTCHA e normalização.
+- [x] Manter chatbot como dono de lookup local, persistência consumidora e conversa.
+- [x] Preservar sanitização de CPF/CNPJ e IDs internos já aplicada na ingestão.
+- [x] Definir limites de log e proibir payload bruto/dado pessoal desnecessário.
 
 ### Critério de aceite
 
 - importação escolhida funciona a partir do bootstrap oficial do backend;
 - não há `sys.path`/path absoluto improvisado sem justificativa e teste;
 - ownership e política de dados estão explícitos.
+
+**Evidência operacional:** decisão implementável, matrizes, probes offline e
+invariantes estão registradas no controle de progresso. P1-001..004 estão
+`VALIDATED`; a P1 está pronta para revisão manual e fechamento pelo usuário,
+sem início da P2 e sem commit C01.
 
 ### Fechamento P1
 
