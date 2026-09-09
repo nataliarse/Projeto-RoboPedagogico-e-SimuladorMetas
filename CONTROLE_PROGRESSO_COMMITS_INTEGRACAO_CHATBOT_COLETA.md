@@ -43,6 +43,94 @@ FASE = unidade de checkpoint/commit
 
 ---
 
+## INT-COL-P2-003 — registro detalhado
+
+```text
+ID: INT-COL-P2-003
+DATA_HORA: 2026-09-09 -03:00
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+MODELO_RECOMENDADO: GPT-5.6 Terra
+MODELO_EXECUTADO: GPT-5 (Codex)
+MOTIVO_DIVERGENCIA_MODELO: o ambiente identifica o agente como Codex baseado em GPT-5; GPT-5.6 Terra permaneceu como recomendação registrada.
+MATRIZ_INICIAL: P2-002 já cobria os sete estados, local-first, tradução, mensagens e ciclo de sucesso em 41 testes; faltavam asserts independentes para árvore local exata/sem releitura, todos os efeitos bloqueados em inválido, lookup local incompatível, sanitização dos quatro estados não bem-sucedidos, candidatos SUCESSO inválidos, releitura incompatível/divergente e prova explícita de socket bloqueado.
+TESTES_CRIADOS_AJUSTADOS: 17 testes parametrizados/independentes adicionados a chatbot_processual_ai/tests/test_collector_adapter.py; a suíte focada passou de 41 para 58 cenários.
+CENARIOS_COBERTOS: INVALID_NUMBER sem dependências; LOCAL_HIT com árvore aprovada e sem coleta/persistência/releitura; miss com ordem validate->lookup->collect->persist->reload; SUCESSO->COLLECTED com árvore relida; NAO_ENCONTRADO->NOT_FOUND, PARCIAL->PARTIAL, BLOQUEADO->BLOCKED e FALHA->FAILED sem persistência; exceções de lookup/coleta/persistência/releitura; status ausente/desconhecido; candidatos não-dict, sem coleta/status/processo/número, divergentes ou estruturalmente incompatíveis; releitura nula, divergente ou incompatível; mensagens/retry/process/diagnostic_id sanitizados.
+EFEITOS_EXTERNOS_BLOQUEADOS: todos os cenários do adapter receberam fakes injetados; probe dedicado substituiu socket.socket por falha determinística e ainda completou COLLECTED; não houve import de Playwright, cv2 ou ddddocr, rede, browser, CAPTCHA, coleta TRT18, SQLite real, cache real, subprocesso de browser, Ollama ou Qdrant.
+COMANDOS_EXECUTADOS: chatbot_processual_ai/.venv/Scripts/python.exe -m pytest tests/test_collector_adapter.py -q -p no:cacheprovider; mesma suíte completa tests -q -p no:cacheprovider; pytest ../entrada-de-dados/tests/test_package_import.py -q -p no:cacheprovider; python -m trt18_collector.cli --help; probe import api e from trt18_collector import obter_processo; validação JSON estrutural do notebook; git diff --check.
+RESULTADOS: 58 testes focados passaram; 101 testes do chatbot passaram; 3 testes do package passaram; CLI, import do backend/package e notebook estrutural passaram; nenhuma falha, skip ou warning de teste. git diff --check passou com apenas avisos CRLF preexistentes do Git.
+CORRECOES_MINIMAS: nenhuma correção funcional no adapter/package foi necessária; a cobertura confirmou o contrato P2-002.
+ARQUIVOS_MODIFICADOS_NESTE_ITEM: chatbot_processual_ai/tests/test_collector_adapter.py; docs/CHECKLIST_INTEGRACAO_CHATBOT_COLETA.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_COLETA.md.
+RISCOS_LIMITACOES: validação ocorreu no venv existente, não em ambiente limpo; persistência/releitura produtivas, Agent 2, SQLite real e fluxo conversacional continuam reservados para P3. Nenhum baseline ou fixture real foi lido ou modificado.
+REVISAO_DO_DIFF: diff do teste e dos artefatos operacionais revisado; sem logs temporários, segredos, payloads, dados pessoais ou alterações fora do item. Mudanças preexistentes foram preservadas.
+GIT_DIFF_CHECK: pass
+G2: tecnicamente apto ao fechamento, condicionado à revisão e autorização do usuário.
+C02: READY; COMMIT_REAL: —; nenhum commit criado.
+P3: não iniciada.
+```
+
+---
+
+## INT-COL-P2-002 — registro detalhado
+
+```text
+ID: INT-COL-P2-002
+DATA_HORA: 2026-09-09 08:30:18 -03:00
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+MODELO_RECOMENDADO: GPT-5.6 Sol
+MODELO_EXECUTADO: GPT-5 (Codex)
+MOTIVO_DIVERGENCIA_MODELO: o ambiente identifica o agente como Codex baseado em GPT-5; GPT-5.6 Sol permaneceu como recomendação registrada.
+DIAGNOSTICO_CONFIRMADO: collector_adapter.py continha somente um wrapper de find_process_by_number; Agent 2 e o orquestrador consumiam esse símbolo legado e nenhum fluxo explícito representava aquisição, estados do produtor, persistência/releitura ou falhas sem falso not_found.
+CONTRATO_IMPLEMENTADO: CollectorAdapter.lookup_or_acquire_process(process_number) executa validação, lookup local, coleta apenas em miss válido, tradução do produtor e ciclo de persistência/releitura por composição. A função homônima de módulo oferece a mesma operação com dependências keyword-only explícitas; find_process_by_number permanece compatível.
+TIPOS_E_SIMBOLOS_PUBLICOS: AdapterStatus com LOCAL_HIT, COLLECTED, NOT_FOUND, PARTIAL, BLOCKED, FAILED e INVALID_NUMBER; CollectorResult dataclass frozen com status, process, public_message, retryable e diagnostic_id opcional; CollectorAdapter; lookup_or_acquire_process; find_process_by_number; validate_process_number; collect_process.
+DEPENDENCIAS_INJETAVEIS: validator, lookup, collector, persist e reload são callables explícitos. validate_process_number delega sob demanda ao validador CNJ canônico; collect_process importa sob demanda exclusivamente from trt18_collector import obter_processo. Não há estado global mutável nem composição com banco real.
+MATRIZ_TRADUCAO: SUCESSO estruturalmente válido + número correspondente + persistência sem exceção + releitura válida -> COLLECTED; NAO_ENCONTRADO inequívoco -> NOT_FOUND; PARCIAL -> PARTIAL; BLOQUEADO -> BLOCKED; FALHA -> FAILED; status ausente/desconhecido, estrutura inválida/contraditória e exceção -> FAILED.
+INVARIANTES: process existe somente em LOCAL_HIT/COLLECTED; hit local impede coleta e escrita; inválido impede lookup/coleta; estados não bem-sucedidos não persistem nem expõem árvore; COLLECTED devolve somente a árvore relida; falha/nulo/divergência na releitura vira FAILED; mensagens são constantes sanitizadas; não há retry automático.
+ARQUIVOS_MODIFICADOS: chatbot_processual_ai/collector_adapter.py; chatbot_processual_ai/tests/test_collector_adapter.py; docs/CHECKLIST_INTEGRACAO_CHATBOT_COLETA.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_COLETA.md.
+TESTES_EXECUTADOS: chatbot_processual_ai/.venv/Scripts/python.exe -m pytest tests/test_collector_adapter.py -q -p no:cacheprovider; mesma suíte em tests; pytest ../entrada-de-dados/tests/test_package_import.py; py_compile do adapter/teste; probe de import simples sem trt18_collector/playwright/cv2/ddddocr; git diff --check.
+RESULTADOS: 41 testes focados passaram; 84 testes do chatbot passaram; 3 testes de import/package passaram; compilação e probe leve passaram. Nenhuma falha ou warning de teste permaneceu.
+LIMITACOES: persistência e releitura produtivas não foram compostas; transação/SQLite real e ligação conversacional pertencem a P3. A matriz exaustiva independente de P2-003 não foi antecipada.
+RISCOS_RESIDUAIS: a função pública do produtor preserva seus efeitos quando futuramente composta e chamada; nesta validação foi substituída por fake. Política produtiva de diagnóstico_id e atomicidade do ciclo de banco permanece para fases posteriores.
+REVISAO_DO_DIFF: revisados contrato, typing, imports tardios, mensagens, logging sanitizado, árvore relida, consumidores legados e diff completo do item; alterações preexistentes de P2-001 foram preservadas e nenhuma alteração fora do escopo do item foi introduzida.
+GIT_DIFF_CHECK: pass
+EFEITOS_EXTERNOS: ausentes; nenhuma rede, coleta real, browser, CAPTCHA, banco real, frontend, Ollama, Qdrant, instalação, commit ou operação remota foi executada.
+AGENT2_E_PERSISTENCIA_REAL: Agent 2, orquestradores e process_repository.py não foram alterados; persist/reload foram exercitados somente com fakes.
+DEPENDENCIAS_AFETADAS: G2 permanece IN_PROGRESS; C02 permanece TODO e sem hash real; INT-COL-P2-003 permanece TODO e não iniciado.
+COMMIT_DA_FASE: C02
+COMMIT_REAL: —
+OBSERVACOES: auto-validação autorizada pelos critérios explícitos do prompt; nenhum commit criado.
+```
+
+---
+
+## INT-COL-P2-001 — registro detalhado
+
+```text
+ID: INT-COL-P2-001
+DATA_HORA: 2026-09-09 07:57:02 -03:00
+STATUS_ANTERIOR: TODO
+STATUS_FINAL: VALIDATED
+MODELO_RECOMENDADO: GPT-5.6 Terra
+MODELO_EXECUTADO: GPT-5.6
+DIAGNOSTICO_CONFIRMADO: o coletor era composto por scripts irmãos em diretório com hífen; imports e notebook dependiam do CWD e o CAPTCHA alterava sys.path durante a coleta.
+RECONCILIACAO: Git comprovou C00 `7275f75936988ffb45722f60d68b00ca6ab22e5d` e C01 `f2ba1723e3bd74cbeb8bc136f465ca773cbc29fd`; G0/G1 e C00/C01 foram atualizados somente com esses fatos.
+ARQUIVOS_CRIADOS_OU_MOVIDOS: entrada-de-dados/pyproject.toml; entrada-de-dados/trt18_collector/{__init__,service,models,normalizer,collector_trt18,cli}.py; subpackages captcha/DCF_CODE; testes/test_package_import.py.
+IMPORTS_E_WRAPPERS: package usa imports relativos; foram removidas as injeções sys.path do fluxo canônico; app.py e os quatro módulos históricos são wrappers finos de compatibilidade.
+API_PUBLICA: from trt18_collector import obter_processo; from trt18_collector.service import obter_processo.
+PATHS_E_EFEITOS: dados continuam resolvidos a partir da raiz entrada-de-dados por Path(__file__); notebook resolve a raiz pelo package, sem Path.cwd/sys.path. Import simples não carregou playwright, cv2 ou ddddocr, nem executou rede, browser, CAPTCHA, cache, banco, subprocesso ou thread.
+INSTALACAO_AUTORIZADA: chatbot_processual_ai/.venv/Scripts/python.exe -m pip install --no-deps -e entrada-de-dados; distribuição trt18-collector 1.1.0 confirmada.
+TESTES_EXECUTADOS: pytest entrada-de-dados/tests/test_package_import.py -q -p no:cacheprovider (3 passed); import API e import api no bootstrap oficial; app.py --help; python -m trt18_collector.cli --help; validação JSON do notebook; git diff --check.
+RESULTADOS: todos passaram. A primeira tentativa de pytest com tmp_path foi bloqueada por PermissionError no diretório temporário do ambiente; o teste foi ajustado para CWD C:\ existente, sem criar dados, e passou.
+DOCUMENTACAO_ATUALIZADA: checklist e controle operacional somente.
+REVISAO_DO_DIFF: código canônico existe apenas no package; wrappers não duplicam lógica; nenhuma alteração funcional foi feita no chatbot; C02 permanece TODO, sem hash.
+SEGREDOS_DADOS_SENSIVEIS: não expostos; somente fixture sanitizada foi lida.
+RISCOS_RESIDUAIS: a instalação foi validada no venv existente, não em ambiente limpo; diretórios temporários de pytest previamente bloqueados pelo ambiente não foram removidos nem usados pela implementação.
+OBSERVACOES: G2 permanece IN_PROGRESS porque P2-002/P2-003 não foram iniciadas. Nenhuma coleta externa e nenhum commit foram realizados; P2-002 não foi iniciada.
+```
+
+---
+
 ## INT-COL-P1-004 — registro detalhado
 
 **ID:** `INT-COL-P1-004`
@@ -398,9 +486,9 @@ existem, mas o chatbot ainda não aciona `entrada-de-dados`. Estado global:
 
 | Gate | Fase | Critério para fechar | Estado inicial |
 |---|---|---|---|
-| G0 | P0 — Baseline estrutural | branch, worktree, artefatos, centralização e testes baseline comprovados | `READY` |
-| G1 | P1 — Contratos | produtor, consumidor, estados, importação, ownership e dados decididos | `IN_PROGRESS` |
-| G2 | P2 — Fronteira Python | import estável, adapter explícito e testes offline aprovados | `TODO` |
+| G0 | P0 — Baseline estrutural | branch, worktree, artefatos, centralização e testes baseline comprovados | `VALIDATED` |
+| G1 | P1 — Contratos | produtor, consumidor, estados, importação, ownership e dados decididos | `VALIDATED` |
+| G2 | P2 — Fronteira Python | import estável, adapter explícito e testes offline aprovados | `VALIDATED` |
 | G3 | P3 — Fallback/persistência | local-first, coleta em miss, ingestão e reuso validados | `TODO` |
 | G4 | P4 — Falhas | matriz de estados, API controlada e rollback validados | `TODO` |
 | G5 | P5 — Runtime | dependências, config, CAPTCHA canônico e venv limpo aprovados | `TODO` |
@@ -417,9 +505,9 @@ Os commits abaixo são planejados; não constituem autorização para executar
 
 | Commit lógico | Fase | IDs cobertos | Mensagem sugerida | Estado | Commit real |
 |---|---|---|---|---|---|
-| C00 | P0 | `INT-COL-P0-001..004` | `chore(integration): establish chatbot collector baseline` | `READY` | — |
-| C01 | P1 | `INT-COL-P1-001..004` | `docs(integration): define chatbot collector contracts` | `TODO` | — |
-| C02 | P2 | `INT-COL-P2-001..003` | `feat(collector): establish chatbot collection boundary` | `TODO` | — |
+| C00 | P0 | `INT-COL-P0-001..004` | `chore(integration): establish chatbot collector baseline` | `VALIDATED` | `7275f75936988ffb45722f60d68b00ca6ab22e5d` |
+| C01 | P1 | `INT-COL-P1-001..004` | `docs(integration): define chatbot collector contracts` | `VALIDATED` | `f2ba1723e3bd74cbeb8bc136f465ca773cbc29fd` |
+| C02 | P2 | `INT-COL-P2-001..003` | `feat(collector): establish chatbot collection boundary` | `READY` | — |
 | C03 | P3 | `INT-COL-P3-001..004` | `feat(chat): acquire and persist missing processes` | `TODO` | — |
 | C04 | P4 | `INT-COL-P4-001..003` | `fix(chat): preserve collector failure semantics` | `TODO` | — |
 | C05 | P5 | `INT-COL-P5-001..004` | `chore(runtime): unify collector setup and configuration` | `TODO` | — |
@@ -453,9 +541,9 @@ Os commits abaixo são planejados; não constituem autorização para executar
 
 | ID | Status | Modelo recomendado | Modelo executado | Evidência esperada | Commit da fase |
 |---|---|---|---|---|---|
-| INT-COL-P2-001 | `TODO` | GPT-5.6 Terra | — | import estável sem efeito externo | C02 |
-| INT-COL-P2-002 | `TODO` | GPT-5.6 Sol | — | adapter implementa contrato sem duplicação | C02 |
-| INT-COL-P2-003 | `TODO` | GPT-5.6 Terra | — | matriz offline do adapter aprovada | C02 |
+| INT-COL-P2-001 | `VALIDATED` | GPT-5.6 Terra | GPT-5.6 | import estável sem efeito externo, metadata e compatibilidade offline comprovadas | C02 |
+| INT-COL-P2-002 | `VALIDATED` | GPT-5.6 Sol | GPT-5 (Codex) | contrato local-first, sete estados, fakes e imports leves comprovados | C02 |
+| INT-COL-P2-003 | `VALIDATED` | GPT-5.6 Terra | GPT-5 (Codex) | matriz offline do adapter aprovada; 58 testes focados e regressão offline verdes | C02 |
 
 ### P3 — Fallback e persistência
 
@@ -536,6 +624,14 @@ recuperação ou rejeição; adicionar novo evento.
 | 08/09/2026 | INT-COL-P1-002 | Contrato consumidor mapeado e auto-validado | `IN_PROGRESS` → `VALIDATED` | GPT-5.6 Terra | SQLite temporário confirmou round-trip, sanitização, duplicata, miss, rollback e chunks; fluxo Agent 2 caracterizado em memória | — |
 | 08/09/2026 | INT-COL-P1-003 | Definição do contrato mínimo do adapter iniciada | `TODO` → `IN_PROGRESS` | GPT-5.6 Sol | análise baseada nos contratos validados de P1-001/P1-002; sem alteração funcional e sem antecipar P1-004 | — |
 | 08/09/2026 | INT-COL-P1-003 | Contrato mínimo e matriz de estados auto-validados | `IN_PROGRESS` → `VALIDATED` | GPT-5.6 Sol | resultado discriminado, retorno por releitura SQLite, persistibilidade, mensagens seguras e fakes offline definidos; P1-004 não iniciado | — |
+| 09/09/2026 | Fases P0/P1 | Checkpoints reais reconciliados por leitura do Git | `G0/G1` → `VALIDATED`; `C00/C01` → `VALIDATED` | GPT-5.6 | `7275f75936988ffb45722f60d68b00ca6ab22e5d` e `f2ba1723e3bd74cbeb8bc136f465ca773cbc29fd` conferidos no histórico e no conteúdo commitado | C00/C01 |
+| 09/09/2026 | INT-COL-P2-001 | Package do coletor iniciado | `TODO` → `IN_PROGRESS` | GPT-5.6 | inventário de consumidores concluído; migração para `trt18_collector` iniciada; P2-002 não iniciada | — |
+| 09/09/2026 | INT-COL-P2-001 | Package instalado e fronteira validada | `IN_PROGRESS` → `VALIDATED` | GPT-5.6 | 3 testes focados, bootstrap FastAPI, CLI, metadata e notebook aprovados; sem coleta; P2-002 não iniciada | — |
+| 09/09/2026 | INT-COL-P2-002 | Contrato do adapter iniciado | `TODO` → `IN_PROGRESS` | GPT-5 (Codex) | fronteira e consumidores mapeados; somente o item autorizado foi marcado | — |
+| 09/09/2026 | INT-COL-P2-002 | Contrato local-first auto-validado | `IN_PROGRESS` → `VALIDATED` | GPT-5 (Codex) | 41 testes focados, 84 do chatbot e 3 do package aprovados; sem efeitos externos ou ligação com Agent 2/SQLite real | — |
+| 09/09/2026 | INT-COL-P2-003 | Cobertura offline da fronteira iniciada | `TODO` → `IN_PROGRESS` | GPT-5.6 | auditoria dos contratos P1/P2 e da suíte existente; somente o item autorizado foi marcado | — |
+| 09/09/2026 | INT-COL-P2-003 | Matriz offline auto-validada | `IN_PROGRESS` → `VALIDATED` | GPT-5 (Codex) | 58 testes focados, 101 do chatbot, 3 do package, CLI/import/notebook e bloqueio de socket aprovados; sem efeitos externos | — |
+| 09/09/2026 | Fase P2 | G2 tecnicamente apto; checkpoint aguarda autorização | `G2 IN_PROGRESS` → `VALIDATED`; `C02 TODO` → `READY` | GPT-5 (Codex) | INT-COL-P2-001..003 validados, regressão e diff check aprovados; nenhum commit criado | — |
 
 ---
 

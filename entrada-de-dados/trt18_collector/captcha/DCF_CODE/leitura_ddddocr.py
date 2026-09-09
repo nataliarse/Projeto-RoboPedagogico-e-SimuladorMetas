@@ -2,10 +2,10 @@ from argparse import ArgumentParser
 from pathlib import Path
 import re
 
-from DCF_CODE.prepara_leitura import remover_ruido_pixelacao
-from remove_ruido import DEFAULT_OUTPUT_DIR as CLEAN_SEGMENTS_DIR
-from remove_ruido import limpar_recortes
-from segmenta_chars import DEFAULT_OUTPUT_DIR, segmentar_caracteres
+from .prepara_leitura import remover_ruido_pixelacao
+from .remove_ruido import DEFAULT_OUTPUT_DIR as CLEAN_SEGMENTS_DIR
+from .remove_ruido import limpar_recortes
+from .segmenta_chars import DEFAULT_OUTPUT_DIR, segmentar_caracteres
 
 
 BASE_DIR = Path(__file__).resolve().parent

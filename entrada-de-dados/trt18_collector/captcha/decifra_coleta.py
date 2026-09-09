@@ -1,14 +1,10 @@
 from pathlib import Path
-import sys
 
 
 ROOT_DIR = Path(__file__).resolve().parent
-DCF_CODE_DIR = ROOT_DIR / "DCF_CODE"
 IMG_CAPTURED = Path(__file__).resolve().parent / "img_captured.png"
 
-sys.path.insert(0, str(DCF_CODE_DIR))
-
-from decifra import decifrar_imagem  # noqa: E402
+from .DCF_CODE.decifra import decifrar_imagem
 
 
 def decifrar_captcha(image_path: str | Path = IMG_CAPTURED) -> str:

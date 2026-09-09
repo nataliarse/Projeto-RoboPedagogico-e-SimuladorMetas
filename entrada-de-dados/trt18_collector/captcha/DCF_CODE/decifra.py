@@ -1,15 +1,15 @@
 from pathlib import Path
 
-from DCF_CODE.prepara_leitura import (
+from .prepara_leitura import (
     INPUT_IMAGE,
     OUTPUT_BINARY,
     OUTPUT_CROPPED,
     OUTPUT_CROPPED_BINARY,
     OUTPUT_READABLE,
 )
-from leitura_ddddocr import executar_pipeline_ddddocr, formatar_texto_slot
-from remove_ruido import DEFAULT_OUTPUT_DIR as CLEAN_SEGMENTS_DIR
-from segmenta_chars import DEFAULT_OUTPUT_DIR as SEGMENTS_DIR
+from .leitura_ddddocr import executar_pipeline_ddddocr, formatar_texto_slot
+from .remove_ruido import DEFAULT_OUTPUT_DIR as CLEAN_SEGMENTS_DIR
+from .segmenta_chars import DEFAULT_OUTPUT_DIR as SEGMENTS_DIR
 
 
 TEMP_FILES = [

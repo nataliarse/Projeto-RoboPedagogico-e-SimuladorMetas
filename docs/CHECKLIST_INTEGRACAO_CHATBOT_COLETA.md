@@ -413,7 +413,7 @@ sem início da P2 e sem commit C01.
 
 ## INT-COL-P2-001 — Tornar o coletor importável pelo backend
 
-**Status inicial:** `TODO`
+**Status:** `VALIDATED`
 **Dependência:** P1 fechada
 
 ### Objetivo
@@ -423,10 +423,10 @@ notebook e responsabilidades existentes do coletor.
 
 ### Ações
 
-- [ ] Implementar package/import sem depender da máquina do desenvolvedor.
-- [ ] Atualizar imports internos estritamente necessários.
-- [ ] Confirmar import leve: Playwright/CAPTCHA continuam carregados sob demanda.
-- [ ] Preservar as entradas públicas atuais do coletor quando possível.
+- [x] Implementar package/import sem depender da máquina do desenvolvedor.
+- [x] Atualizar imports internos estritamente necessários.
+- [x] Confirmar import leve: Playwright/CAPTCHA continuam carregados sob demanda.
+- [x] Preservar as entradas públicas atuais do coletor quando possível.
 
 ### Critério de aceite
 
@@ -436,7 +436,7 @@ notebook e responsabilidades existentes do coletor.
 
 ## INT-COL-P2-002 — Implementar o contrato do adapter
 
-**Status inicial:** `TODO`
+**Status:** `VALIDATED`
 **Dependência:** `INT-COL-P2-001`
 
 ### Objetivo
@@ -445,11 +445,11 @@ Transformar `collector_adapter.py` em fronteira única, explícita e isolável.
 
 ### Ações
 
-- [ ] Preservar lookup local existente.
-- [ ] Encapsular chamada a `obter_processo()` e tradução do resultado.
-- [ ] Permitir fake/injeção em testes sem abrir navegador.
-- [ ] Não persistir nem alterar o Agent 2 antes das fases autorizadas.
-- [ ] Não duplicar validação CNJ, coleta, CAPTCHA ou normalização.
+- [x] Preservar lookup local existente.
+- [x] Encapsular chamada a `obter_processo()` e tradução do resultado.
+- [x] Permitir fake/injeção em testes sem abrir navegador.
+- [x] Não persistir nem alterar o Agent 2 antes das fases autorizadas.
+- [x] Não duplicar validação CNJ, coleta, CAPTCHA ou normalização.
 
 ### Critério de aceite
 
@@ -459,7 +459,7 @@ Transformar `collector_adapter.py` em fronteira única, explícita e isolável.
 
 ## INT-COL-P2-003 — Cobrir a fronteira com testes offline
 
-**Status inicial:** `TODO`
+**Status:** `VALIDATED`
 **Dependência:** `INT-COL-P2-002`
 
 ### Objetivo
@@ -468,10 +468,10 @@ Fixar o contrato do adapter antes de ligá-lo ao fluxo conversacional.
 
 ### Ações
 
-- [ ] Testar hit local e ausência local.
-- [ ] Testar sucesso, não encontrado, parcial, bloqueio, falha e exceção do coletor.
-- [ ] Provar que testes não acessam rede, navegador ou dados reais.
-- [ ] Executar regressão proporcional do chatbot e validações offline do coletor.
+- [x] Testar hit local e ausência local.
+- [x] Testar sucesso, não encontrado, parcial, bloqueio, falha e exceção do coletor.
+- [x] Provar que testes não acessam rede, navegador ou dados reais.
+- [x] Executar regressão proporcional do chatbot e validações offline do coletor.
 
 ### Critério de aceite
 
