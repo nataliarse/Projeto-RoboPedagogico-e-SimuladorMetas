@@ -671,7 +671,7 @@ existem, mas o chatbot ainda não aciona `entrada-de-dados`. Estado global:
 | G4 | P4 — Falhas | matriz de estados, API controlada e rollback validados | `VALIDATED` |
 | G5 | P5 — Runtime | dependências, config, CAPTCHA canônico e venv limpo aprovados | `VALIDATED` |
 | G6 | P6 — Integração | regressões, matriz automatizada e exceção ambiental do aceite real registrada | `VALIDATED` |
-| G7 | P7 — Documentação | README/docs coerentes e auditoria cruzada aprovada | `TODO` |
+| G7 | P7 — Documentação | implementação documental concluída; validação do usuário pendente | `IN_PROGRESS` |
 | G8 | P8 — Fechamento | DoD, diff, segurança e projeção para main aprovados | `TODO` |
 
 ---
@@ -762,9 +762,9 @@ Os commits abaixo são planejados; não constituem autorização para executar
 
 | ID | Status | Modelo recomendado | Modelo executado | Evidência esperada | Commit da fase |
 |---|---|---|---|---|---|
-| INT-COL-P7-001 | `TODO` | GPT-5.6 Luna | — | README/setup alinhados ao fluxo final | C07 |
-| INT-COL-P7-002 | `TODO` | GPT-5.6 Terra | — | arquitetura/ingestão/dev/orquestração atualizados | C07 |
-| INT-COL-P7-003 | `TODO` | GPT-5.6 Terra | — | auditoria cruzada, links e segurança aprovados | C07 |
+| INT-COL-P7-001 | `IMPLEMENTED` | GPT-5.6 Luna | GPT-5 | README/setup alinhados ao fluxo final; validação do usuário pendente | C07 |
+| INT-COL-P7-002 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 | arquitetura/ingestão/dev/orquestração atualizados; validação pendente | C07 |
+| INT-COL-P7-003 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 | auditoria cruzada, links e segurança executados; validação pendente | C07 |
 
 ### P8 — Fechamento e projeção para main
 
@@ -893,19 +893,19 @@ Mesmo após o fechamento, a próxima fase só começa com novo prompt/autorizaç
 | Dimensão | Estado | Bloqueio principal |
 |---|---|---|
 | Branch/worktree | 🟢 Validado | branch e base confirmadas; worktree inventariado |
-| Baseline estrutural | 🟢 Validada | checkpoint C00 pronto para fechamento específico; G0 ainda aberto |
-| Contrato produtor | 🟡 Código disponível | mapeamento formal pendente |
-| Contrato consumidor | 🟡 Código disponível | round-trip e perdas precisam ser congelados |
-| Fronteira Python | 🔴 Não integrada | adapter ainda é apenas local |
-| Aquisição remota | 🔴 Não integrada | chatbot não chama `obter_processo()` |
-| Persistência pós-coleta | 🔴 Não integrada | ingestão existe, mas não está ligada ao fallback |
-| Estados/falhas | 🔴 Não integrados | `None` local ainda representa not_found |
-| Runtime/configuração | 🟡 Parcial | requirements centralizado sem venv limpo final |
-| Testes integrados | 🔴 Ausentes | fluxo local→coleta→SQLite→resposta não coberto |
-| Documentação | 🟡 Adiantada | alinhamento final depende da implementação |
-| Frontend | 🟢 Fora do escopo | deve permanecer sem alteração funcional |
-| Segurança de dados | 🟢 Baseline validada | regressão integrada permanece reservada para P6 |
-| Merge | 🔴 `NOT_READY` | G0–G8 não fechados |
+| Baseline estrutural | 🟢 Validada | C00 e G0 validados |
+| Contrato produtor | 🟢 Validado | package, estados e modelo comprovados offline |
+| Contrato consumidor | 🟢 Validado | round-trip, sanitização e rollback comprovados |
+| Fronteira Python | 🟢 Integrada | adapter é a única fronteira chatbot/collector |
+| Aquisição remota | 🟢 Integrada | miss válido chama `trt18_collector.obter_processo()` |
+| Persistência pós-coleta | 🟢 Integrada | sucesso passa por ingestão e reload SQLite |
+| Estados/falhas | 🟢 Validados | sete estados preservam semânticas distintas |
+| Runtime/configuração | 🟢 Validado | manifests, venv e paths aprovados; ressalva ambiental registrada |
+| Testes integrados | 🟢 Validados | 143 backend e 16 collector; matriz P6 com 8 cenários |
+| Documentação | 🟡 Implementada | P7 aguarda validação do usuário e C07 |
+| Frontend | 🟢 Preservado | nenhuma alteração funcional na P7 |
+| Segurança de dados | 🟢 Auditada | defesa em profundidade e artefatos sensíveis documentados |
+| Merge | 🟡 `INTEGRATION_READY` | P7 aguarda validação; P8 permanece pendente |
 
 ---
 
@@ -941,14 +941,8 @@ Somente quando:
 
 ## 12. Próximo passo operacional
 
-O próximo prompt deve executar somente:
-
-```text
-C00 — Criar e verificar o checkpoint de fechamento da Fase P0
-```
-
-O checkpoint exige prompt específico. G0 permanece aberto até a criação e
-verificação do commit; não iniciar P1 automaticamente.
+Validar os itens `INT-COL-P7-001..003`, fechar G7 e decidir sobre o checkpoint
+C07. Somente depois, e mediante nova autorização explícita, iniciar P8.
 
 ### INT-COL-P0-001 — Registro detalhado
 
@@ -1242,5 +1236,27 @@ ARQUIVOS_P6: chatbot_processual_ai/tests/test_p6_end_to_end_integration.py; entr
 SEGURANCA: nenhuma rede TRT18, browser, CAPTCHA, dado processual real, banco operacional, cache real, HTML, screenshot, raw JSON, segredo, commit ou push. Bancos e caches sintéticos efêmeros foram removidos pelos fixtures.
 GIT_DIFF_CHECK: pass; somente avisos informativos LF/CRLF nos dois documentos operacionais.
 STATUS_FINAL: P6-001 IMPLEMENTED; P6-002 IMPLEMENTED; P6-003 IMPLEMENTED; P6-004 BLOCKED; G6 BLOCKED; C06 BLOCKED e sem hash.
+COMMIT_CRIADO: não.
+```
+
+---
+
+## FASE P7 — documentação implementada; validação reservada ao usuário
+
+```text
+DATA_HORA: 2026-09-11 -03:00
+IDS: INT-COL-P7-001, INT-COL-P7-002, INT-COL-P7-003
+STATUS_FINAL_DESTA_RODADA: IMPLEMENTED; não promover a VALIDATED.
+PREFLIGHT: branch feat/integra_chatbot_coleta_etl; HEAD 67179f1eeffa9c999e7af3c1525f95d916887154; worktree inicialmente limpo segundo git status --short, com avisos de diretórios pytest temporários sem permissão.
+P6_CONFIRMADA: P6-001..004, G6 e C06 validados por decisão registrada; C06 f536ce2ce8f88847c3c49a4d59f5beefd9e1a9fe.
+CHECKPOINTS_RECONCILIADOS: C00 7275f75936988ffb45722f60d68b00ca6ab22e5d; C01 f2ba1723e3bd74cbeb8bc136f465ca773cbc29fd; C02 c01a5b50bc63413ee7a9734b02abd77dabf1a5d5; C03 485ee7dca07b2e0eb8fda255080991c60e264561; C04 259b5ed7a10261f72162f47377ffba38f3dcfb3a; C05 34e660a677e5d283d55e4f8323815c62ca0496d7; C06 f536ce2ce8f88847c3c49a4d59f5beefd9e1a9fe. Mensagens reais conferidas no Git.
+DIAGNOSTICO: README, arquitetura, ingestão e orquestração ainda apresentavam a integração como futura, e development mantinha setup anterior à separação de manifests P5. O código e os testes P3/P4/P6 comprovam adapter produtivo, local-first, coleta no miss, persist/reload e estados distintos.
+P7_001: README reduzido a porta de entrada; módulos, fluxo integrado, bootstrap P5/P6, Playwright/Chromium, env, manifests e links documentados.
+P7_002: ARCHITECTURE, data-ingestion, development e orchestration atualizados com ownership, sete estados, cache bruto versus SQLite, sanitização, retry manual, degradação, paths, consulta individual versus notebook e limitações reais. integration e design_philosophy auditados sem necessidade de edição.
+P7_003: documentação comparada com collector_adapter, Agent 2, orquestrador, repository, DTOs, sessão/progresso, package collector, manifests, env, testes P3/P4/P6 e Git. Links locais verificados por script PowerShell; todos existem. Scans não encontraram segredo, path pessoal ou dado processual real incorporado; o único CNJ formatado na documentação permanente é o exemplo sintético zerado do contrato HTTP preexistente.
+FONTE_CANONICA: requirements.txt para runtime backend; requirements-dev.txt para pytest; entrada-de-dados/pyproject.toml e extra .[collect] para collector; requirements-notebook.txt somente para pesquisa.
+VALIDACAO: existência dos manifests/paths confirmada; comandos confrontados com evidência P5/P6; git diff --check passou. Regressão funcional não repetida: P7 contém somente documentação; baseline funcional é P6 validada.
+ARQUIVOS: README.md; docs/ARCHITECTURE.md; docs/data-ingestion.md; docs/development.md; docs/orchestration.md; docs/CHECKLIST_INTEGRACAO_CHATBOT_COLETA.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_COLETA.md.
+ESTADO_CORRENTE: G0-G6 VALIDATED; P7-001..003 IMPLEMENTED; G7 IN_PROGRESS aguardando validação; C07 TODO sem hash; estado global INTEGRATION_READY; P8 TODO e não iniciada.
 COMMIT_CRIADO: não.
 ```

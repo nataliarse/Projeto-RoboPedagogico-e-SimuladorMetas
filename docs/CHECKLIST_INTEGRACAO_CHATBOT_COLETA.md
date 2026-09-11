@@ -861,16 +861,16 @@ Comprovar uma vez o fluxo completo com processo sanitizável ausente no SQLite.
 
 ## INT-COL-P7-001 — Atualizar README e bootstrap principal
 
-**Status inicial:** `TODO`
+**Status atual:** `IMPLEMENTED`
 **Dependência:** P6 fechada
 
 ### Ações
 
-- [ ] Descrever `entrada-de-dados/` na estrutura raiz.
-- [ ] Documentar fluxo local → coleta → persistência.
-- [ ] Documentar setup Python, Playwright/browsers e variáveis necessárias.
-- [ ] Manter links para documentação técnica aprofundada.
-- [ ] Não recolocar README/requirements concorrentes no coletor.
+- [x] Descrever `entrada-de-dados/` na estrutura raiz.
+- [x] Documentar fluxo local → coleta → persistência.
+- [x] Documentar setup Python, Playwright/browsers e variáveis necessárias.
+- [x] Manter links para documentação técnica aprofundada.
+- [x] Não recolocar README/requirements concorrentes no coletor.
 
 ### Critério de aceite
 
@@ -879,19 +879,19 @@ Comprovar uma vez o fluxo completo com processo sanitizável ausente no SQLite.
 
 ## INT-COL-P7-002 — Atualizar arquitetura, ingestão, desenvolvimento e orquestração
 
-**Status inicial:** `TODO`
+**Status atual:** `IMPLEMENTED`
 **Dependência:** `INT-COL-P7-001`
 
 ### Conteúdo mínimo
 
-- [ ] ownership de chatbot, adapter e coletor;
-- [ ] contrato e matriz de estados;
-- [ ] cache bruto versus SQLite consumidor;
-- [ ] sanitização e riscos de dados pessoais;
-- [ ] fallback, persistência, retry manual e degradação;
-- [ ] setup limpo, Playwright/CAPTCHA e paths;
-- [ ] diferença entre consulta individual e notebook/pesquisa;
-- [ ] limitações reais ainda existentes.
+- [x] ownership de chatbot, adapter e coletor;
+- [x] contrato e matriz de estados;
+- [x] cache bruto versus SQLite consumidor;
+- [x] sanitização e riscos de dados pessoais;
+- [x] fallback, persistência, retry manual e degradação;
+- [x] setup limpo, Playwright/CAPTCHA e paths;
+- [x] diferença entre consulta individual e notebook/pesquisa;
+- [x] limitações reais ainda existentes.
 
 ### Critério de aceite
 
@@ -901,16 +901,16 @@ Comprovar uma vez o fluxo completo com processo sanitizável ausente no SQLite.
 
 ## INT-COL-P7-003 — Executar auditoria documental cruzada
 
-**Status inicial:** `TODO`
+**Status atual:** `IMPLEMENTED`
 **Dependência:** `INT-COL-P7-002`
 
 ### Ações
 
-- [ ] Comparar afirmações com código, testes e configuração.
-- [ ] Remover referências históricas contraditórias.
-- [ ] Confirmar fonte única de dependências e setup.
-- [ ] Procurar segredo, path local, número processual real e detalhe sensível.
-- [ ] Validar links e `git diff --check`.
+- [x] Comparar afirmações com código, testes e configuração.
+- [x] Remover referências históricas contraditórias.
+- [x] Confirmar fonte única de dependências e setup.
+- [x] Procurar segredo, path local, número processual real e detalhe sensível.
+- [x] Validar links e `git diff --check`.
 
 ### Critério de aceite
 

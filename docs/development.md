@@ -1,42 +1,53 @@
 # Desenvolvimento local
 
-## Pré-requisitos
+## Pré-requisitos e manifests
 
-- Python 3.12.10 foi a versão validada; o projeto não fixa uma única versão.
-- Node.js 24.19.0 e npm 11.17.0 foram validados com Angular 21.2.x.
-- Ollama e Qdrant são condicionais à capacidade: não são usados pelo health nem
-  pelo caminho estruturado; RAG completo exige ambos.
-- A coleta ao vivo requer um navegador compatível, Playwright/Chromium e
-  autorização institucional para consultar o PJe e processar o CAPTCHA.
+O bootstrap foi validado com Python 3.12.10; `trt18_collector` declara Python
+`>=3.10`. O frontend foi validado com Node.js 24.19.0, npm 11.17.0 e Angular
+21.2.x.
 
-## Backend
+As fontes canônicas de dependências são:
 
-Os imports pressupõem execução dentro de `chatbot_processual_ai/`.
+- `chatbot_processual_ai/requirements.txt`: runtime FastAPI;
+- `chatbot_processual_ai/requirements-dev.txt`: pytest;
+- `entrada-de-dados/pyproject.toml`: package e extra `collect`;
+- `entrada-de-dados/requirements-notebook.txt`: pesquisa, fora do runtime.
+
+## Backend e collector
 
 ```powershell
 cd chatbot_processual_ai
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
+cd ..\entrada-de-dados
+python -m pip install -e ".[collect]"
+python -m playwright install chromium
+cd ..\chatbot_processual_ai
 Copy-Item .env.example .env
 python -m uvicorn api:app --reload
 ```
 
-Não sobrescreva `.env` existente nem versione seu conteúdo. `.env.example`
-documenta SQLite, Ollama e Qdrant sem segredos. A API fica em
-`http://localhost:8000`; `GET /api/health` valida apenas a fronteira FastAPI.
+Em POSIX, use `source .venv/bin/activate` e `cp .env.example .env`. Não
+sobrescreva nem versione `.env`. A API fica em `http://localhost:8000`; o health
+é `GET /api/health` e não verifica collector, SQLite, Ollama ou Qdrant.
 
-Testes, ainda desse diretório:
+O Chromium instalado pelo Playwright é o browser padrão. O override opcional
+`TRT18_COLLECTOR_BROWSER_EXECUTABLE` deve apontar para um executável válido.
+Não há requisito de Chrome/Edge instalado manualmente.
 
-```text
-python -m pytest tests -q
-```
+## Configuração e paths
 
-Limitação conhecida: `requirements.txt` cobre runtime, mas não declara
-`pytest`. Um venv reconstruído somente por esse arquivo sobe a API, porém não
-executa a suíte sem que pytest já esteja disponível. Executar a suíte a partir
-da raiz também não é equivalente por causa dos imports atuais; não masque isso
-com `PYTHONPATH`.
+`.env.example` documenta as variáveis suportadas de Ollama, SQLite, RAG/Qdrant
+e browser. `LOCAL_DB_PATH` relativo é resolvido a partir de
+`chatbot_processual_ai/`, não do CWD. O default é
+`chatbot_processual_ai/data/processual.sqlite3`.
+
+O collector resolve cache, saída e debug a partir de `entrada-de-dados/`:
+`data/brutos/`, `data/saida/` e `data/debug/`. A imagem transitória do CAPTCHA
+fica sob `data/debug/captcha/`. Não use path pessoal como configuração
+documentada.
 
 ## Frontend
 
@@ -46,83 +57,45 @@ npm ci
 npm start
 ```
 
-Validação:
+A UI fica em `http://localhost:4200`; `proxy.conf.json` encaminha `/api/*` para
+`http://localhost:8000`. Não codifique URL absoluta no cliente.
+
+## Testes e validação offline
 
 ```text
+cd chatbot_processual_ai
+python -m pytest tests -q
+
+cd ../entrada-de-dados
+python -m pytest tests -q
+
+cd ../frontend
 npm test -- --watch=false
 npm run build
 npx tsc -p tsconfig.app.json --noEmit
 ```
 
-Use `npm ci`, não reutilize `node_modules` recebido de outra máquina/SO e não
-altere o lockfile no bootstrap normal.
+Execute o pytest do backend dentro de `chatbot_processual_ai/`; os imports
+atuais pressupõem esse diretório. As suítes do collector são offline e o modo
+cache-only não abre browser nem acessa rede. Não rode o notebook com coleta
+habilitada como validação rotineira.
 
-## Entrada de dados do TRT18
+## Dependências condicionais e troubleshooting
 
-As dependências Python foram centralizadas no arquivo do backend. Para preparar
-o módulo e instalar o navegador do Playwright:
+SQLite não exige servidor. Consultas estruturadas não exigem Ollama/Qdrant; a
+capacidade RAG completa exige ambos e degrada por estado explícito quando
+indisponível. A coleta externa exige dependências do extra, Chromium instalado,
+rede e autorização institucional.
 
-```powershell
-cd chatbot_processual_ai
-python -m pip install -r requirements.txt
-python -m playwright install chromium
-cd ..\entrada-de-dados
-```
+- Browser ausente: execute o comando oficial de instalação; não contorne
+  validação TLS ou políticas institucionais.
+- HTTP 403/429: interrompa consultas e aguarde; não aumente tentativas.
+- Erro de import no pytest: execute no diretório operacional correto.
+- Cache ignorado: o bruto não satisfez o critério estrutural e uma nova coleta
+  só deve ocorrer de forma consciente/autorizada.
 
-Consulta somente com cache, sem acesso externo:
+Não versione `.venv`, `.env`, SQLite de runtime, caches, debug, dados reais,
+`node_modules`, `.angular/cache/` ou `dist/`.
 
-```powershell
-python app.py 0011000-82.1981.5.18.0051 --so-cache
-```
-
-Validação offline com o exemplo sanitizado:
-
-```powershell
-python -c "import json; from pathlib import Path; from normalizador import normalizar; bruto=json.loads(Path('exemplos/exemplo_bruto.json').read_text(encoding='utf-8')); print(normalizar(bruto).model_dump_json(indent=2))"
-```
-
-Não execute o notebook com `COLETAR_AGORA = True` por padrão: isso inicia a
-coleta em lote e pode acionar os limites do portal. Para detalhes de execução,
-cache, status e privacidade, consulte [data-ingestion.md](data-ingestion.md).
-
-## Execução integrada e rede
-
-1. Suba o FastAPI em `localhost:8000`.
-2. Suba o Angular em `localhost:4200`.
-3. Abra `http://localhost:4200`.
-
-O browser chama `/api/...`; o dev server usa `proxy.conf.json` para encaminhar
-ao backend. Não codifique `http://localhost:8000` no frontend. CORS é
-desnecessário localmente. Produção prefere mesma origem; uma futura separação de
-origens exigirá allowlist configurável, não wildcard.
-
-## Git e artefatos
-
-Trabalhe na branch autorizada da tarefa, preserve alterações preexistentes e
-mantenha commits focados. Não versione:
-
-- `node_modules/`, `.angular/cache/`, `dist/`;
-- `.venv/`, `__pycache__/`, `.pytest_cache/`;
-- `.env`, bancos SQLite e outputs/logs de runtime;
-- credenciais, dados reais ou artefatos de baseline modificados.
-
-## Troubleshooting
-
-- **`node`/`npm` não encontrado:** instale runtime compatível e confirme o
-  `PATH`; não transporte binários ou `node_modules` de outro sistema operacional.
-- **pytest não encontrado:** é a lacuna conhecida de dependência de
-  desenvolvimento; não afirme que `requirements.txt` sozinho cobre testes.
-- **erro de import no pytest:** entre em `chatbot_processual_ai/` antes do
-  comando.
-- **Angular abre, API falha:** confirme FastAPI em `:8000` e Angular em `:4200`;
-  chamadas do browser devem continuar relativas e passar pelo proxy.
-- **RAG degradado:** verifique Ollama, modelo de embeddings, Qdrant e `.env`
-  somente quando a consulta exigir capacidade semântica.
-- **cache da coleta ignorado:** o bruto existe, mas não contém uma resposta com
-  `itensProcesso`, `poloAtivo` ou `poloPassivo`; use `--so-cache` para impedir
-  acesso ao portal ou autorize conscientemente uma nova coleta.
-- **HTTP 403/429 no PJe:** interrompa as consultas e aguarde; não aumente
-  tentativas nem reduza intervalos para contornar a limitação.
-
-Veja também [integration.md](integration.md) e os READMEs específicos de
-[frontend](../frontend/README.md) e [backend](../chatbot_processual_ai/README.md).
+Consulte [data-ingestion.md](data-ingestion.md) e
+[orchestration.md](orchestration.md).
