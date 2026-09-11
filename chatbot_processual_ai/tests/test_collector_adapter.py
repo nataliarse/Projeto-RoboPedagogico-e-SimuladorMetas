@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 import collector_adapter
+from agents import agent2_context_collection
 from collector_adapter import AdapterStatus, CollectorAdapter, CollectorResult
 
 
@@ -377,3 +378,106 @@ def test_fake_boundary_never_opens_a_socket_or_loads_external_runtime(monkeypatc
     assert result.status is AdapterStatus.COLLECTED
     assert calls == ["validate", "lookup", "collect", "persist", "reload"]
     assert not {"playwright", "cv2", "ddddocr"}.intersection(sys.modules)
+
+
+def test_productive_composition_uses_one_local_lookup_and_skips_collection_on_hit(
+    monkeypatch,
+):
+    calls = []
+    local_tree = tree()
+    monkeypatch.setattr(
+        collector_adapter,
+        "validate_process_number",
+        lambda value: calls.append(("validate", value)) or NUMBER,
+    )
+    monkeypatch.setattr(
+        collector_adapter,
+        "find_process_by_number",
+        lambda value: calls.append(("lookup", value)) or local_tree,
+    )
+    monkeypatch.setattr(
+        collector_adapter,
+        "collect_process",
+        lambda value: calls.append(("collect", value)),
+    )
+
+    result = collector_adapter.create_collector_adapter(
+        persist=lambda value: calls.append(("persist", value)),
+        reload=lambda value: calls.append(("reload", value)),
+    ).lookup_or_acquire_process(NUMBER)
+
+    assert result.status is AdapterStatus.LOCAL_HIT
+    assert result.process is local_tree
+    assert calls == [("validate", NUMBER), ("lookup", NUMBER)]
+
+
+def test_productive_composition_reaches_public_collector_once_only_after_local_miss(
+    monkeypatch,
+):
+    calls = []
+    monkeypatch.setattr(
+        collector_adapter,
+        "validate_process_number",
+        lambda value: calls.append(("validate", value)) or NUMBER,
+    )
+    monkeypatch.setattr(
+        collector_adapter,
+        "find_process_by_number",
+        lambda value: calls.append(("lookup", value)),
+    )
+    monkeypatch.setattr(
+        collector_adapter,
+        "collect_process",
+        lambda value: calls.append(("collect", value)) or tree("PARCIAL"),
+    )
+
+    result = collector_adapter.create_collector_adapter(
+        persist=lambda value: calls.append(("persist", value)),
+        reload=lambda value: calls.append(("reload", value)),
+    ).lookup_or_acquire_process(NUMBER)
+
+    assert result.status is AdapterStatus.PARTIAL
+    assert calls == [
+        ("validate", NUMBER),
+        ("lookup", NUMBER),
+        ("collect", NUMBER),
+    ]
+
+
+def test_repeated_independent_misses_have_no_hidden_retry(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        collector_adapter, "validate_process_number", lambda value: NUMBER
+    )
+    monkeypatch.setattr(
+        collector_adapter,
+        "find_process_by_number",
+        lambda value: calls.append("lookup"),
+    )
+    monkeypatch.setattr(
+        collector_adapter,
+        "collect_process",
+        lambda value: calls.append("collect") or tree("BLOQUEADO"),
+    )
+    composed = collector_adapter.create_collector_adapter(
+        persist=lambda value: calls.append("persist"),
+        reload=lambda value: calls.append("reload"),
+    )
+
+    assert composed.lookup_or_acquire_process(NUMBER).status is AdapterStatus.BLOCKED
+    assert composed.lookup_or_acquire_process(NUMBER).status is AdapterStatus.BLOCKED
+    assert calls == ["lookup", "collect", "lookup", "collect"]
+
+
+def test_active_process_short_circuit_precedes_local_lookup(monkeypatch):
+    monkeypatch.setattr(
+        agent2_context_collection,
+        "create_collector_adapter",
+        lambda: pytest.fail("active process must prevent adapter creation"),
+    )
+    session_state = {"active_process": tree()}
+
+    assert (
+        agent2_context_collection._handle_process_lookup(NUMBER, session_state)
+        == "already_active"
+    )

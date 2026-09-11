@@ -6,10 +6,13 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Callable
 
+from progress import ProgressReporter, progress_clock, report_progress
 from services.process_repository import find_process_by_number as _find_process_by_number
+from services.process_repository import ingest_processes
 
 
 logger = logging.getLogger(__name__)
+COLLECTOR_SOURCE_NAME = "trt18_collector"
 
 
 class AdapterStatus(str, Enum):
@@ -111,7 +114,11 @@ class CollectorAdapter:
     persist: Persist
     reload: Reload
 
-    def lookup_or_acquire_process(self, process_number: str) -> CollectorResult:
+    def lookup_or_acquire_process(
+        self,
+        process_number: str,
+        progress_reporter: ProgressReporter | None = None,
+    ) -> CollectorResult:
         try:
             normalized_number = self.validator(process_number)
         except (TypeError, ValueError):
@@ -120,6 +127,13 @@ class CollectorAdapter:
             _log_failure("validation", exc)
             return _result(AdapterStatus.FAILED)
 
+        lookup_started_at = progress_clock()
+        report_progress(
+            progress_reporter,
+            code="collector.local_lookup.started",
+            level="started",
+            message="consultando base local do processo...",
+        )
         try:
             local_process = self.lookup(normalized_number)
         except Exception as exc:
@@ -128,10 +142,21 @@ class CollectorAdapter:
 
         if local_process is not None:
             if _tree_matches(local_process, normalized_number):
-                return _result(AdapterStatus.LOCAL_HIT, local_process)
+                result = _result(AdapterStatus.LOCAL_HIT, local_process)
+                _report_result(progress_reporter, result, lookup_started_at)
+                return result
             _log_failure("lookup_result")
             return _result(AdapterStatus.FAILED)
 
+        report_progress(
+            progress_reporter,
+            code="collector.acquisition.started",
+            level="started",
+            message=(
+                "processo nao disponivel localmente; iniciando consulta externa..."
+            ),
+            started_at=lookup_started_at,
+        )
         try:
             collected_process = self.collector(normalized_number)
         except Exception as exc:
@@ -159,6 +184,13 @@ class CollectorAdapter:
             _log_failure("invalid_collection_result")
             return _result(AdapterStatus.FAILED)
 
+        persistence_started_at = progress_clock()
+        report_progress(
+            progress_reporter,
+            code="collector.persistence.started",
+            level="started",
+            message="processo obtido; salvando dados...",
+        )
         try:
             self.persist(collected_process)
             persisted_process = self.reload(normalized_number)
@@ -169,7 +201,39 @@ class CollectorAdapter:
         if not _tree_matches(persisted_process, normalized_number):
             _log_failure("reload_result")
             return _result(AdapterStatus.FAILED)
-        return _result(AdapterStatus.COLLECTED, persisted_process)
+        result = _result(AdapterStatus.COLLECTED, persisted_process)
+        report_progress(
+            progress_reporter,
+            code="collector.persistence.finished",
+            level="success",
+            message="processo persistido e carregado.",
+            started_at=persistence_started_at,
+        )
+        _report_result(progress_reporter, result, lookup_started_at)
+        return result
+
+
+def persist_collected_process(process: dict) -> dict[str, int]:
+    """Persiste uma árvore aceita usando a transação canônica do repositório."""
+    return ingest_processes([process], source_name=COLLECTOR_SOURCE_NAME)
+
+
+def create_collector_adapter(
+    *,
+    persist: Persist | None = None,
+    reload: Reload | None = None,
+    validator: Validator | None = None,
+    lookup: Lookup | None = None,
+    collector: Collector | None = None,
+) -> CollectorAdapter:
+    """Compõe os defaults produtivos e mantém o ciclo de persistência explícito."""
+    return CollectorAdapter(
+        validator=validator or validate_process_number,
+        lookup=lookup or find_process_by_number,
+        collector=collector or collect_process,
+        persist=persist or persist_collected_process,
+        reload=reload or find_process_by_number,
+    )
 
 
 def lookup_or_acquire_process(
@@ -188,6 +252,25 @@ def lookup_or_acquire_process(
 
 def _result(status: AdapterStatus, process: dict | None = None) -> CollectorResult:
     return CollectorResult(status, process, _PUBLIC_MESSAGES[status], _RETRYABLE[status])
+
+
+def _report_result(
+    progress_reporter: ProgressReporter | None,
+    result: CollectorResult,
+    started_at: float,
+) -> None:
+    report_progress(
+        progress_reporter,
+        code="collector.result",
+        level=(
+            "success"
+            if result.status in {AdapterStatus.LOCAL_HIT, AdapterStatus.COLLECTED}
+            else "warning"
+        ),
+        message=result.public_message,
+        details={"collection_status": result.status.value.lower()},
+        started_at=started_at,
+    )
 
 
 def _producer_status(value: object) -> str | None:
@@ -252,8 +335,11 @@ __all__ = [
     "AdapterStatus",
     "CollectorAdapter",
     "CollectorResult",
+    "COLLECTOR_SOURCE_NAME",
     "collect_process",
+    "create_collector_adapter",
     "find_process_by_number",
     "lookup_or_acquire_process",
+    "persist_collected_process",
     "validate_process_number",
 ]

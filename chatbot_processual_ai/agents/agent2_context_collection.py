@@ -1,7 +1,7 @@
 import re
 import unicodedata
 
-from collector_adapter import find_process_by_number
+from collector_adapter import AdapterStatus, CollectorResult, create_collector_adapter
 from progress import ProgressReporter, progress_clock, report_progress
 from services.process_query_resolver import (
     is_structured_process_spec,
@@ -109,38 +109,22 @@ def build_context_and_collect(
             )
         else:
             lookup_started_at = progress_clock()
-            report_progress(
+            collection_status = _handle_process_lookup(
+                process_number,
+                session_state,
                 progress_reporter,
-                code="context.lookup.started",
-                level="started",
-                message="consultando base local do processo...",
             )
-            collection_status = _handle_process_lookup(process_number, session_state)
-            report_progress(
-                progress_reporter,
-                code="context.lookup.finished",
-                level=_collection_status_level(collection_status),
-                message=_collection_status_message(collection_status),
-                details={"collection_status": collection_status},
-                started_at=lookup_started_at,
+            _report_lookup_result(
+                progress_reporter, collection_status, lookup_started_at
             )
     elif intent == "process_question" and _normalize_process_number(process_number):
         lookup_started_at = progress_clock()
-        report_progress(
+        collection_status = _handle_process_lookup(
+            process_number,
+            session_state,
             progress_reporter,
-            code="context.lookup.started",
-            level="started",
-            message="consultando base local do processo...",
         )
-        collection_status = _handle_process_lookup(process_number, session_state)
-        report_progress(
-            progress_reporter,
-            code="context.lookup.finished",
-            level=_collection_status_level(collection_status),
-            message=_collection_status_message(collection_status),
-            details={"collection_status": collection_status},
-            started_at=lookup_started_at,
-        )
+        _report_lookup_result(progress_reporter, collection_status, lookup_started_at)
 
     active_process = session_state.get("active_process") or {}
     query_spec = resolve_process_query(
@@ -191,7 +175,11 @@ def build_context_and_collect(
     }
 
 
-def _handle_process_lookup(process_number: str | None, session_state: dict) -> str:
+def _handle_process_lookup(
+    process_number: str | None,
+    session_state: dict,
+    progress_reporter: ProgressReporter | None = None,
+) -> str:
     normalized_number = _normalize_process_number(process_number)
     if normalized_number is None:
         return "missing_number"
@@ -201,17 +189,41 @@ def _handle_process_lookup(process_number: str | None, session_state: dict) -> s
     if active_number == normalized_number:
         return "already_active"
 
-    process = find_process_by_number(normalized_number)
-    if process is None:
-        return "not_found"
+    result = create_collector_adapter().lookup_or_acquire_process(
+        normalized_number,
+        progress_reporter,
+    )
+    if result.status not in {AdapterStatus.LOCAL_HIT, AdapterStatus.COLLECTED}:
+        return result.status.value.lower()
 
-    session_state["active_process"] = process
+    session_state["active_process"] = result.process
     session_state["last_intent"] = "process_lookup"
-    return "success"
+    return _successful_collection_status(result)
+
+
+def _successful_collection_status(result: CollectorResult) -> str:
+    if result.status is AdapterStatus.LOCAL_HIT:
+        return "success"
+    return "collected"
+
+
+def _report_lookup_result(
+    progress_reporter: ProgressReporter | None,
+    collection_status: str,
+    started_at: float,
+) -> None:
+    report_progress(
+        progress_reporter,
+        code="context.lookup.finished",
+        level=_collection_status_level(collection_status),
+        message=_collection_status_message(collection_status),
+        details={"collection_status": collection_status},
+        started_at=started_at,
+    )
 
 
 def _collection_status_level(collection_status: str) -> str:
-    if collection_status in {"success", "already_active", "not_needed"}:
+    if collection_status in {"success", "collected", "already_active", "not_needed"}:
         return "success"
     return "warning"
 
@@ -219,9 +231,14 @@ def _collection_status_level(collection_status: str) -> str:
 def _collection_status_message(collection_status: str) -> str:
     messages = {
         "success": "processo localizado na base local.",
+        "collected": "processo coletado, persistido e carregado.",
         "already_active": "processo informado ja estava ativo.",
         "missing_number": "numero de processo ausente ou incompleto.",
         "not_found": "processo nao encontrado na base local.",
+        "partial": "a consulta retornou dados incompletos.",
+        "blocked": "a consulta externa esta temporariamente indisponivel.",
+        "failed": "nao foi possivel consultar o processo agora.",
+        "invalid_number": "numero de processo invalido.",
         "not_needed": "consulta local nao necessaria.",
     }
     return messages.get(collection_status, "coleta concluida.")

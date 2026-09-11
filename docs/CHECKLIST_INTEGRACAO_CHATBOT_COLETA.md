@@ -490,7 +490,7 @@ Fixar o contrato do adapter antes de ligá-lo ao fluxo conversacional.
 
 ## INT-COL-P3-001 — Implementar lookup local antes da coleta
 
-**Status inicial:** `TODO`
+**Status:** `VALIDATED`
 **Dependência:** P2 fechada
 
 ### Objetivo
@@ -499,10 +499,10 @@ Manter o SQLite como primeira fonte e acionar aquisição somente em ausência r
 
 ### Ações
 
-- [ ] Consultar e normalizar o número como no fluxo atual.
-- [ ] Retornar imediatamente em hit local.
-- [ ] Não coletar quando o processo já estiver ativo ou persistido.
-- [ ] Acionar somente o adapter em miss local válido.
+- [x] Consultar e normalizar o número como no fluxo atual.
+- [x] Retornar imediatamente em hit local.
+- [x] Não coletar quando o processo já estiver ativo ou persistido.
+- [x] Acionar somente o adapter em miss local válido.
 
 ### Critério de aceite
 
@@ -512,7 +512,7 @@ Manter o SQLite como primeira fonte e acionar aquisição somente em ausência r
 
 ## INT-COL-P3-002 — Ingerir somente coleta válida no SQLite
 
-**Status inicial:** `TODO`
+**Status:** `IMPLEMENTED`
 **Dependência:** `INT-COL-P3-001`
 
 ### Objetivo
@@ -521,10 +521,10 @@ Persistir a árvore normalizada aceita usando o repositório existente.
 
 ### Ações
 
-- [ ] Chamar `ingest_processes()` com origem identificável e sem payload bruto.
-- [ ] Preservar transação, rollback e sanitização existentes.
-- [ ] Recarregar a árvore persistida como fonte consumida pelo chatbot.
-- [ ] Não persistir `PARCIAL`, `BLOQUEADO`, `FALHA` ou `NAO_ENCONTRADO`.
+- [x] Chamar `ingest_processes()` com origem identificável e sem payload bruto.
+- [x] Preservar transação, rollback e sanitização existentes.
+- [x] Recarregar a árvore persistida como fonte consumida pelo chatbot.
+- [x] Não persistir `PARCIAL`, `BLOQUEADO`, `FALHA` ou `NAO_ENCONTRADO`.
 
 ### Critério de aceite
 
@@ -534,7 +534,7 @@ Persistir a árvore normalizada aceita usando o repositório existente.
 
 ## INT-COL-P3-003 — Integrar o resultado ao Agent 2 e ao progresso
 
-**Status inicial:** `TODO`
+**Status:** `IMPLEMENTED`
 **Dependências:** `INT-COL-P3-001`, `INT-COL-P3-002`
 
 ### Objetivo
@@ -544,10 +544,10 @@ fronteira HTTP ou o frontend.
 
 ### Ações
 
-- [ ] Atualizar apenas a fronteira de contexto/coleta necessária.
-- [ ] Definir `active_process`, `last_intent` e `collection_status` coerentes.
-- [ ] Emitir progresso seguro para lookup local, coleta, persistência e resultado.
-- [ ] Evitar detalhes de CAPTCHA, paths, stack trace ou dados sensíveis na resposta pública.
+- [x] Atualizar apenas a fronteira de contexto/coleta necessária.
+- [x] Definir `active_process`, `last_intent` e `collection_status` coerentes.
+- [x] Emitir progresso seguro para lookup local, coleta, persistência e resultado.
+- [x] Evitar detalhes de CAPTCHA, paths, stack trace ou dados sensíveis na resposta pública.
 
 ### Critério de aceite
 
@@ -557,7 +557,7 @@ fronteira HTTP ou o frontend.
 
 ## INT-COL-P3-004 — Reutilizar o processo sem recoleta
 
-**Status inicial:** `TODO`
+**Status:** `IMPLEMENTED`
 **Dependência:** `INT-COL-P3-003`
 
 ### Objetivo
@@ -566,10 +566,10 @@ Comprovar que sessão ativa e persistência evitam trabalho externo repetido.
 
 ### Ações
 
-- [ ] Testar pergunta seguinte na mesma sessão.
-- [ ] Testar nova sessão consultando o SQLite.
-- [ ] Testar reinício lógico do backend com o mesmo banco.
-- [ ] Confirmar que o fake do coletor permanece sem nova chamada.
+- [x] Testar pergunta seguinte na mesma sessão.
+- [x] Testar nova sessão consultando o SQLite.
+- [x] Testar reinício lógico do backend com o mesmo banco.
+- [x] Confirmar que o fake do coletor permanece sem nova chamada.
 
 ### Critério de aceite
 
