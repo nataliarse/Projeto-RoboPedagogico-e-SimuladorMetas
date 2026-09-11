@@ -43,6 +43,46 @@ FASE = unidade de checkpoint/commit
 
 ---
 
+## FASE P4 — início da implementação integrada
+
+```text
+DATA_HORA: 2026-09-11 -03:00
+IDS: INT-COL-P4-001, INT-COL-P4-002, INT-COL-P4-003
+STATUS_ANTERIOR: TODO
+STATUS_DESTA_ETAPA: IN_PROGRESS
+PRECONDICAO: P3 e C03 confirmados como VALIDATED no HEAD 485ee7dca07b2e0eb8fda255080991c60e264561; local-first, persistência exclusiva de sucesso, releitura SQLite, reutilização e rollback permanecem presentes no código e nos testes.
+DIAGNOSTICO_INICIAL: o adapter preserva os sete estados, porém a camada pública de análise trata especificamente apenas not_found/missing_number; os demais estados degradados não possuem ainda resposta pública determinística própria no fluxo observado pelo consumidor.
+ESCOPO: tradução pública segura, preservação da API e testes observáveis dos cinco estados negativos, rollback/preservação e regressão LOCAL_HIT/COLLECTED; sem P5, frontend, schema, retry, rede ou coleta real.
+G4: IN_PROGRESS.
+C04: TODO; COMMIT_REAL: —.
+```
+
+---
+
+## FASE P4 — implementação integrada concluída
+
+```text
+DATA_HORA: 2026-09-11 -03:00
+IDS: INT-COL-P4-001, INT-COL-P4-002, INT-COL-P4-003
+STATUS_ANTERIOR: IN_PROGRESS
+STATUS_FINAL_DESTA_RODADA: IMPLEMENTED; validação reservada ao usuário.
+DIAGNOSTICO_CONFIRMADO: Adapter e Agent 2 já preservavam os sete códigos, mas a análise determinística só distinguia not_found/missing_number; os demais estados chegavam à resposta com ausência genérica de dados. A mensagem de not_found também atribuía a ausência à coleta local, apesar de o estado ser exclusivamente remoto.
+IMPLEMENTACAO: análise determinística agora traduz invalid_number, not_found, partial, blocked e failed para semânticas públicas distintas e seguras. O campo textual collection_status e o envelope HTTP foram preservados; nenhuma mudança de DTO, frontend, schema ou retry foi introduzida.
+PERSISTENCIA_E_SEGURANCA: estados negativos permanecem sem process e sem chamada a persist; exceção técnica é convertida em FAILED no adapter com logging por categoria/classe, sem transportar mensagem bruta. Teste de substituição com falha no chunking confirmou rollback e preservação exata da árvore/chunks anteriores.
+TESTES_NOVOS: 17 cenários em test_p4_failure_semantics.py — cinco estados via Agent 2, cinco via orquestrador, cinco via API ASGI, exceção técnica na fronteira e rollback com dado anterior.
+TESTES_EXECUTADOS: `.venv\\Scripts\\python.exe -m pytest tests\\test_p4_failure_semantics.py -q -p no:cacheprovider` (17 passed); suíte focada de adapter/progresso/API/P3/P4 (111 passed); suíte completa `tests` (134 passed); coletor offline `entrada-de-dados/tests` (3 passed).
+ARQUIVOS_FUNCIONAIS: chatbot_processual_ai/agents/agent3_process_analysis.py.
+ARQUIVOS_TESTE: chatbot_processual_ai/tests/test_p4_failure_semantics.py.
+DOCUMENTACAO_OPERACIONAL: docs/CHECKLIST_INTEGRACAO_CHATBOT_COLETA.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_COLETA.md.
+EFEITOS_EXTERNOS: nenhum acesso a rede/TRT18, browser, Playwright, CAPTCHA, banco operacional, deploy, push ou commit; somente SQLite isolado removido pelo teste.
+LIMITACAO_AMBIENTAL: uma tentativa inicial teve 16 passed e erro de setup por permissão no tmp global do pytest; a fixture foi tornada isolada como na P3 e a execução seguinte passou com 17 testes.
+G4: IN_PROGRESS, aguardando validação do usuário.
+C04: TODO; COMMIT_REAL: —.
+COMMIT_CRIADO: não.
+```
+
+---
+
 ## INT-COL-P3-001 — registro detalhado
 
 ```text
@@ -93,6 +133,38 @@ EFEITOS_EXTERNOS: nenhum acesso TRT18, rede, browser, Playwright, CAPTCHA, deplo
 G3: IN_PROGRESS, aguardando validação do usuário.
 C03: TODO; COMMIT_REAL: —.
 COMMIT_CRIADO: não.
+```
+
+---
+
+## FASE P3 — tentativa de validação e auditoria do C03
+
+```text
+DATA_HORA: 2026-09-11 08:32:02 -03:00
+IDS_AVALIADOS: INT-COL-P3-001, INT-COL-P3-002, INT-COL-P3-003, INT-COL-P3-004
+RESULTADO_TECNICO: aprovado; 94 testes focados, 117 testes da regressão do chatbot e 3 testes offline do coletor passaram. Import leve não carregou trt18_collector, Playwright, cv2 ou ddddocr. O diff restrito aos seis arquivos da P3 passou em git diff --check.
+CHECKPOINT_ENCONTRADO: 485ee7dca07b2e0eb8fda255080991c60e264561 — feat(chat): acquire and persist missing processes.
+IMPEDIMENTO_DE_VALIDACAO: o commit contém 25 arquivos e mistura a P3 com avaliacao/trt18_amostras, frontend/proxy.runtime.json, runtime-logs, PIDs e distribuição local do Node, incluindo node.exe. O git diff HEAD^ HEAD --check falha em runtime-logs/node/node-v24.19.0-win-x64/LICENSE por whitespace. Portanto os critérios obrigatórios de diff focado, ausência de mudanças fora do escopo e git diff --check não foram satisfeitos.
+STATUS_DOS_IDS: P3-001 preserva seu registro histórico; P3-002/P3-003/P3-004 permanecem IMPLEMENTED e não foram promovidos a VALIDATED.
+G3: IN_PROGRESS.
+C03: BLOCKED para saneamento do checkpoint; hash real registrado sem aprovação do conteúdo misto.
+P4: não iniciada.
+```
+
+---
+
+## FASE P3 — fechamento autorizado na branch de trabalho
+
+```text
+DATA_HORA: 2026-09-11 -03:00
+DECISAO_DO_USUARIO: a branch atual é uma branch própria de trabalho e versiona também artefatos auxiliares. A presença de checklist, controle de progresso, AGENTS.md, safety.rules, avaliacao e outros auxiliares no histórico desta branch não invalida o checkpoint funcional; esses materiais serão descartados ou removidos antes da integração na main.
+ESCOPO_DA_VALIDACAO: o gate de P3 considera o diff funcional restrito aos seis arquivos da fase, que passou em git diff --check, junto aos testes focados e regressões offline. A falha de whitespace no runtime Node auxiliar foi aceita como externa ao produto/P3 e permanece registrada para saneamento antes da main.
+EVIDENCIAS: 94 testes focados aprovados; 117 testes da regressão completa do chatbot aprovados; 3 testes offline do coletor aprovados; imports pesados continuaram lazy; round-trip SQLite, sanitização, chunks, rollback, Agent 2, progresso seguro e reutilização em mesma sessão/nova sessão/reinício lógico comprovados.
+STATUS_FINAL: INT-COL-P3-001, INT-COL-P3-002, INT-COL-P3-003 e INT-COL-P3-004 VALIDATED.
+G3: VALIDATED.
+C03: VALIDATED no commit 485ee7dca07b2e0eb8fda255080991c60e264561.
+CONDICAO_FUTURA: remover os artefatos auxiliares e revisar o diff global antes de integrar na main; isso não faz parte do fechamento funcional atual da P3.
+P4: não iniciada.
 ```
 
 ---
@@ -543,8 +615,8 @@ existem, mas o chatbot ainda não aciona `entrada-de-dados`. Estado global:
 | G0 | P0 — Baseline estrutural | branch, worktree, artefatos, centralização e testes baseline comprovados | `VALIDATED` |
 | G1 | P1 — Contratos | produtor, consumidor, estados, importação, ownership e dados decididos | `VALIDATED` |
 | G2 | P2 — Fronteira Python | import estável, adapter explícito e testes offline aprovados | `VALIDATED` |
-| G3 | P3 — Fallback/persistência | local-first, coleta em miss, ingestão e reuso validados | `IN_PROGRESS` |
-| G4 | P4 — Falhas | matriz de estados, API controlada e rollback validados | `TODO` |
+| G3 | P3 — Fallback/persistência | local-first, coleta em miss, ingestão e reuso validados | `VALIDATED` |
+| G4 | P4 — Falhas | matriz de estados, API controlada e rollback validados | `IN_PROGRESS` |
 | G5 | P5 — Runtime | dependências, config, CAPTCHA canônico e venv limpo aprovados | `TODO` |
 | G6 | P6 — Integração | regressões, matriz automatizada e aceite real controlado registrados | `TODO` |
 | G7 | P7 — Documentação | README/docs coerentes e auditoria cruzada aprovada | `TODO` |
@@ -562,7 +634,7 @@ Os commits abaixo são planejados; não constituem autorização para executar
 | C00 | P0 | `INT-COL-P0-001..004` | `chore(integration): establish chatbot collector baseline` | `VALIDATED` | `7275f75936988ffb45722f60d68b00ca6ab22e5d` |
 | C01 | P1 | `INT-COL-P1-001..004` | `docs(integration): define chatbot collector contracts` | `VALIDATED` | `f2ba1723e3bd74cbeb8bc136f465ca773cbc29fd` |
 | C02 | P2 | `INT-COL-P2-001..003` | `feat(collector): establish chatbot collection boundary` | `VALIDATED` | `c01a5b50bc63413ee7a9734b02abd77dabf1a5d5` |
-| C03 | P3 | `INT-COL-P3-001..004` | `feat(chat): acquire and persist missing processes` | `TODO` | — |
+| C03 | P3 | `INT-COL-P3-001..004` | `feat(chat): acquire and persist missing processes` | `VALIDATED` | `485ee7dca07b2e0eb8fda255080991c60e264561` |
 | C04 | P4 | `INT-COL-P4-001..003` | `fix(chat): preserve collector failure semantics` | `TODO` | — |
 | C05 | P5 | `INT-COL-P5-001..004` | `chore(runtime): unify collector setup and configuration` | `TODO` | — |
 | C06 | P6 | `INT-COL-P6-001..004` | `test(integration): cover chatbot collector workflow` | `TODO` | — |
@@ -604,17 +676,17 @@ Os commits abaixo são planejados; não constituem autorização para executar
 | ID | Status | Modelo recomendado | Modelo executado | Evidência esperada | Commit da fase |
 |---|---|---|---|---|---|
 | INT-COL-P3-001 | `VALIDATED` | GPT-5.6 Sol | GPT-5 (Codex) | local-first e uma coleta somente em miss | C03 |
-| INT-COL-P3-002 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 (Codex) | ingestão/rollback/round-trip aprovados | C03 |
-| INT-COL-P3-003 | `IMPLEMENTED` | GPT-5.6 Sol | GPT-5 (Codex) | Agent 2 e progresso integrados sem mudar HTTP | C03 |
-| INT-COL-P3-004 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 (Codex) | sessão, nova sessão e restart sem recoleta | C03 |
+| INT-COL-P3-002 | `VALIDATED` | GPT-5.6 Terra | GPT-5 (Codex) | ingestão/rollback/round-trip aprovados | C03 |
+| INT-COL-P3-003 | `VALIDATED` | GPT-5.6 Sol | GPT-5 (Codex) | Agent 2 e progresso integrados sem mudar HTTP | C03 |
+| INT-COL-P3-004 | `VALIDATED` | GPT-5.6 Terra | GPT-5 (Codex) | sessão, nova sessão e restart sem recoleta | C03 |
 
 ### P4 — Estados e degradação
 
 | ID | Status | Modelo recomendado | Modelo executado | Evidência esperada | Commit da fase |
 |---|---|---|---|---|---|
-| INT-COL-P4-001 | `TODO` | GPT-5.6 Sol | — | matriz de estados traduzida sem falso not_found | C04 |
-| INT-COL-P4-002 | `TODO` | GPT-5.6 Sol | — | API segura e banco consistente em falhas | C04 |
-| INT-COL-P4-003 | `TODO` | GPT-5.6 Terra | — | testes observáveis dos estados aprovados | C04 |
+| INT-COL-P4-001 | `IMPLEMENTED` | GPT-5.6 Sol | GPT-5 (Codex) | matriz de estados traduzida sem falso not_found | C04 |
+| INT-COL-P4-002 | `IMPLEMENTED` | GPT-5.6 Sol | GPT-5 (Codex) | API segura e banco consistente em falhas | C04 |
+| INT-COL-P4-003 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 (Codex) | testes observáveis dos estados aprovados | C04 |
 
 ### P5 — Runtime, configuração e duplicações
 
@@ -691,6 +763,10 @@ recuperação ou rejeição; adicionar novo evento.
 | 09/09/2026 | INT-COL-P3-001 | Composição local-first auto-validada | `IN_PROGRESS` → `VALIDATED` | GPT-5 (Codex) | 62 testes focados, 105 do chatbot, 3 do package, import leve, CLI e diff check aprovados; P3-002 não iniciado | — |
 | 11/09/2026 | Fase P3 | Integração de persistência, Agent 2 e reutilização iniciada | `P3-002/P3-003/P3-004 TODO` → `IN_PROGRESS` | GPT-5 (Codex) | precondição técnica da P2 e checkpoint C02 confirmados; execução conjunta dos quatro IDs autorizada, preservando o histórico já validado de P3-001 | — |
 | 11/09/2026 | Fase P3 | Implementação integrada concluída; validação reservada ao usuário | `P3-002/P3-003/P3-004 IN_PROGRESS` → `IMPLEMENTED` | GPT-5 (Codex) | 94 testes focados, 117 do chatbot e 3 do coletor aprovados; round-trip, rollback, progresso seguro e três cenários de reutilização comprovados offline | — |
+| 11/09/2026 | Fase P3/C03 | Validação técnica aprovada, mas checkpoint reprovado por escopo misto | `C03 TODO` → `BLOCKED`; `G3 IN_PROGRESS` preservado | GPT-5 (Codex) | commit 485ee7d contém 25 arquivos, incluindo avaliação, proxy, PIDs e runtime Node; diff global falha em whitespace; itens não promovidos a VALIDATED | C03 |
+| 11/09/2026 | Fase P3/C03 | Fechamento autorizado para a branch própria de trabalho | `P3-002/P3-003/P3-004 IMPLEMENTED` → `VALIDATED`; `G3/C03` → `VALIDATED` | GPT-5 (Codex) | usuário aceitou artefatos auxiliares versionados nesta branch; gate funcional restrito da P3 e todas as regressões passaram; limpeza global permanece obrigatória antes da main | C03 |
+| 11/09/2026 | Fase P4 | Tratamento de estados, degradação e falhas iniciado | `P4-001/P4-002/P4-003 TODO` → `IN_PROGRESS`; `G4 TODO` → `IN_PROGRESS` | GPT-5 (Codex) | P3/C03 confirmados; achatamento na mensagem pública diagnosticado | — |
+| 11/09/2026 | Fase P4 | Implementação integrada concluída; validação reservada ao usuário | `P4-001/P4-002/P4-003 IN_PROGRESS` → `IMPLEMENTED` | GPT-5 (Codex) | 17 testes P4, 111 focados, 134 do chatbot e 3 do coletor aprovados; API, segurança, não persistência e rollback com dado anterior comprovados | — |
 
 ---
 

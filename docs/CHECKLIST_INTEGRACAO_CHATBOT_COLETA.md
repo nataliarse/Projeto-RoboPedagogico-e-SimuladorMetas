@@ -512,7 +512,7 @@ Manter o SQLite como primeira fonte e acionar aquisição somente em ausência r
 
 ## INT-COL-P3-002 — Ingerir somente coleta válida no SQLite
 
-**Status:** `IMPLEMENTED`
+**Status:** `VALIDATED`
 **Dependência:** `INT-COL-P3-001`
 
 ### Objetivo
@@ -534,7 +534,7 @@ Persistir a árvore normalizada aceita usando o repositório existente.
 
 ## INT-COL-P3-003 — Integrar o resultado ao Agent 2 e ao progresso
 
-**Status:** `IMPLEMENTED`
+**Status:** `VALIDATED`
 **Dependências:** `INT-COL-P3-001`, `INT-COL-P3-002`
 
 ### Objetivo
@@ -557,7 +557,7 @@ fronteira HTTP ou o frontend.
 
 ## INT-COL-P3-004 — Reutilizar o processo sem recoleta
 
-**Status:** `IMPLEMENTED`
+**Status:** `VALIDATED`
 **Dependência:** `INT-COL-P3-003`
 
 ### Objetivo
@@ -587,7 +587,7 @@ Comprovar que sessão ativa e persistência evitam trabalho externo repetido.
 
 ## INT-COL-P4-001 — Traduzir a matriz de estados do coletor
 
-**Status inicial:** `TODO`
+**Status:** `IMPLEMENTED`
 **Dependência:** P3 fechada
 
 ### Objetivo
@@ -596,11 +596,11 @@ Fazer cada resultado externo chegar ao chatbot com semântica verdadeira.
 
 ### Ações
 
-- [ ] Tratar número inválido/ausente sem abrir navegador.
-- [ ] Tratar `NAO_ENCONTRADO` como ausência semântica comprovada no TRT18.
-- [ ] Tratar `PARCIAL` como dado insuficiente, sem persistir como sucesso.
-- [ ] Tratar `BLOQUEADO` como indisponibilidade/retry posterior.
-- [ ] Tratar `FALHA` e exceções como falha técnica controlada.
+- [x] Tratar número inválido/ausente sem abrir navegador.
+- [x] Tratar `NAO_ENCONTRADO` como ausência semântica comprovada no TRT18.
+- [x] Tratar `PARCIAL` como dado insuficiente, sem persistir como sucesso.
+- [x] Tratar `BLOQUEADO` como indisponibilidade/retry posterior.
+- [x] Tratar `FALHA` e exceções como falha técnica controlada.
 
 ### Critério de aceite
 
@@ -610,7 +610,7 @@ Fazer cada resultado externo chegar ao chatbot com semântica verdadeira.
 
 ## INT-COL-P4-002 — Preservar a API diante de falha externa
 
-**Status inicial:** `TODO`
+**Status:** `IMPLEMENTED`
 **Dependência:** `INT-COL-P4-001`
 
 ### Objetivo
@@ -620,10 +620,10 @@ ou produza resposta enganosa.
 
 ### Ações
 
-- [ ] Integrar falhas ao mecanismo controlado já existente no orquestrador.
-- [ ] Manter resposta pública segura e observabilidade interna suficiente.
-- [ ] Não capturar exceções amplas sem classificação e contexto.
-- [ ] Não apagar processo local existente por falha de atualização/aquisição.
+- [x] Integrar falhas ao mecanismo controlado já existente no orquestrador.
+- [x] Manter resposta pública segura e observabilidade interna suficiente.
+- [x] Não capturar exceções amplas sem classificação e contexto.
+- [x] Não apagar processo local existente por falha de atualização/aquisição.
 
 ### Critério de aceite
 
@@ -633,7 +633,7 @@ ou produza resposta enganosa.
 
 ## INT-COL-P4-003 — Fixar regressões dos estados em testes
 
-**Status inicial:** `TODO`
+**Status:** `IMPLEMENTED`
 **Dependência:** `INT-COL-P4-002`
 
 ### Objetivo
@@ -642,10 +642,10 @@ Cobrir a matriz completa no nível em que o usuário do chatbot observa o efeito
 
 ### Ações
 
-- [ ] Testar estados via Agent 2/orquestrador e, quando adequado, API ASGI local.
-- [ ] Testar ausência de persistência em estados não aceitos.
-- [ ] Testar rollback de ingestão e preservação de dado anterior.
-- [ ] Executar regressão do backend.
+- [x] Testar estados via Agent 2/orquestrador e, quando adequado, API ASGI local.
+- [x] Testar ausência de persistência em estados não aceitos.
+- [x] Testar rollback de ingestão e preservação de dado anterior.
+- [x] Executar regressão do backend.
 
 ### Critério de aceite
 

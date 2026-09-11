@@ -1329,12 +1329,18 @@ def _insufficient_data_analysis(context_data: dict) -> dict:
             }
         )
 
-    if collection_status == "not_found":
-        explanation = "A coleta local não encontrou dados para o processo informado."
-    elif collection_status == "missing_number":
-        explanation = "Não foi informado um número de processo completo para consulta."
-    else:
-        explanation = "Não há dados processuais suficientes para produzir a análise solicitada."
+    explanations = {
+        "invalid_number": "O número informado não é um processo válido para consulta.",
+        "missing_number": "Não foi informado um número de processo completo para consulta.",
+        "not_found": "O processo não foi encontrado na consulta ao TRT18.",
+        "partial": "Não foi possível obter dados suficientes do processo consultado.",
+        "blocked": "A fonte externa está temporariamente indisponível para esta consulta.",
+        "failed": "Não foi possível concluir a consulta por uma falha técnica.",
+    }
+    explanation = explanations.get(
+        collection_status,
+        "Não há dados processuais suficientes para produzir a análise solicitada.",
+    )
 
     return {
         "analysis_type": "insufficient_data",
@@ -1343,7 +1349,7 @@ def _insufficient_data_analysis(context_data: dict) -> dict:
         "limitations": [
             "Sem dados de um processo ativo ou encontrado, a análise não pode inferir situação, partes, movimentações ou documentos."
         ],
-        "response_focus": "Solicitar um número de processo completo ou informar que a consulta local não encontrou dados.",
+        "response_focus": "Comunicar a situação da consulta sem inferir dados processuais ausentes.",
     }
 
 
