@@ -663,7 +663,7 @@ Cobrir a matriz completa no nível em que o usuário do chatbot observa o efeito
 
 ## INT-COL-P5-001 — Fechar o manifesto de dependências Python
 
-**Status:** `IMPLEMENTED`
+**Status:** `VALIDATED`
 **Dependência:** P4 fechada
 
 ### Objetivo
@@ -688,7 +688,7 @@ uma soma textual dos dois arquivos antigos.
 
 ## INT-COL-P5-002 — Unificar configuração e paths
 
-**Status:** `IMPLEMENTED`
+**Status:** `VALIDATED`
 **Dependência:** `INT-COL-P5-001`
 
 ### Objetivo
@@ -711,7 +711,7 @@ Eliminar configuração concorrente e dependência da máquina do desenvolvedor.
 
 ## INT-COL-P5-003 — Resolver duplicações bloqueantes da integração
 
-**Status:** `IMPLEMENTED`
+**Status:** `VALIDATED`
 **Dependência:** `INT-COL-P5-002`
 
 ### Objetivo
@@ -736,7 +736,7 @@ refatoração geral do repositório.
 
 ## INT-COL-P5-004 — Validar bootstrap Python limpo
 
-**Status:** `IMPLEMENTED`
+**Status:** `VALIDATED`
 **Dependências:** `INT-COL-P5-001`, `INT-COL-P5-002`, `INT-COL-P5-003`
 
 ### Objetivo
@@ -768,15 +768,15 @@ Comprovar instalação, importação e execução a partir das fontes versionada
 
 ## INT-COL-P6-001 — Executar regressão completa do backend
 
-**Status inicial:** `TODO`
+**Status:** `IMPLEMENTED`
 **Dependência:** P5 fechada
 
 ### Ações
 
-- [ ] Executar testes focados do adapter, repositório, Agent 2 e API.
-- [ ] Executar a suíte completa do chatbot no ambiente limpo.
-- [ ] Comparar com a baseline P0 e investigar toda falha nova.
-- [ ] Confirmar que o frontend não foi alterado funcionalmente.
+- [x] Executar testes focados do adapter, repositório, Agent 2 e API.
+- [x] Executar a suíte completa do chatbot no ambiente limpo.
+- [x] Comparar com a baseline P0 e investigar toda falha nova.
+- [x] Confirmar que o frontend não foi alterado funcionalmente.
 
 ### Critério de aceite
 
@@ -786,15 +786,15 @@ Comprovar instalação, importação e execução a partir das fontes versionada
 
 ## INT-COL-P6-002 — Executar regressão offline do coletor
 
-**Status inicial:** `TODO`
+**Status:** `IMPLEMENTED`
 **Dependência:** `INT-COL-P6-001`
 
 ### Ações
 
-- [ ] Validar CNJ, cache, normalização e modelos com fixtures sanitizadas.
-- [ ] Executar CLI/serviço em modo somente cache quando houver fixture completa.
-- [ ] Confirmar que exemplos/baselines protegidos não foram sobrescritos.
-- [ ] Confirmar ausência de rede nos testes offline.
+- [x] Validar CNJ, cache, normalização e modelos com fixtures sanitizadas.
+- [x] Executar CLI/serviço em modo somente cache quando houver fixture completa.
+- [x] Confirmar que exemplos/baselines protegidos não foram sobrescritos.
+- [x] Confirmar ausência de rede nos testes offline.
 
 ### Critério de aceite
 
@@ -804,20 +804,20 @@ Comprovar instalação, importação e execução a partir das fontes versionada
 
 ## INT-COL-P6-003 — Executar matriz integrada automatizada
 
-**Status inicial:** `TODO`
+**Status:** `IMPLEMENTED`
 **Dependências:** `INT-COL-P6-001`, `INT-COL-P6-002`
 
 ### Cenários mínimos
 
-- [ ] processo local consultável sem coletor;
-- [ ] processo ausente aciona fake de sucesso, normaliza, ingere e responde;
-- [ ] segunda pergunta não recoleta;
-- [ ] nova sessão/restart reutiliza SQLite;
-- [ ] remoto não encontrado recebe tratamento correto;
-- [ ] parcial, bloqueio, falha e exceção não viram `not_found`;
-- [ ] falha de ingestão faz rollback;
-- [ ] API mantém contrato público;
-- [ ] frontend permanece fora do fluxo interno.
+- [x] processo local consultável sem coletor;
+- [x] processo ausente aciona fake de sucesso, normaliza, ingere e responde;
+- [x] segunda pergunta não recoleta;
+- [x] nova sessão/restart reutiliza SQLite;
+- [x] remoto não encontrado recebe tratamento correto;
+- [x] parcial, bloqueio, falha e exceção não viram `not_found`;
+- [x] falha de ingestão faz rollback;
+- [x] API mantém contrato público;
+- [x] frontend permanece fora do fluxo interno.
 
 ### Critério de aceite
 
@@ -826,7 +826,7 @@ Comprovar instalação, importação e execução a partir das fontes versionada
 
 ## INT-COL-P6-004 — Executar aceite real controlado no TRT18
 
-**Status inicial:** `TODO`
+**Status:** `BLOCKED`
 **Dependência:** `INT-COL-P6-003`
 **Condição:** autorização e ambiente externo disponíveis
 

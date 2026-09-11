@@ -638,7 +638,7 @@ existem, mas o chatbot ainda não aciona `entrada-de-dados`. Estado global:
 | G2 | P2 — Fronteira Python | import estável, adapter explícito e testes offline aprovados | `VALIDATED` |
 | G3 | P3 — Fallback/persistência | local-first, coleta em miss, ingestão e reuso validados | `VALIDATED` |
 | G4 | P4 — Falhas | matriz de estados, API controlada e rollback validados | `VALIDATED` |
-| G5 | P5 — Runtime | dependências, config, CAPTCHA canônico e venv limpo aprovados | `IN_PROGRESS` |
+| G5 | P5 — Runtime | dependências, config, CAPTCHA canônico e venv limpo aprovados | `VALIDATED` |
 | G6 | P6 — Integração | regressões, matriz automatizada e aceite real controlado registrados | `TODO` |
 | G7 | P7 — Documentação | README/docs coerentes e auditoria cruzada aprovada | `TODO` |
 | G8 | P8 — Fechamento | DoD, diff, segurança e projeção para main aprovados | `TODO` |
@@ -657,8 +657,8 @@ Os commits abaixo são planejados; não constituem autorização para executar
 | C02 | P2 | `INT-COL-P2-001..003` | `feat(collector): establish chatbot collection boundary` | `VALIDATED` | `c01a5b50bc63413ee7a9734b02abd77dabf1a5d5` |
 | C03 | P3 | `INT-COL-P3-001..004` | `feat(chat): acquire and persist missing processes` | `VALIDATED` | `485ee7dca07b2e0eb8fda255080991c60e264561` |
 | C04 | P4 | `INT-COL-P4-001..003` | `fix(chat): preserve collector failure semantics` | `VALIDATED` | `259b5ed7a10261f72162f47377ffba38f3dcfb3a` |
-| C05 | P5 | `INT-COL-P5-001..004` | `chore(runtime): unify collector setup and configuration` | `IN_PROGRESS` | — |
-| C06 | P6 | `INT-COL-P6-001..004` | `test(integration): cover chatbot collector workflow` | `TODO` | — |
+| C05 | P5 | `INT-COL-P5-001..004` | `chore(runtime): unify collector setup and configuration` | `VALIDATED` | `34e660a677e5d283d55e4f8323815c62ca0496d7` |
+| C06 | P6 | `INT-COL-P6-001..004` | `test(integration): cover chatbot collector workflow` | `BLOCKED` | — |
 | C07 | P7 | `INT-COL-P7-001..003` | `docs(project): document chatbot collector integration` | `TODO` | — |
 | C08 | P8 | `INT-COL-P8-001..004` | `chore(integration): finalize chatbot collector delivery` | `TODO` | — |
 
@@ -713,19 +713,19 @@ Os commits abaixo são planejados; não constituem autorização para executar
 
 | ID | Status | Modelo recomendado | Modelo executado | Evidência esperada | Commit da fase |
 |---|---|---|---|---|---|
-| INT-COL-P5-001 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 | manifests separados por ownership e imports reais | C05 |
-| INT-COL-P5-002 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 | env/paths determinísticos e sem paths locais obrigatórios | C05 |
-| INT-COL-P5-003 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 | CAPTCHA e browser com fonte canônica explícita | C05 |
-| INT-COL-P5-004 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 | venv limpo, imports, health e testes; browser bloqueado por TLS ambiental | C05 |
+| INT-COL-P5-001 | `VALIDATED` | GPT-5.6 Terra | GPT-5 | manifests separados por ownership e imports reais | C05 |
+| INT-COL-P5-002 | `VALIDATED` | GPT-5.6 Terra | GPT-5 | env/paths determinísticos e sem paths locais obrigatórios | C05 |
+| INT-COL-P5-003 | `VALIDATED` | GPT-5.6 Terra | GPT-5 | CAPTCHA e browser com fonte canônica explícita | C05 |
+| INT-COL-P5-004 | `VALIDATED` | GPT-5.6 Terra | GPT-5 | exceção ambiental corporativa aceita pelo usuário; demais evidências P5 aprovadas | C05 |
 
 ### P6 — Testes e aceite
 
 | ID | Status | Modelo recomendado | Modelo executado | Evidência esperada | Commit da fase |
 |---|---|---|---|---|---|
-| INT-COL-P6-001 | `TODO` | GPT-5.6 Terra | — | regressão backend comparada à baseline | C06 |
-| INT-COL-P6-002 | `TODO` | GPT-5.6 Terra | — | regressão offline do coletor | C06 |
-| INT-COL-P6-003 | `TODO` | GPT-5.6 Sol | — | matriz integrada automatizada aprovada | C06 |
-| INT-COL-P6-004 | `TODO` | GPT-5.6 Sol | — | aceite real ou bloqueio externo honesto | C06 |
+| INT-COL-P6-001 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 | 143 testes backend; zero regressões | C06 |
+| INT-COL-P6-002 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 | 16 testes offline com bloqueio objetivo da fronteira externa | C06 |
+| INT-COL-P6-003 | `IMPLEMENTED` | GPT-5.6 Sol | GPT-5 | 8 cenários API/Agent 2/adapter/repository/SQLite, repetidos | C06 |
+| INT-COL-P6-004 | `BLOCKED` | GPT-5.6 Sol | GPT-5 | sem CNJ autorizado; Chromium indisponível conforme P5 | C06 |
 
 ### P7 — Documentação do produto
 
@@ -1160,4 +1160,56 @@ OWNERSHIP: notebook/pesquisa (pandas, openpyxl, jupyter, ipykernel) permanece fo
 EVIDENCIAS: venv novo .venv-p5-approved com Python 3.12.10, pip 25.0.1, Windows 11 64-bit; manifests oficiais instalaram runtime, pytest e trt18-collector[collect]; imports backend/adapter/collector leves e imports pesados passaram; health local retornou status ok; 112 testes focados, 135 do backend e 5 do collector passaram offline.
 LIMITACAO_AMBIENTAL: python -m playwright install chromium foi tentado pelo fluxo oficial e falhou por SELF_SIGNED_CERT_IN_CHAIN. Nenhum bypass TLS, Chrome/Edge local, navegação, TRT18 ou coleta real foi usado.
 G5: IN_PROGRESS; C05: IN_PROGRESS; COMMIT_REAL: —; COMMIT_CRIADO: não.
+```
+
+---
+
+## FASE P5 — validação do checkpoint C05
+
+```text
+DATA_HORA: 2026-09-11 -03:00
+CHECKPOINT_ENCONTRADO: 34e660a677e5d283d55e4f8323815c62ca0496d7 — chore(runtime): unify collector setup and configuration.
+REVISAO_DO_COMMIT: 13 arquivos, escopo restrito a manifests, configuração/paths, ownership CAPTCHA, testes de paths e registros operacionais; git diff HEAD^ HEAD --check passou.
+VALIDADO: P5-001 (ownership e imports declarados), P5-002 (SQLite/CWD, cache/debug, env e browser override) e P5-003 (fonte canônica e ausência de path local obrigatório).
+TESTES_REEXECUTADOS: imports leves + health local; 135 passed no backend; 5 passed no collector; imports playwright/cv2/numpy/ddddocr passaram. Nenhuma rede TRT18, browser launch, CAPTCHA ou coleta real foi executada.
+BLOQUEIO_CONFIRMADO: python -m playwright install --list não encontrou browser materializado; a instalação oficial de Chromium falha com SELF_SIGNED_CERT_IN_CHAIN. Não há evidência para validar browser/launch local sem contornar a cadeia TLS.
+STATUS_FINAL: P5-001/P5-002/P5-003 VALIDATED; P5-004 BLOCKED; G5 e C05 BLOCKED.
+COMMIT_DE_VALIDACAO: não criado.
+```
+
+---
+
+## FASE P5 — aceite de exceção ambiental pelo usuário
+
+```text
+DATA_HORA: 2026-09-11 -03:00
+DECISAO_DO_USUARIO: aceitar temporariamente a ausência de Chromium Playwright como limitação do computador corporativo, sem acesso para corrigir a cadeia TLS.
+EVIDENCIA_PRESERVADA: o comando oficial foi tentado, Playwright/lista de browsers confirmou que não há browser materializado, e a falha foi SELF_SIGNED_CERT_IN_CHAIN; nenhuma configuração de segurança foi contornada.
+ACEITE: P5-004 VALIDATED por decisão explícita do usuário, com ressalva ambiental documentada.
+STATUS_FINAL: P5-001, P5-002, P5-003 e P5-004 VALIDATED; G5 e C05 VALIDATED no checkpoint 34e660a677e5d283d55e4f8323815c62ca0496d7.
+PENDENCIA_RESIDUAL: em ambiente sem interceptação TLS, executar python -m playwright install chromium e validar launch local about:blank antes de usar coleta real.
+COMMIT_DE_ACEITE: não criado.
+```
+
+---
+
+## FASE P6 — regressões e matriz automatizada concluídas; aceite real bloqueado
+
+```text
+DATA_HORA: 2026-09-11 -03:00
+IDS: INT-COL-P6-001, INT-COL-P6-002, INT-COL-P6-003, INT-COL-P6-004
+PRECONDICAO: P3, P4 e P5 confirmadas no código, testes e registros; HEAD 34e660a677e5d283d55e4f8323815c62ca0496d7; ambiente oficial .venv-p5-approved com Python 3.12.10.
+WORKTREE_INICIAL: alterações preexistentes somente em docs/CHECKLIST_INTEGRACAO_CHATBOT_COLETA.md e CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_COLETA.md, provenientes dos registros P5; preservadas.
+P6_001: IMPLEMENTED. Testes focados e suíte completa passaram: 135 passed antes dos testes P6 e 143 passed após a inclusão da matriz. Baseline P0 era 43 passed; fechamentos P3/P4/P5 registravam 117/134/135 passed. O aumento é explicado por 8 testes P6, sem regressão de lookup local, consultas estruturadas, sessão, API, sanitização, repository ou RAG/degradação.
+FRONTEND: nenhum arquivo frontend foi alterado na P6 ou desde C05. Desde C00 existe somente frontend/proxy.runtime.json, adicionado historicamente em C03 como configuração auxiliar de proxy local para porta 8001; nenhum fonte Angular foi alterado pela integração P6.
+P6_002: IMPLEMENTED. 16 passed em 0.47 s no collector. Matriz cobre CNJ válido, formato, DV, segmento e tribunal inválidos; cache completo, ausente, JSON inválido e incompleto; normalização aninhada, opcionais, partes, movimentos e documentos; construção, rejeição e serialização Pydantic; serviço público cache-only. Socket e coletor externo são proibidos objetivamente no teste cache-only. Fixtures e baselines versionadas permaneceram sem diff.
+P6_003: IMPLEMENTED. 8 passed em 1.01 s, repetidos com o mesmo resultado. API ASGI, orquestrador, Agent 2, CollectorAdapter, repository e SQLite isolado são reais; somente interpretação/RAG não determinísticos e fronteira externa TRT18 são substituídos. Comprovados LOCAL_HIT sem coleta; MISS com uma coleta, persistência, reload e processo ativo; segunda pergunta, nova sessão e restart sem recoleta; NOT_FOUND/PARTIAL/BLOCKED/FAILED distintos; exceção segura; rollback sem persistência parcial e com preservação de dado anterior; envelope HTTP restrito aos DTOs públicos.
+P6_004: BLOCKED. Nenhum número processual foi explicitamente autorizado ou configurado para esta execução. A limitação P5 de Chromium Playwright não materializado também permanece. TRT18 não foi acessado; nenhum dado real foi lido, persistido ou exposto.
+TESTES_EXECUTADOS: focados backend 135 passed em 3.54 s; backend completo inicial 135 passed em 3.45 s; collector P6 focado 16 passed em 0.59 s; matriz P6 8 passed em 1.01 s; repetição matriz P6 8 passed em 1.01 s; backend completo final 143 passed em 5.32 s; collector completo final 16 passed em 0.47 s.
+CORRECOES_PRODUCAO: nenhuma. As falhas intermediárias eram exclusivamente dos testes novos (montagem de CNJ sintético, tmp global sem permissão e bloqueio amplo de socket interferindo no loop ASGI); corrigidas sem alterar código funcional.
+ARQUIVOS_P6: chatbot_processual_ai/tests/test_p6_end_to_end_integration.py; entrada-de-dados/tests/test_offline_collector_contract.py; docs/CHECKLIST_INTEGRACAO_CHATBOT_COLETA.md; CONTROLE_PROGRESSO_COMMITS_INTEGRACAO_CHATBOT_COLETA.md.
+SEGURANCA: nenhuma rede TRT18, browser, CAPTCHA, dado processual real, banco operacional, cache real, HTML, screenshot, raw JSON, segredo, commit ou push. Bancos e caches sintéticos efêmeros foram removidos pelos fixtures.
+GIT_DIFF_CHECK: pass; somente avisos informativos LF/CRLF nos dois documentos operacionais.
+STATUS_FINAL: P6-001 IMPLEMENTED; P6-002 IMPLEMENTED; P6-003 IMPLEMENTED; P6-004 BLOCKED; G6 BLOCKED; C06 BLOCKED e sem hash.
+COMMIT_CRIADO: não.
 ```
