@@ -768,7 +768,7 @@ Comprovar instalação, importação e execução a partir das fontes versionada
 
 ## INT-COL-P6-001 — Executar regressão completa do backend
 
-**Status:** `IMPLEMENTED`
+**Status:** `VALIDATED`
 **Dependência:** P5 fechada
 
 ### Ações
@@ -786,7 +786,7 @@ Comprovar instalação, importação e execução a partir das fontes versionada
 
 ## INT-COL-P6-002 — Executar regressão offline do coletor
 
-**Status:** `IMPLEMENTED`
+**Status:** `VALIDATED`
 **Dependência:** `INT-COL-P6-001`
 
 ### Ações
@@ -804,7 +804,7 @@ Comprovar instalação, importação e execução a partir das fontes versionada
 
 ## INT-COL-P6-003 — Executar matriz integrada automatizada
 
-**Status:** `IMPLEMENTED`
+**Status:** `VALIDATED`
 **Dependências:** `INT-COL-P6-001`, `INT-COL-P6-002`
 
 ### Cenários mínimos
@@ -826,7 +826,7 @@ Comprovar instalação, importação e execução a partir das fontes versionada
 
 ## INT-COL-P6-004 — Executar aceite real controlado no TRT18
 
-**Status:** `BLOCKED`
+**Status:** `VALIDATED`
 **Dependência:** `INT-COL-P6-003`
 **Condição:** autorização e ambiente externo disponíveis
 

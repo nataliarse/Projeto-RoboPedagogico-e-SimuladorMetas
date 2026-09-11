@@ -83,6 +83,37 @@ COMMIT_CRIADO: não.
 
 ---
 
+## FASE P6 — validação do checkpoint C06
+
+```text
+DATA_HORA: 2026-09-11 -03:00
+CHECKPOINT_ENCONTRADO: f536ce2ce8f88847c3c49a4d59f5beefd9e1a9fe — test(integration): cover chatbot collector workflow.
+REVISAO_DO_COMMIT: quatro arquivos, restritos à matriz automatizada backend/collector e aos dois registros operacionais P6; git diff HEAD^ HEAD --check passou; worktree estava limpo antes deste registro.
+TESTES_REEXECUTADOS: suíte focada backend 143 passed em 4.73 s; suíte completa backend 143 passed em 3.74 s; suíte completa collector offline 16 passed em 0.52 s.
+VALIDADO: P6-001 (regressão e frontend preservados), P6-002 (contrato produtor offline, cache-only e zero coleta externa) e P6-003 (matriz API/orquestrador/Agent 2/adapter/repository/SQLite, estados, reutilização e rollback).
+P6_004: permanece BLOCKED. O commit não contém nem poderia conter evidência do aceite real; nenhum CNJ explicitamente autorizado foi fornecido e a limitação ambiental do Chromium permanece. O pedido genérico de validação não substitui o insumo processual nem comprova a cadeia real.
+STATUS_FINAL: P6-001 VALIDATED; P6-002 VALIDATED; P6-003 VALIDATED; P6-004 BLOCKED; G6 BLOCKED; C06 BLOCKED com hash real registrado, ainda não aprovado como fechamento completo da fase.
+P7: não iniciada.
+COMMIT_DE_VALIDACAO: não criado.
+```
+
+---
+
+## FASE P6 — aceite explícito da exceção ambiental e fechamento
+
+```text
+DATA_HORA: 2026-09-11 -03:00
+DECISAO_DO_USUARIO: aceitar o impedimento do computador institucional, limitado e sem privilégios suficientes, como exceção para o aceite real controlado da P6.
+EVIDENCIA_PRESERVADA: P6-001, P6-002 e P6-003 foram validadas por 143 testes backend e 16 testes collector offline; o checkpoint C06 foi auditado. P6-004 não acessou TRT18, não utilizou CNJ real e não produziu evidência de sucesso real.
+ACEITE: P6-004 VALIDATED exclusivamente por decisão explícita do usuário, com ressalva ambiental permanente e sem reclassificar o teste não executado como sucesso técnico.
+STATUS_FINAL: P6-001, P6-002, P6-003 e P6-004 VALIDATED; G6 e C06 VALIDATED no checkpoint f536ce2ce8f88847c3c49a4d59f5beefd9e1a9fe.
+PENDENCIA_RESIDUAL: em ambiente autorizado e com Chromium Playwright disponível, executar futuramente um aceite real controlado com CNJ autorizado e banco isolado.
+P7: não iniciada nesta rodada.
+COMMIT_DE_ACEITE: não criado.
+```
+
+---
+
 ## FASE P4 — validação e fechamento do C04
 
 ```text
@@ -639,7 +670,7 @@ existem, mas o chatbot ainda não aciona `entrada-de-dados`. Estado global:
 | G3 | P3 — Fallback/persistência | local-first, coleta em miss, ingestão e reuso validados | `VALIDATED` |
 | G4 | P4 — Falhas | matriz de estados, API controlada e rollback validados | `VALIDATED` |
 | G5 | P5 — Runtime | dependências, config, CAPTCHA canônico e venv limpo aprovados | `VALIDATED` |
-| G6 | P6 — Integração | regressões, matriz automatizada e aceite real controlado registrados | `TODO` |
+| G6 | P6 — Integração | regressões, matriz automatizada e exceção ambiental do aceite real registrada | `VALIDATED` |
 | G7 | P7 — Documentação | README/docs coerentes e auditoria cruzada aprovada | `TODO` |
 | G8 | P8 — Fechamento | DoD, diff, segurança e projeção para main aprovados | `TODO` |
 
@@ -658,7 +689,7 @@ Os commits abaixo são planejados; não constituem autorização para executar
 | C03 | P3 | `INT-COL-P3-001..004` | `feat(chat): acquire and persist missing processes` | `VALIDATED` | `485ee7dca07b2e0eb8fda255080991c60e264561` |
 | C04 | P4 | `INT-COL-P4-001..003` | `fix(chat): preserve collector failure semantics` | `VALIDATED` | `259b5ed7a10261f72162f47377ffba38f3dcfb3a` |
 | C05 | P5 | `INT-COL-P5-001..004` | `chore(runtime): unify collector setup and configuration` | `VALIDATED` | `34e660a677e5d283d55e4f8323815c62ca0496d7` |
-| C06 | P6 | `INT-COL-P6-001..004` | `test(integration): cover chatbot collector workflow` | `BLOCKED` | — |
+| C06 | P6 | `INT-COL-P6-001..004` | `test(integration): cover chatbot collector workflow` | `VALIDATED` | `f536ce2ce8f88847c3c49a4d59f5beefd9e1a9fe` |
 | C07 | P7 | `INT-COL-P7-001..003` | `docs(project): document chatbot collector integration` | `TODO` | — |
 | C08 | P8 | `INT-COL-P8-001..004` | `chore(integration): finalize chatbot collector delivery` | `TODO` | — |
 
@@ -722,10 +753,10 @@ Os commits abaixo são planejados; não constituem autorização para executar
 
 | ID | Status | Modelo recomendado | Modelo executado | Evidência esperada | Commit da fase |
 |---|---|---|---|---|---|
-| INT-COL-P6-001 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 | 143 testes backend; zero regressões | C06 |
-| INT-COL-P6-002 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 | 16 testes offline com bloqueio objetivo da fronteira externa | C06 |
-| INT-COL-P6-003 | `IMPLEMENTED` | GPT-5.6 Sol | GPT-5 | 8 cenários API/Agent 2/adapter/repository/SQLite, repetidos | C06 |
-| INT-COL-P6-004 | `BLOCKED` | GPT-5.6 Sol | GPT-5 | sem CNJ autorizado; Chromium indisponível conforme P5 | C06 |
+| INT-COL-P6-001 | `VALIDATED` | GPT-5.6 Terra | GPT-5 | 143 testes backend; zero regressões | C06 |
+| INT-COL-P6-002 | `VALIDATED` | GPT-5.6 Terra | GPT-5 | 16 testes offline com bloqueio objetivo da fronteira externa | C06 |
+| INT-COL-P6-003 | `VALIDATED` | GPT-5.6 Sol | GPT-5 | 8 cenários API/Agent 2/adapter/repository/SQLite, repetidos | C06 |
+| INT-COL-P6-004 | `VALIDATED` | GPT-5.6 Sol | GPT-5 | exceção ambiental aceita explicitamente; fluxo TRT18 não executado | C06 |
 
 ### P7 — Documentação do produto
 
