@@ -23,6 +23,7 @@ na máquina do usuário (não em ambiente headless sem display). O notebook
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from datetime import datetime
@@ -31,7 +32,6 @@ from typing import Optional
 
 # --- torna o pacote de captcha já existente importável -----------------------
 RAIZ = Path(__file__).resolve().parent.parent
-CAPTCHA_DIR = Path(__file__).resolve().parent / "captcha"
 
 
 def _carregar_dependencias_de_coleta():
@@ -119,7 +119,9 @@ PAUSA_ENTRE_PROCESSOS_S = 1.5
 TEMPO_CARREGAR_DADOS_MS = 45000
 
 DIR_BRUTOS = RAIZ / "data" / "brutos"
-CAPTCHA_OUTPUT = CAPTCHA_DIR / "img_captured.png"
+DIR_DEBUG = RAIZ / "data" / "debug"
+# The image exists only between capture and OCR; it never belongs in source.
+CAPTCHA_OUTPUT = DIR_DEBUG / "captcha" / "img_captured.png"
 
 # trechos de URL que indicam respostas de API com dados do processo
 PADRAO_API = re.compile(r"/(consultaprocessual|api)/", re.IGNORECASE)
@@ -165,14 +167,6 @@ def cache_aproveitavel(bruto: dict) -> bool:
     responder). Esses arquivos são tratados como inválidos e recoletados.
     """
     return _tem_dados_completos(bruto.get("respostas_api") or [])
-
-NAVEGADORES_INSTALADOS = [
-    Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
-    Path(r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"),
-    Path(r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"),
-    Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"),
-]
-
 
 # ---------------------------------------------------------------------------
 # Utilidades
@@ -256,14 +250,22 @@ def salvar_data_url_imagem(data_url: str, output_path: Path) -> None:
     match = re.match(r"data:image/[^;]+;base64,(.+)", data_url, re.DOTALL)
     if not match:
         raise ValueError("Imagem do captcha não está no formato data:image/*;base64.")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_bytes(base64.b64decode(match.group(1)))
 
 
 def encontrar_navegador_instalado() -> Optional[Path]:
-    for navegador in NAVEGADORES_INSTALADOS:
-        if navegador.exists():
-            return navegador
-    return None  # cai no Chromium do próprio Playwright
+    """Returns only an explicit override; Playwright Chromium is the default."""
+    configured = os.getenv("TRT18_COLLECTOR_BROWSER_EXECUTABLE", "").strip()
+    if not configured:
+        return None
+    browser_path = Path(configured).expanduser()
+    if not browser_path.is_file():
+        raise FileNotFoundError(
+            "TRT18_COLLECTOR_BROWSER_EXECUTABLE does not point to an executable: "
+            f"{browser_path}"
+        )
+    return browser_path
 
 
 # ---------------------------------------------------------------------------
@@ -548,9 +550,6 @@ def _executar_tentativa(
         return False
     finally:
         browser.close()
-
-
-DIR_DEBUG = RAIZ / "data" / "debug"
 
 
 def _salvar_diagnostico(page, numero_norm: str) -> None:

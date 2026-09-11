@@ -83,6 +83,27 @@ COMMIT_CRIADO: não.
 
 ---
 
+## FASE P4 — validação e fechamento do C04
+
+```text
+DATA_HORA: 2026-09-11 -03:00
+IDS_AVALIADOS: INT-COL-P4-001, INT-COL-P4-002, INT-COL-P4-003
+CHECKPOINT_ENCONTRADO: 259b5ed7a10261f72162f47377ffba38f3dcfb3a — fix(chat): preserve collector failure semantics.
+ESCOPO_DO_COMMIT: quatro arquivos restritos à P4 — análise determinística, matriz de testes e dois registros operacionais; nenhum frontend, schema, dependência, configuração ou item P5.
+DIAGNOSTICO_VALIDADO: somente NOT_FOUND comunica ausência remota no TRT18; INVALID_NUMBER, PARTIAL, BLOCKED e FAILED mantêm semânticas públicas distintas, seguras e sem processo ativo.
+PERSISTENCIA_VALIDADA: os cinco estados negativos não alcançam persist; falha durante substituição transacional preserva exatamente árvore e chunks anteriores. LOCAL_HIT continua sem coleta/escrita e COLLECTED continua persistindo e relendo do SQLite.
+SEGURANCA_VALIDADA: respostas e progresso não expõem traceback, exceção bruta, path SQLite, Playwright, CAPTCHA, cookie ou token; nenhuma mensagem promete retry automático.
+TESTES_REEXECUTADOS_NO_COMMIT: P4 17 passed em 0.60 s; focados 111 passed em 1.64 s; regressão completa do chatbot 134 passed em 2.98 s; coletor offline 3 passed em 0.52 s.
+REVISAO: worktree estava limpo antes deste registro; git diff HEAD^ HEAD --check passou; conteúdo e mensagem do checkpoint conferidos; nenhuma coleta real, rede, browser, banco operacional, deploy ou alteração de frontend ocorreu.
+STATUS_FINAL: INT-COL-P4-001, INT-COL-P4-002 e INT-COL-P4-003 VALIDATED.
+G4: VALIDATED.
+C04: VALIDATED no commit 259b5ed7a10261f72162f47377ffba38f3dcfb3a.
+P5: não iniciada; INT-COL-P5-001..004 permanecem TODO.
+COMMIT_DE_VALIDACAO: não criado.
+```
+
+---
+
 ## INT-COL-P3-001 — registro detalhado
 
 ```text
@@ -616,8 +637,8 @@ existem, mas o chatbot ainda não aciona `entrada-de-dados`. Estado global:
 | G1 | P1 — Contratos | produtor, consumidor, estados, importação, ownership e dados decididos | `VALIDATED` |
 | G2 | P2 — Fronteira Python | import estável, adapter explícito e testes offline aprovados | `VALIDATED` |
 | G3 | P3 — Fallback/persistência | local-first, coleta em miss, ingestão e reuso validados | `VALIDATED` |
-| G4 | P4 — Falhas | matriz de estados, API controlada e rollback validados | `IN_PROGRESS` |
-| G5 | P5 — Runtime | dependências, config, CAPTCHA canônico e venv limpo aprovados | `TODO` |
+| G4 | P4 — Falhas | matriz de estados, API controlada e rollback validados | `VALIDATED` |
+| G5 | P5 — Runtime | dependências, config, CAPTCHA canônico e venv limpo aprovados | `IN_PROGRESS` |
 | G6 | P6 — Integração | regressões, matriz automatizada e aceite real controlado registrados | `TODO` |
 | G7 | P7 — Documentação | README/docs coerentes e auditoria cruzada aprovada | `TODO` |
 | G8 | P8 — Fechamento | DoD, diff, segurança e projeção para main aprovados | `TODO` |
@@ -635,8 +656,8 @@ Os commits abaixo são planejados; não constituem autorização para executar
 | C01 | P1 | `INT-COL-P1-001..004` | `docs(integration): define chatbot collector contracts` | `VALIDATED` | `f2ba1723e3bd74cbeb8bc136f465ca773cbc29fd` |
 | C02 | P2 | `INT-COL-P2-001..003` | `feat(collector): establish chatbot collection boundary` | `VALIDATED` | `c01a5b50bc63413ee7a9734b02abd77dabf1a5d5` |
 | C03 | P3 | `INT-COL-P3-001..004` | `feat(chat): acquire and persist missing processes` | `VALIDATED` | `485ee7dca07b2e0eb8fda255080991c60e264561` |
-| C04 | P4 | `INT-COL-P4-001..003` | `fix(chat): preserve collector failure semantics` | `TODO` | — |
-| C05 | P5 | `INT-COL-P5-001..004` | `chore(runtime): unify collector setup and configuration` | `TODO` | — |
+| C04 | P4 | `INT-COL-P4-001..003` | `fix(chat): preserve collector failure semantics` | `VALIDATED` | `259b5ed7a10261f72162f47377ffba38f3dcfb3a` |
+| C05 | P5 | `INT-COL-P5-001..004` | `chore(runtime): unify collector setup and configuration` | `IN_PROGRESS` | — |
 | C06 | P6 | `INT-COL-P6-001..004` | `test(integration): cover chatbot collector workflow` | `TODO` | — |
 | C07 | P7 | `INT-COL-P7-001..003` | `docs(project): document chatbot collector integration` | `TODO` | — |
 | C08 | P8 | `INT-COL-P8-001..004` | `chore(integration): finalize chatbot collector delivery` | `TODO` | — |
@@ -684,18 +705,18 @@ Os commits abaixo são planejados; não constituem autorização para executar
 
 | ID | Status | Modelo recomendado | Modelo executado | Evidência esperada | Commit da fase |
 |---|---|---|---|---|---|
-| INT-COL-P4-001 | `IMPLEMENTED` | GPT-5.6 Sol | GPT-5 (Codex) | matriz de estados traduzida sem falso not_found | C04 |
-| INT-COL-P4-002 | `IMPLEMENTED` | GPT-5.6 Sol | GPT-5 (Codex) | API segura e banco consistente em falhas | C04 |
-| INT-COL-P4-003 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 (Codex) | testes observáveis dos estados aprovados | C04 |
+| INT-COL-P4-001 | `VALIDATED` | GPT-5.6 Sol | GPT-5 (Codex) | matriz de estados traduzida sem falso not_found | C04 |
+| INT-COL-P4-002 | `VALIDATED` | GPT-5.6 Sol | GPT-5 (Codex) | API segura e banco consistente em falhas | C04 |
+| INT-COL-P4-003 | `VALIDATED` | GPT-5.6 Terra | GPT-5 (Codex) | testes observáveis dos estados aprovados | C04 |
 
 ### P5 — Runtime, configuração e duplicações
 
 | ID | Status | Modelo recomendado | Modelo executado | Evidência esperada | Commit da fase |
 |---|---|---|---|---|---|
-| INT-COL-P5-001 | `TODO` | GPT-5.6 Terra | — | manifesto(s) cobrindo imports reais | C05 |
-| INT-COL-P5-002 | `TODO` | GPT-5.6 Terra | — | env/paths sem concorrência ou path local | C05 |
-| INT-COL-P5-003 | `TODO` | GPT-5.6 Terra | — | CAPTCHA e fontes de verdade canônicos | C05 |
-| INT-COL-P5-004 | `TODO` | GPT-5.6 Terra | — | venv limpo, browser, imports, health e testes | C05 |
+| INT-COL-P5-001 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 | manifests separados por ownership e imports reais | C05 |
+| INT-COL-P5-002 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 | env/paths determinísticos e sem paths locais obrigatórios | C05 |
+| INT-COL-P5-003 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 | CAPTCHA e browser com fonte canônica explícita | C05 |
+| INT-COL-P5-004 | `IMPLEMENTED` | GPT-5.6 Terra | GPT-5 | venv limpo, imports, health e testes; browser bloqueado por TLS ambiental | C05 |
 
 ### P6 — Testes e aceite
 
@@ -767,6 +788,7 @@ recuperação ou rejeição; adicionar novo evento.
 | 11/09/2026 | Fase P3/C03 | Fechamento autorizado para a branch própria de trabalho | `P3-002/P3-003/P3-004 IMPLEMENTED` → `VALIDATED`; `G3/C03` → `VALIDATED` | GPT-5 (Codex) | usuário aceitou artefatos auxiliares versionados nesta branch; gate funcional restrito da P3 e todas as regressões passaram; limpeza global permanece obrigatória antes da main | C03 |
 | 11/09/2026 | Fase P4 | Tratamento de estados, degradação e falhas iniciado | `P4-001/P4-002/P4-003 TODO` → `IN_PROGRESS`; `G4 TODO` → `IN_PROGRESS` | GPT-5 (Codex) | P3/C03 confirmados; achatamento na mensagem pública diagnosticado | — |
 | 11/09/2026 | Fase P4 | Implementação integrada concluída; validação reservada ao usuário | `P4-001/P4-002/P4-003 IN_PROGRESS` → `IMPLEMENTED` | GPT-5 (Codex) | 17 testes P4, 111 focados, 134 do chatbot e 3 do coletor aprovados; API, segurança, não persistência e rollback com dado anterior comprovados | — |
+| 11/09/2026 | Fase P4/C04 | Validação e fechamento autorizados pelo usuário | `P4-001/P4-002/P4-003 IMPLEMENTED` → `VALIDATED`; `G4/C04` → `VALIDATED` | GPT-5 (Codex) | checkpoint 259b5ed conferido; 17 P4, 111 focados, 134 do chatbot e 3 do coletor reexecutados com sucesso; P5 não iniciada | C04 |
 
 ---
 
@@ -1121,4 +1143,21 @@ DEPENDENCIAS_AFETADAS: G1 permanece IN_PROGRESS; INT-COL-P1-002 permanece TODO e
 COMMIT_DA_FASE: C01
 COMMIT_REAL: —
 OBSERVACOES: Git read-only confirmou HEAD/C00 em 7275f75936988ffb45722f60d68b00ca6ab22e5d ("feat: P0 - Baseline estrutural") na branch esperada. O controle ainda mostra Commit real de C00 como —, portanto o hash não está registrado nele; divergência operacional preservada e encaminhada, sem reescrever P0.
+```
+
+---
+
+## FASE P5 — implementação concluída; validação reservada ao usuário
+
+```text
+DATA_HORA: 2026-09-11 -03:00
+IDS: INT-COL-P5-001, INT-COL-P5-002, INT-COL-P5-003, INT-COL-P5-004
+STATUS_ANTERIOR: TODO
+STATUS_FINAL_DESTA_RODADA: IMPLEMENTED; não promover a VALIDATED.
+PRECONDICAO: P4/G4/C04 validados no HEAD 259b5ed7a10261f72162f47377ffba38f3dcfb3a.
+IMPLEMENTACAO: requirements.txt agora pertence ao runtime FastAPI; requirements-dev.txt possui pytest; pyproject.toml do collector declara pydantic e o extra .[collect] (playwright, ddddocr, opencv-python, numpy). O SQLite relativo é resolvido a partir do módulo do backend. O Chromium Playwright é o padrão; TRT18_COLLECTOR_BROWSER_EXECUTABLE é override opcional. CAPTCHA transitório vai para data/debug/captcha e paths Chrome/Edge fixos foram removidos.
+OWNERSHIP: notebook/pesquisa (pandas, openpyxl, jupyter, ipykernel) permanece fora do runtime integrado e não foi instalado.
+EVIDENCIAS: venv novo .venv-p5-approved com Python 3.12.10, pip 25.0.1, Windows 11 64-bit; manifests oficiais instalaram runtime, pytest e trt18-collector[collect]; imports backend/adapter/collector leves e imports pesados passaram; health local retornou status ok; 112 testes focados, 135 do backend e 5 do collector passaram offline.
+LIMITACAO_AMBIENTAL: python -m playwright install chromium foi tentado pelo fluxo oficial e falhou por SELF_SIGNED_CERT_IN_CHAIN. Nenhum bypass TLS, Chrome/Edge local, navegação, TRT18 ou coleta real foi usado.
+G5: IN_PROGRESS; C05: IN_PROGRESS; COMMIT_REAL: —; COMMIT_CRIADO: não.
 ```

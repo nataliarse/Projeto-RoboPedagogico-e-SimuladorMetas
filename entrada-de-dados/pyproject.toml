@@ -9,6 +9,16 @@ description = "Coletor e normalizador de processos do TRT18"
 requires-python = ">=3.10"
 dependencies = ["pydantic>=2"]
 
+[project.optional-dependencies]
+# Dependências carregadas somente quando uma coleta real é solicitada. O extra
+# torna explícito o comando oficial sem tornar a API/cache leve dependente delas.
+collect = [
+    "playwright",
+    "ddddocr",
+    "opencv-python",
+    "numpy",
+]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["trt18_collector*"]

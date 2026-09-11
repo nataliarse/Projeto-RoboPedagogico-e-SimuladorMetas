@@ -1,0 +1,6 @@
+# Pesquisa notebook only (entrada-de-dados/pesquisa/pipeline.ipynb).
+# This manifest is intentionally outside the integrated runtime bootstrap.
+pandas
+openpyxl
+jupyter
+ipykernel

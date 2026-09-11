@@ -8,6 +8,7 @@ __pycache__/
 
 # Virtual environments
 .venv/
+.venv*/
 venv/
 env/
 ENV/
@@ -106,6 +107,7 @@ logs/
 *.swo
 tmp/
 temp/
+.p5-tmp/
 outputs/
 artifacts/
 models/

@@ -587,7 +587,7 @@ Comprovar que sessão ativa e persistência evitam trabalho externo repetido.
 
 ## INT-COL-P4-001 — Traduzir a matriz de estados do coletor
 
-**Status:** `IMPLEMENTED`
+**Status:** `VALIDATED`
 **Dependência:** P3 fechada
 
 ### Objetivo
@@ -610,7 +610,7 @@ Fazer cada resultado externo chegar ao chatbot com semântica verdadeira.
 
 ## INT-COL-P4-002 — Preservar a API diante de falha externa
 
-**Status:** `IMPLEMENTED`
+**Status:** `VALIDATED`
 **Dependência:** `INT-COL-P4-001`
 
 ### Objetivo
@@ -633,7 +633,7 @@ ou produza resposta enganosa.
 
 ## INT-COL-P4-003 — Fixar regressões dos estados em testes
 
-**Status:** `IMPLEMENTED`
+**Status:** `VALIDATED`
 **Dependência:** `INT-COL-P4-002`
 
 ### Objetivo
@@ -663,7 +663,7 @@ Cobrir a matriz completa no nível em que o usuário do chatbot observa o efeito
 
 ## INT-COL-P5-001 — Fechar o manifesto de dependências Python
 
-**Status inicial:** `TODO`
+**Status:** `IMPLEMENTED`
 **Dependência:** P4 fechada
 
 ### Objetivo
@@ -688,7 +688,7 @@ uma soma textual dos dois arquivos antigos.
 
 ## INT-COL-P5-002 — Unificar configuração e paths
 
-**Status inicial:** `TODO`
+**Status:** `IMPLEMENTED`
 **Dependência:** `INT-COL-P5-001`
 
 ### Objetivo
@@ -711,7 +711,7 @@ Eliminar configuração concorrente e dependência da máquina do desenvolvedor.
 
 ## INT-COL-P5-003 — Resolver duplicações bloqueantes da integração
 
-**Status inicial:** `TODO`
+**Status:** `IMPLEMENTED`
 **Dependência:** `INT-COL-P5-002`
 
 ### Objetivo
@@ -736,7 +736,7 @@ refatoração geral do repositório.
 
 ## INT-COL-P5-004 — Validar bootstrap Python limpo
 
-**Status inicial:** `TODO`
+**Status:** `IMPLEMENTED`
 **Dependências:** `INT-COL-P5-001`, `INT-COL-P5-002`, `INT-COL-P5-003`
 
 ### Objetivo

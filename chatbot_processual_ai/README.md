@@ -32,6 +32,11 @@ Instale somente as dependências versionadas e crie a configuração local:
 
 ```text
 python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
+cd ../entrada-de-dados
+python -m pip install -e ".[collect]"
+python -m playwright install chromium
+cd ../chatbot_processual_ai
 ```
 
 ```powershell
@@ -92,11 +97,17 @@ O comando oficial da suíte, executado deste mesmo diretório, é:
 python -m pytest tests -q
 ```
 
-Limitação conhecida: no estado atual, `requirements.txt` não declara `pytest`.
-Portanto, um venv estritamente reconstruído por esse arquivo executa a API, mas
-não executa a suíte acima (`No module named pytest`). Não instale dependências
-avulsas e trate o ambiente como reproduzível; a fonte versionada das dependências
-de teste precisa ser deliberadamente corrigida em item próprio.
+P5 update: `requirements-dev.txt` owns `pytest`; collection dependencies are
+installed from `entrada-de-dados` with `python -m pip install -e ".[collect]"`.
+The default browser is the Chromium installed by `python -m playwright install chromium`.
+
+For `entrada-de-dados/pesquisa/pipeline.ipynb`, install its separate research
+dependencies with `python -m pip install -r requirements-notebook.txt` from
+`entrada-de-dados`; they are not required by the integrated runtime.
+
+Instale sempre `requirements-dev.txt` antes de executar a suíte. Não instale
+dependências avulsas: o runtime do backend, as ferramentas de teste e a coleta
+possuem manifests separados e explícitos.
 
 Executar a suíte a partir da raiz do repositório não é equivalente: os imports
 atuais falham na coleta. Não use ajustes de `PYTHONPATH`; entre neste diretório.

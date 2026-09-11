@@ -1,0 +1,3 @@
+# Ferramentas necessárias apenas para desenvolvimento e testes do backend.
+# Instale depois de requirements.txt.
+pytest

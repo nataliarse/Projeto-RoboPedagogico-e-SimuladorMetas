@@ -10,7 +10,9 @@ OLLAMA_MODEL_SELECTION = os.getenv("OLLAMA_MODEL_SELECTION", "auto")
 OLLAMA_TEMPERATURE = float(os.getenv("OLLAMA_TEMPERATURE", "0.2"))
 OLLAMA_TIMEOUT_SECONDS = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "60"))
 
-LOCAL_DB_PATH = os.getenv("LOCAL_DB_PATH", "./data/processual.sqlite3")
+# Paths relativos são resolvidos pelo repositório em relação a este módulo,
+# nunca ao diretório corrente do processo (ver process_repository.database_path).
+LOCAL_DB_PATH = os.getenv("LOCAL_DB_PATH", "data/processual.sqlite3")
 RAG_ENABLED = os.getenv("RAG_ENABLED", "true").strip().lower() in {
     "1",
     "true",
