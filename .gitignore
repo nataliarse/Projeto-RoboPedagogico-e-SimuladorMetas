@@ -97,6 +97,7 @@ chatbot_processual_ai/data/*
 !chatbot_processual_ai/data/
 !chatbot_processual_ai/data/sample_processes.json
 !chatbot_processual_ai/data/README.md
+!chatbot_processual_ai/data/normas/
 
 logs/
 *.log
@@ -111,6 +112,8 @@ temp/
 outputs/
 artifacts/
 models/
+# os modelos de dados do frontend não são artefatos de ML
+!frontend/src/app/core/models/
 checkpoints/
 *.sqlite
 *.sqlite3

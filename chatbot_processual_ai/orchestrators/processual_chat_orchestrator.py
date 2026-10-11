@@ -7,6 +7,13 @@ from agents.agent3_process_analysis import analyze_process_context
 from agents.agent4_response import create_user_response
 from progress import ProgressReporter, progress_clock, report_progress
 from schemas.processual_contracts import ProcessualChatResponse, ProcessualChatStepResult
+from services.meta_diagnosis_service import (
+    META_IMPACT_INTENT,
+    answer_meta_question,
+    build_meta_block,
+    has_process_number,
+    is_meta_question,
+)
 
 
 SAFE_CHAT_ERROR_RESPONSE = (
@@ -26,6 +33,23 @@ def run_processual_chat_step(
     stage = "Agente 1"
     stage_code = "intent"
     stage_started_at: float | None = None
+
+    # Pergunta sobre as Metas 1 e 2 a respeito do processo já consultado: a resposta vem das
+    # regras determinísticas (autômato + glossário das metas), sem passar pelos agentes.
+    active_process = session_state.get("active_process")
+    if is_meta_question(message) and not has_process_number(message) and active_process:
+        return ProcessualChatStepResult(
+            response=_build_processual_chat_response(
+                intent_data={"intent": META_IMPACT_INTENT},
+                context_data={"active_process": active_process},
+                session_state=session_state,
+                response=answer_meta_question(message, active_process),
+                failed_stage=None,
+            ),
+            intent_data={"intent": META_IMPACT_INTENT},
+            context_data={"active_process": active_process},
+            analysis={},
+        )
 
     try:
         stage_started_at = progress_clock()
@@ -155,6 +179,8 @@ def run_processual_chat_step(
             analysis=analysis,
         )
 
+    response = _append_meta_block(response, intent_data, context_data)
+
     return ProcessualChatStepResult(
         response=_build_processual_chat_response(
             intent_data=intent_data,
@@ -187,6 +213,21 @@ def _build_processual_chat_response(
         rag_status=_rag_status(context_data),
         fontes=_rag_sources(context_data),
     )
+
+
+def _append_meta_block(response: str, intent_data: dict, context_data: dict) -> str:
+    """Na consulta de um processo, acrescenta o diagnóstico das Metas 1 e 2."""
+    if _effective_intent(intent_data, context_data) != "process_lookup":
+        return response
+
+    active_process = context_data.get("active_process")
+    if not isinstance(active_process, dict) or not active_process:
+        return response
+
+    meta_block = build_meta_block(active_process)
+    if not meta_block:
+        return response
+    return f"{response}\n\n{meta_block}"
 
 
 def _effective_intent(intent_data: dict, context_data: dict) -> str | None:

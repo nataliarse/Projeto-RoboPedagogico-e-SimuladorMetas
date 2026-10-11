@@ -1,0 +1,445 @@
+Fonte: CNJ. Glossário das Metas Nacionais do Poder Judiciário 2026 - Justiça do Trabalho, versão 3 (março/2026).
+Texto extraído do PDF oficial, páginas 3 a 12 (Metas 1 e 2).
+
+===== PAGINA 3 =====
+ 
+ 
+Meta 1 de 2026 – Julgar mais processos que os distribuídos 
+ 
+Julgar quantidade maior de processos de conhecimento do que os distribuídos 
+de 20/12/2025 a 19/12/2026, excluídos os suspensos e sobrestados de 
+20/12/2025 a 19/12/2026. 
+Critério de Cumprimento 
+A meta estará cumprida se, ao final do período: 
+• O percentual de cumprimento for igual ou maior que 100%; 
+• O percentual de cumprimento for inferior a 100%, mas o indicador Taxa de 
+Congestionamento Líquida na Fase de Conhecimento do Justiça em Números, em 2026, for 
+menor que 40%.   
+Fórmula de cálculo 
+Percentual de cumprimento = (∑julgadom1 / (∑cnm1 + ∑desm1 - ∑susm1)) x100 
+Observação 
+• Na última carga da meta, o valor de cada variável do “Dicionário” já  contemplará a situação 
+do ano inteiro, diferentemente da  metodologia utilizada no Sistema de Metas, em que se 
+calculava a situação mensalmente, e somava-se tudo ao final.  
+Esclarecimentos 
+A adoção do DataJud como base de dados das Metas Nacionais do Poder Judiciário introduziu 
+uma nova lógica de extração e apuração dos indicadores. Nesse modelo, após o envio das 
+informações pelos tribunais, cada nova carga de dados para o painel analisa a s ituação atual dos 
+processos no momento da extração, observados os períodos de referência específicos de cada 
+meta. 
+Nesse contexto, aplicam-se as seguintes diretrizes: 
+• a cada nova carga, é identificado o quantitativo de processos que, naquele momento, se 
+enquadram como casos novos, julgados, suspensos, dessobrestados e medidas protetivas 
+de urgência; 
+
+===== PAGINA 4 =====
+ 
+ 
+• as variáveis disponibilizadas já representam valores consolidados, sendo dispensado o 
+acúmulo mensal que era necessário no antigo Sistema de Metas; 
+• eventuais retificações nas classificações, movimentações ou atributos processuais são 
+automaticamente refletidas nas cargas subsequentes, garantindo a atualização contínua dos 
+indicadores. 
+Delimitação da Meta 1 – Processos de Conhecimento 
+A Meta 1 abrange exclusivamente os processos em fase de conhecimento, sendo considerados 
+aqueles que atendam a pelo menos um dos seguintes critérios: 
+• id_fase processual 1 (conhecimento) e id_tipo_procedimento 1 (conhecimento); e 
+• id_tipo_procedimento 5 (procedimento investigatório) que receberam as situações 
+Denúncia/queixa recebida (9) ou Classe evoluída para ação penal (81) ou 
+Liquidação/execução cancelada por nulidade (137) ou Ato Infracional Iniciado (159); e 
+• Id_tipo_procedimento 7 (procedimento investigatório) que receberam as situações 
+Denúncia/queixa recebida (9) ou Classe evoluída para ação penal (81) ou 
+Liquidação/execução cancelada por nulidade (137) ou Ato Infracional Iniciado (159). 
+Casos Novos Considerados na Meta 
+Para fins de apuração da Meta 1, deverão ser contabilizados como casos novos os processos de 
+conhecimento enquadrados nos critérios acima que apresentem a situação Pendente (88), quando 
+iniciada por qualquer dos seguintes eventos: 
+• Denúncia/queixa recebida (9); 
+• Distribuído (24); 
+• Recebido pelo Tribunal (61); 
+• Fase processual iniciada (65); 
+• Classe evoluída para ação penal (81); 
+• Ato infracional iniciado (159); 
+• Classe evoluída para ato infracional (160). 
+Assuntos Processuais (TPU) 
+Para esta meta, não há delimitação ou restrição quanto aos assuntos (TPU), sendo considerados 
+todos os assuntos associados aos processos enquadrados nos critérios acima. 
+Critério de Julgamento 
+
+===== PAGINA 5 =====
+ 
+ 
+Serão considerados como julgados os processos cuja primeira ocorrência, no período de apuração, 
+corresponda a um dos seguintes eventos: 
+• Primeira sentença (primeirasentm1); 
+• Procedimento resolvido (decm1); 
+• Baixa (baixm1); 
+• Decisão em medidas protetivas de urgência (mpum1). 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+===== PAGINA 6 =====
+ 
+ 
+Dicionário 
+ Regra geral: Serão considerados apenas processos de conhecimento. Para a parametrização de processo de conhecimento, consulta r a publicada na página do Datajud. 
+Variável Nome Conceito (Regra 
+negocial) Situação  Nome da situação Descrição dos indicadores 
+cnm1 Casos Novos Meta 1 
+Total de casos novos 
+distribuídos no mês de 
+apuração. 
+88 iniciada por: 
+(9), (24), (61), (65), 
+(81), (159) e (160). 
+Pendente (88), 
+Denúncia/queixa recebida (9), 
+Distribuído (24), 
+Recebido pelo Tribunal (61), 
+Fase processual iniciada (65), 
+Classe evoluída para ação penal 
+(81), 
+Ato infracional iniciado (159) e 
+Classe Evoluída para ato 
+infracional (160). 
+A soma dos processos em fase de conhecimento cuja data de início da primeira 
+situação Pendente (88) no banco ocorre no mês em questão, desde que a situação 
+Pendente (88) tenha sido iniciada pelas situações : Denúncia/queixa recebida (9),  
+Distribuído (24 ), Recebido pelo Tribunal (61), Fase processual iniciada (65),  Classe 
+evoluída para ação penal (81), Ato infracional iniciado (159) e Classe Evoluída para ato 
+infracional (160). A situação 88 para o Segundo Grau (G2) ou Tribunal Superior (SUP), 
+considera cada recurso, para os demais é contada sem duplicidade.  
+primeirasentm1 Primeira Sentença 
+Meta 1 
+Total de processos 
+onde o primeiro 
+julgamento ocorreu no 
+mês de apuração. 
+Todas as situações 
+contidas nas 
+hierarquias das 
+situações 62, 27 e 
+28, exceto a situação 
+Pronunciado (72). 
+Julgamento (62), 
+Julgamento com resolução de 
+mérito (27), 
+Decretada a falência (18), 
+Julgamento homologatório 
+proferido (29),  
+Concedida a recuperação judicial 
+(90) 
+Transação penal cumprida (129) e 
+Julgamento sem resolução de 
+mérito (28). 
+A soma de ocorrências, em processos em fase de conhecimento, de todas as situações contidas 
+nas hierarquias das situações Julgamento (62), Julgamento com resolução de mérito (27) e 
+Julgamento sem resolução de mérito (28), exceto a situação Pronunciado (72) , cuja data de 
+início da situação seja no mês analisado. Será considerada apenas a primeira ocorrência no 
+processo de conhecimento. 
+baixm1 Baixa Meta 1 
+Total de processos 
+baixados, arquivados 
+definitivamente, com 
+distribuição cancelada, 
+com nova fase iniciada 
+e remetidos a outra 
+instância ou justiça 
+pela única ou primeira 
+vez no mês de 
+apuração. 
+*Considerar a baixa 
+somente em processos 
+que não tiveram 
+solução (baixa sem 
+solução) 
+2, 10, 23 e 41 
+abertas ou 
+situação 88 
+finalizada, desde 
+que finalizada 
+pelas situações 26, 
+65, 91 e 132. 
+Arquivado definitivamente (2),  
+Baixado definitivamente (10),  
+Distribuição cancelada (23),  
+Remetido (41), 
+Pendente (88),  
+Execução não criminal (26), 
+Fase processual iniciada (65), 
+Liquidação Iniciada (91) e 
+Remetido em grau de recurso 
+(132). 
+A soma dos processos , em fase de conhecimento,  com as situações Arquivado 
+definitivamente (2), Baixado definitivamente (10), Di stribuição cancelada (23)  ou 
+Remetido (41  ) abertas no mês de referência, mais a soma dos processos com a 
+situação Pendente (88) finalizada pelas situações Execução não criminal (26), 
+Liquidação Iniciada (91), Fase processual iniciada (65) e Remetido em grau de recurso 
+(132) no mês de referência. Para o Segundo Grau (G2) ou Tribunal Superior (SUP), 
+considera a baixa para cada recurso, para os demais, leva em consideração a primeira 
+baixa em cada fase do processo, sem duplicidade. 
+julgadom1 Julgados Meta 1 
+Total de processos 
+julgados ou baixados 
+pela única ou primeira 
+Mesmas situações 
+das variáveis 
+primeirasentm1 e 
+baixm1 
+Mesmas situações das variáveis 
+primeirasentm1 e baixm1 
+Processos enquadrados em alguma das variáveis primeirasentm1 ou baixm1. Será considerada 
+apenas a primeira ocorrência no processo. 
+
+===== PAGINA 7 =====
+ 
+ 
+vez no mês de 
+apuração. 
+ 
+*Considerar a primeira 
+situação que ocorrer. 
+susm1 Suspensos Meta 1 
+Processos que 
+constam da variável 
+“cnm1” ou “desm1”, 
+que não constam na 
+variável “julgadom1” e 
+que foram sobrestados 
+no mês de apuração 
+88 e 25. Pendente (88) e  
+Pendente líquido (25). 
+A soma dos processos enquadrados nos indicadores "cnm1" ou " desm1" e não enquadrados 
+em julgadom1 com a situação Pendente (88) em aberto, onde a situação Pendente líquido (25) 
+esteja fechada no período de apuração. A situação Pendente (88) é contada sem duplicidade. 
+É considerada a última data de ocorrência da suspensão.   
+desm1 Dessobrestados 
+Meta 1 
+Processos que foram 
+dessobrestados no 
+mês de apuração e que 
+não foram julgados 
+anteriormente 
+88 e 25. Pendente (88) e  
+Pendente líquido (25). 
+Processos de conhecimento pendentes de julgamento que estavam com a situação Pendente 
+(88) em aberto e a situação Pendente Líquido (25) fechada e que, no mês em questão, abriram 
+a situação Pendente líquido (25). 
+
+===== PAGINA 8 =====
+ 
+Meta 2 de 2026 – Julgar processos mais antigos 
+ 
+• TST: Identificar e julgar até 31/12/2026, 100% dos processos pendentes de 
+julgamento até 31/12/2020.  
+ 
+• Tribunais do Trabalho:  Identificar e julgar até 31/12/2026, 
+desconsiderados os processos que estiverem suspensos ao final de 2026 
+ou que forem dessobrestados durante o ano de 2026, pelo menos 94% 
+dos processos distribuídos até 31/12/2024 nos 1º e 2º graus e 99% dos 
+processos pendentes de julgamento há 5 anos (2021) ou mais.  
+Critério de Cumprimento 
+A meta estará cumprida quando o grau de cumprimento for igual ou superior a 100% nas instâncias 
+e nos períodos de referência. 
+Fórmula de cálculo 
+a) Cumprimento TRTs = (∑julgadom2_a/(∑dism2_a – ∑susm2_a – ∑desm2_a)) * (1000/9,4) 
+b) Cumprimento antigos TRTs = (∑julgadom2_ant/(∑dism2_ant – ∑susm2_ant – ∑desm2_ant)) 
+* (1000/9,9)  
+c) Cumprimento antigos TST = (∑julgadom2_ant/(∑dism2_ant – ∑susm2_ant)) * 100 
+Esclarecimentos 
+A utilização do Datajud para os dados das Metas Nacionais do Poder Judiciário trouxe uma nova 
+lógica de extração: após o envio dos dados pelos tribunais, quando da realização de nova carga de 
+dados para o painel, a situação dos processos é analisada naquel e momento, respeitando os 
+períodos de referência de cada meta. Nesse modelo, temos o seguinte: 
+• A cada nova carga, identifica -se quantos processos se enquadram como casos novos, 
+julgados, suspensos ou dessobrestados e medidas protetivas de urgência; 
+• As variáveis já refletem valores consolidados, dispensando o acúmulo mensal que era 
+necessário no antigo Sistema de Metas;  
+
+===== PAGINA 9 =====
+  
+Metas Nacionais do Poder Judiciário - 2023 
+Glossário e Esclarecimentos – TST e TRTs 
+Versão 3 – Agosto/2023 
+ 
+9 
+• Retificações feitas nas classificações e movimentações dos processos são consideradas 
+automaticamente em cada nova carga; e 
+• No passivo já estarão incluídos os processos que voltaram a tramitar, pois naquele momento 
+da carga, eles deixaram de ser suspenso/sobrestado e passaram a atender os critérios de 
+novo caso.  
+A Meta Nacional 2 abarca os processos de conhecimento. Estão assim enquadrados na meta os 
+processos das classes em: 
+• id_fase processual 1 (conhecimento) e id_tipo_procedimento 1 (conhecimento);  
+• id_tipo_procedimento 5 (procedimento investigatório) que receberam as situações 
+Denúncia/queixa recebida (9) ou Classe evoluída para ação penal (81) ou 
+Liquidação/execução cancelada por nulidade (137) ou Ato Infracional Iniciado (159); e 
+• id_tipo_procedimento 7 (outros) que receberam as situações Denúncia/queixa recebida (9) 
+ou Classe evoluída para ação penal (81) ou Liquidação/execução cancelada por nulidade 
+(137) ou Ato Infracional Iniciado (159) 
+Então, para os processos considerados na meta deve -se contabilizar os processos de 
+conhecimento, listados acima, sob as situações de casos novos: Pendente (88) iniciada por 
+Denúncia/queixa recebida (9), Distribuído (24), Recebido pelo Tribunal (61), Fase p rocessual 
+iniciada (65), Classe evoluída para ação penal (81), Ato infracional iniciado (159) e Classe evoluída 
+para ato infracional (160). 
+Assuntos Processuais (TPU) 
+Para os Assuntos (TPU), não há definição ou delimitação a determinados assuntos para esta meta. 
+Critério de Julgamento 
+Serão considerados como julgados a primeira ocorrência e o que ocorrer primeiro do seguinte: 
+• Primeira sentença (primeirasentm2_k); 
+• Procedimento resolvido (decm2_k); 
+• Baixa (baixm2_k) ;  e 
+• Decisão em medidas protetivas de urgência (mpum2_k). 
+ 
+
+===== PAGINA 10 =====
+  
+Metas Nacionais do Poder Judiciário - 2023 
+Glossário e Esclarecimentos – TST e TRTs 
+Versão 3 – Agosto/2023 
+ 
+10 
+Aba Downloads 
+Para verificar os processos que estão pendentes em cada meta, deve-se filtrar os processos com 
+dismx_k = 1 e susmx_k = 0 (ou vazio) e julgadomx_k = 0 (ou vazio). 
+  
+
+===== PAGINA 11 =====
+ 
+ 
+Dicionário 
+Regra geral: Serão considerados apenas processos de conhecimento. Para a parametrização de processo de conhecimento, consulta r a publicada na página do Datajud. 
+Variável Nome Situação  Nome da situação Descrição dos indicadores 
+dism2_k Distribuídos Meta 2 
+88 iniciada por: (9), 
+(24), (61), (65), (81), 
+(159) e (160). 
+Pendente (88),  
+Denúncia/queixa recebida (9),  
+Distribuído (24),  
+Recebido pelo Tribunal (61),  
+Fase processu al iniciada (65),  
+Classe evoluí da para ação penal (81) , 
+Ato infracional iniciado (159) e  
+Classe Evoluída para ato infracional (160). 
+A soma dos processos do período k cuja data de início da primeira 
+situação Pendente (88) na fase de conhecimento no banco ocorra 
+antes do período E não tenha ocorrido nenhuma situação indicada na 
+variável "julgadom2_k" até o período, desde que a situação pendente 
+(88) tenha sido iniciada pelas situações:   Denúncia/queixa recebida 
+(9), Distribuído (24), Recebido pelo Tribunal (61),  Fase processual 
+iniciada (65),  Classe evoluída para ação penal (81) , Ato infracional 
+iniciado (159) e Classe evoluída para ato i nfracional (160). A situação 
+88 é contada sem duplicidade na fase de conhecimento (cada 
+processo é contabilizado apenas uma vez). 
+primeirasentm2_k Primeira Sentença 
+Meta 2 
+Todas as situações 
+contidas nas 
+hierarquias das 
+situações 62, 27 e 
+28, exceto a 
+situação 
+Pronunciado (72). 
+Julgamento (62),  
+Julgamento com resolução de mérito (27),  
+Decretada a falência (18),  
+Julgamento homologatório proferido (29),  
+Concedida a recuperação judicial (90)  
+Transação penal cumprida (129) e  
+Julgamento sem resolução de mérito (28). 
+A soma de processos do período k da fase de conhecimento das 
+situações contidas nas hierarquias das situações: Julgamento com 
+resolução de mérito (62), Julgamento sem resolução de mérito (27), 
+Julgamento sem resolução de mérito (28), Decretada a falência (18), 
+Julgamento homologatório proferido (29),  Concedida a recuperação 
+judicial (90)  e Transação penal cumprida (129) , com exceção da 
+situação 72,  abertas no mês de referência, o que ocorrer primeiro, 
+cuja data de início da situação seja a partir do período. 
+decm2_k Procedimento 
+Resolvido Meta 2 
+Procedimento 
+incidental ou 
+cautelar resolvido 
+(140) 
+Procedimento incidental ou cautelar resolvido (140) 
+A soma de processos do período k da fase de conhecimento da 
+situação Procedimento incidental ou cautelar resolvido (140) no 
+processo, cuja data de início da situação seja no mês analisado. Será 
+considerada apenas a primeira ocorrência no processo. 
+baixm2_k Baixa Meta 2 
+2, 10, 23 e 41 
+abertas ou situação 
+88 finalizada, desde 
+que finalizada pelas 
+situações 26, 65, 91 
+e 132. 
+Arquivado definitivamente (2),  
+Baixado definitivamente (10),  
+Distribuição cancelada (23),  
+Remetido (41), 
+Pendente (88),  
+Execução não criminal (26), 
+Fase processual iniciada (65), 
+Redistribuído para outro Tribunal (154), 
+Liquidação Iniciada (91 ) e  
+Remetido em grau de recurso (132). 
+A soma dos processos  do período k, em fase de conhecimento,  com 
+as situações Arquivado definitivamente (2), Baixado definitivamente 
+(10), Distribuição cancelada (23) ou Remetido (41)abertas no mês de 
+referência, mais a soma dos processos com a situação Pendente (88) 
+finalizada pelas situações Execução não criminal (26), Liquidação 
+Iniciada (91) , Fase processual iniciada (65)  e Remetido em grau de 
+recurso (132)  no mês de referência. Para o Segundo Grau (G2) ou 
+Tribunal Superior (SUP), considera a baixa para cada recurso, para os 
+demais, leva em consideração a primeira baixa em cada fase do 
+processo, sem duplicidade. 
+julgadom2_k Julgados Meta 2 
+Mesmas situações 
+das variáveis 
+primeirasentm2_k e 
+baixm2_k 
+Mesmas situações das variáveis primeirasentm2_k e 
+baixm2_k 
+Processos enquadrados em alguma das variáveis primeirasentm2_k 
+ou baixm2_k. Será considerada apenas a primeira ocorrência no 
+processo. 
+
+===== PAGINA 12 =====
+ 
+ 
+ 12 
+susm2_k Suspensos Meta 2 88 e 25. Pendente (88) e  
+Pendente líquido (25). 
+A soma dos processos do período enquadrados na variável "dis_ k" E 
+não enquadrados na variável "julgados_ k" com a situação Pendente 
+(88) em aberto, onde a situação Pendente líquido (25) esteja fechada 
+no ano de 2025. A situação Pendente (88) é contada sem duplicidade.   
+desm2_k Dessobrestados 
+Meta 2 antigos 88 e 25 Pendente (88)   
+Pendente líquido (25). 
+A soma dos processos enquadrados na variável "dism2_ k" E não 
+enquadrados na variável "julgadom2_k” que estavam com a situação 
+Pendente (88) em aberto e a situação Pendente Líquido (25) fechada 
+e que, no mês em questão, abriram a situação Pendente líquido (25). 
+ 
+Onde, 
+ 
+• k = a para o período até 2024 dos TRTs; e 
+• k = ant para os processos mais antigos. 
+ 
+Observações:  
+• Para o período dos mais antigos, s erão considerados apenas os processos pendentes de julgamento , ou seja, os julgados de anos anteriores não entram como 
+produtividade; 
+• Os processos pendentes de julgamento que estiverem suspensos ao final de 2026 serão desconsiderados do cômputo da meta; 
+• Os processos pendentes de julgamento que forem dessobrestados durante o ano de 202 6 não serão considerados no cômputo da meta. 
+
+===== PAGINA 13 =====
