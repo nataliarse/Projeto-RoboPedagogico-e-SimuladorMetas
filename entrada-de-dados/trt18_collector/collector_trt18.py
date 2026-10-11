@@ -140,22 +140,25 @@ def _tem_dados_completos(respostas_api: list[dict]) -> bool:
     return False
 
 
-def _processo_nao_encontrado(respostas_api: list[dict]) -> bool:
+def _situacao_dados_basicos(consultas: list[dict]) -> str:
     """
-    True quando o PJe respondeu `dadosbasicos` com lista vazia.
+    Interpreta as respostas do endpoint `dadosbasicos`, consultado antes do captcha.
 
-    O endpoint devolve `[{...}]` para um processo existente e `[]` quando o
-    número é válido mas não há processo correspondente no TRT18.
+    Comportamento observado no portal do TRT18:
+      - HTTP 200 com lista preenchida -> o processo existe;
+      - HTTP 204 (sem conteúdo)       -> número válido, mas sem processo;
+      - HTTP 5xx (ex.: ARQ-509)       -> instabilidade do portal, que ocorre de forma
+        intermitente inclusive para processos existentes. NÃO significa inexistência.
+
+    Devolve "EXISTE", "NAO_ENCONTRADO", "ERRO_PORTAL" ou "DESCONHECIDO".
     """
-    viu_dadosbasicos = False
-    for item in respostas_api:
-        if "dadosbasicos" not in (item.get("url") or ""):
-            continue
-        viu_dadosbasicos = True
-        payload = item.get("payload")
-        if isinstance(payload, list) and len(payload) > 0:
-            return False
-    return viu_dadosbasicos
+    if any(c["status"] == 200 and c["itens"] > 0 for c in consultas):
+        return "EXISTE"
+    if any(c["status"] == 204 or (c["status"] == 200 and c["itens"] == 0) for c in consultas):
+        return "NAO_ENCONTRADO"
+    if any(c["status"] >= 500 for c in consultas):
+        return "ERRO_PORTAL"
+    return "DESCONHECIDO"
 
 
 def cache_aproveitavel(bruto: dict) -> bool:
@@ -428,6 +431,8 @@ def _executar_tentativa(
     captcha_data_url = {"v": None}
     respostas_api: list[dict] = []
     bloqueio: dict = {}
+    consultas_basicos: list[dict] = []
+    erro_detalhe: dict = {}
 
     def capturar_imagem_da_rede(request):
         if request.url.startswith("data:image/png;base64,"):
@@ -443,7 +448,18 @@ def _executar_tentativa(
                 bloqueio["status"] = response.status
                 return
             ctype = (response.headers or {}).get("content-type", "")
-            if "application/json" not in ctype.lower():
+            eh_json = "application/json" in ctype.lower()
+            if "/dadosbasicos/" in response.url:
+                # registra o status mesmo sem corpo: 204 é a resposta de "não existe"
+                itens = 0
+                if response.status == 200 and eh_json:
+                    corpo = response.json()
+                    itens = len(corpo) if isinstance(corpo, list) else 0
+                consultas_basicos.append({"status": response.status, "itens": itens})
+            if response.status >= 500 and re.search(r"/api/processos/\d+(\?|$)", response.url):
+                # o detalhe do processo falhou no portal (instabilidade): não adianta esperar
+                erro_detalhe["status"] = response.status
+            if not eh_json or response.status >= 400:
                 return
             respostas_api.append({"url": response.url, "payload": response.json()})
         except Exception:  # corpo não-JSON / resposta já consumida
@@ -466,7 +482,7 @@ def _executar_tentativa(
         # o número é válido mas não existe processo — aborta sem gastar tentativas.
         esperou = 0
         while esperou < 10000:
-            if bloqueio or any("dadosbasicos" in (r.get("url") or "") for r in respostas_api):
+            if bloqueio or consultas_basicos:
                 break
             page.wait_for_timeout(500)
             esperou += 500
@@ -480,11 +496,20 @@ def _executar_tentativa(
             )
             return False
 
-        if _processo_nao_encontrado(respostas_api):
+        situacao_basicos = _situacao_dados_basicos(consultas_basicos)
+        if situacao_basicos == "NAO_ENCONTRADO":
             bruto["status_coleta"] = "NAO_ENCONTRADO"
             bruto["erros"].append(
-                "Processo não encontrado no TRT18 (o portal não retornou dados básicos)."
+                "Processo não encontrado no TRT18 (o portal respondeu sem conteúdo)."
             )
+            return False
+        if situacao_basicos == "ERRO_PORTAL":
+            # instabilidade do portal: vale tentar de novo; só vira erro na última tentativa
+            if ultima:
+                bruto["erros"].append(
+                    "O portal do TRT18 respondeu com erro interno (HTTP 5xx) em todas as "
+                    "tentativas. Trata-se de instabilidade do portal; tente mais tarde."
+                )
             return False
 
         captcha_input = page.locator("#captchaInput")
@@ -515,8 +540,23 @@ def _executar_tentativa(
             if _tem_dados_completos(respostas_api):
                 completo = True
                 break
+            if erro_detalhe:
+                break
+            if aguardado % 2000 == 0:
+                # o portal avisa na própria tela quando falha ao abrir o processo
+                try:
+                    tela = page.locator("body").inner_text(timeout=2000)
+                except Exception:  # noqa: BLE001
+                    tela = ""
+                if "Ocorreu um erro ao consultar o processo" in tela:
+                    erro_detalhe["status"] = "erro exibido na tela"
+                    break
             page.wait_for_timeout(PASSO_MS)
             aguardado += PASSO_MS
+
+        if erro_detalhe and not completo and not ultima:
+            # erro interno do portal ao abrir o processo: tenta de novo com navegador novo
+            return False
 
         if completo:
             page.wait_for_timeout(1000)  # deixa a SPA terminar de renderizar
@@ -532,10 +572,17 @@ def _executar_tentativa(
             bruto["status_coleta"] = "SUCESSO"
         else:
             bruto["status_coleta"] = "PARCIAL"
-            bruto["warnings"].append(
-                "Detalhe do processo (itensProcesso/partes) não chegou no tempo limite; "
-                "apenas dados básicos foram capturados."
-            )
+            if erro_detalhe:
+                bruto["warnings"].append(
+                    f"O portal do TRT18 respondeu com erro interno ({erro_detalhe['status']}) "
+                    "ao abrir o processo, em todas as tentativas; apenas dados básicos foram "
+                    "capturados. Trata-se de instabilidade do portal."
+                )
+            else:
+                bruto["warnings"].append(
+                    "Detalhe do processo (itensProcesso/partes) não chegou no tempo limite; "
+                    "apenas dados básicos foram capturados."
+                )
         return True
 
     except PlaywrightTimeoutError as exc:
