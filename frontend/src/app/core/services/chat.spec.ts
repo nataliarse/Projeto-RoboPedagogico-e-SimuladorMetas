@@ -6,7 +6,7 @@ import {
 import { TestBed } from '@angular/core/testing';
 import { TimeoutError } from 'rxjs';
 
-import { ProcessualChatHttpResponse } from '../types/processual-chat.types';
+import { ProcessualChatHttpResponse } from '../models/chat.model';
 import { ChatService, InvalidApiResponseError } from './chat';
 import { ChatSessionService } from './chat-session';
 

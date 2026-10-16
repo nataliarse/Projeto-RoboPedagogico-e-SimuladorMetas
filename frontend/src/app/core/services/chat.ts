@@ -5,7 +5,7 @@ import { map, Observable, timeout } from 'rxjs';
 import {
   ProcessualChatHttpResponse,
   ProcessualChatRequest
-} from '../types/processual-chat.types';
+} from '../models/chat.model';
 import { ChatSessionService } from './chat-session';
 import { HTTP_TIMEOUT_MS } from '../config/http-timeouts';
 

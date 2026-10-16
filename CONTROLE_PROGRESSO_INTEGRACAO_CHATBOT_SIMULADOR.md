@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 17 |
+| Validated | 18 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 28 |
+| Todo | 27 |
 | Skip aprovado | 0 |
-| Progresso validado | 37,78% |
+| Progresso validado | 40,00% |
 
 ## Fases
 
@@ -41,11 +41,11 @@
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
-| 3 — Chat real | INT-017–024 | 8 | 1 | IN_PROGRESS |
+| 3 — Chat real | INT-017–024 | 8 | 2 | IN_PROGRESS |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **17** | **IN_PROGRESS** |
+| **Total** | | **45** | **18** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -68,7 +68,7 @@
 | INT-015 | VALIDATED | `feat(integracao): tratar falhas HTTP no INT-015` | 21 testes Angular cobrem timeout, rede, 4xx, 5xx e resposta 2xx inválida | Falhas permanecem no canal de erro e mensagens técnicas não são expostas |
 | INT-016 | VALIDATED | `docs(integracao): definir timeouts no INT-016` | 21 testes Angular; timeout do chat exercitado com relógio virtual | Orçamentos centralizados por operação; chat reduzido de 135 s para 120 s |
 | INT-017 | VALIDATED | `feat(integracao): tipar envio do chat no INT-017` | 22 testes Angular; spy HTTP confirma POST, corpo e sessão opcional | Sessão explícita pode sobrescrever a armazenada sem alterar o contrato público |
-| INT-018 | TODO | — | — | — |
+| INT-018 | VALIDATED | `refactor(integracao): consolidar modelos do chat no INT-018` | Build Angular aprovado; modelos sem `any` | Payload real, mensagens e erros estruturados centralizados em `chat.model.ts` |
 | INT-019 | TODO | — | — | — |
 | INT-020 | TODO | — | — | — |
 | INT-021 | TODO | — | — | — |
@@ -308,6 +308,17 @@
 - **Riscos:** nenhum retry automático foi introduzido; a validação runtime da resposta permanece ativa.
 - **Commit:** identificado pelo assunto `feat(integracao): tipar envio do chat no INT-017`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-018`.
+
+### INT-018 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `3b0c4da`.
+- **Arquivos modificados:** modelos do chat, reexport de compatibilidade, consumidores TypeScript e este controle.
+- **Resumo técnico:** `chat.model.ts` passou a ser a fonte canônica para mensagens, histórico, request/response real, erros 422 e classificação estruturada de falhas; coleções desconhecidas usam `unknown`, sem `any`.
+- **Testes:** `npm run build` aprovado; bundle produzido com aviso preexistente de orçamento CSS, sem erro TypeScript; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** build de produção compila os consumidores contra os modelos centrais e busca textual não encontra `any` no modelo.
+- **Riscos:** o arquivo antigo de tipos permanece apenas como reexport temporário para compatibilidade e pode ser removido quando não houver consumidores externos.
+- **Commit:** identificado pelo assunto `refactor(integracao): consolidar modelos do chat no INT-018`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-019`.
 
 ### Modelo para cada execução
 

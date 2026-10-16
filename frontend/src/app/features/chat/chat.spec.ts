@@ -10,7 +10,7 @@ import { LocalStorageService } from '../../core/services/local-storage';
 import {
   ProcessualChatHttpResponse,
   ProcessualChatResponse,
-} from '../../core/types/processual-chat.types';
+} from '../../core/models/chat.model';
 import { ChatComponent } from './chat';
 
 const TIMEOUT_MESSAGE = 'A solicitação demorou mais que o esperado. Tente novamente.';
