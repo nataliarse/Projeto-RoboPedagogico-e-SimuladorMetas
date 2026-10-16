@@ -1,0 +1,155 @@
+# CONTROLE DE PROGRESSO — Integração Chatbot + Simulador
+
+**Data inicial:** 2026-10-14
+
+**Branch:** `feat/integracao_robo_metas`
+
+**Commit base:** `236e033ec74b9773542e1add13343fc4819fc07c`
+
+**Checklist oficial desta integração:** `CHECKLIST_INTEGRACAO_CHATBOT_SIMULADOR.md`
+
+**Escopo:** somente integração dos dois snapshots. Checklists temporariamente retiradas **não** fazem parte desta execução e não devem ser recriadas, apagadas ou tratadas como autorização de alteração.
+
+## Estados permitidos
+
+- `TODO`: não iniciado.
+- `IN_PROGRESS`: execução em andamento, sem aceite.
+- `BLOCKED`: depende de decisão, permissão, ambiente ou informação ausente.
+- `FAILED`: implementado/tentado, mas critérios de aceite ou teste falharam.
+- `VALIDATED`: requisito satisfeito, testes/evidências registrados e commit identificado.
+- `SKIPPED_APPROVED`: deliberadamente não aplicável, com justificativa e aprovação registrada.
+
+**Regra:** marcar `VALIDATED` só após verificação objetiva. Não deduzir conclusão de outro item ou de commits sem testes. Nunca marcar retroativamente sem evidência.
+
+## Painel
+
+| Indicador | Inicial |
+|---|---:|
+| Total de itens | 45 |
+| Validated | 1 |
+| In progress | 0 |
+| Blocked | 0 |
+| Failed | 0 |
+| Todo | 44 |
+| Skip aprovado | 0 |
+| Progresso validado | 2,22% |
+
+## Fases
+
+| Fase | Itens | Total | Validados | Situação |
+|---|---|---:|---:|---|
+| 0 — Segurança e inventário | INT-001–006 | 6 | 1 | IN_PROGRESS |
+| 1 — Repositório e execução | INT-007–011 | 5 | 0 | TODO |
+| 2 — Contratos e proxy | INT-012–016 | 5 | 0 | TODO |
+| 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
+| 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
+| 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
+| 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
+| **Total** | | **45** | **1** | **IN_PROGRESS** |
+
+## Registro item a item
+
+| ID | Estado | Commit | Teste/evidência | Observação |
+|---|---|---|---|---|
+| INT-001 | VALIDATED | `chore(integracao): validar INT-001` | Branch, raiz, origin, commit-base, status e rollback conferidos | Branch local sem upstream; alterações preexistentes preservadas fora do staging |
+| INT-002 | TODO | — | — | — |
+| INT-003 | TODO | — | — | — |
+| INT-004 | TODO | — | — | — |
+| INT-005 | TODO | — | — | — |
+| INT-006 | TODO | — | — | — |
+| INT-007 | TODO | — | — | — |
+| INT-008 | TODO | — | — | — |
+| INT-009 | TODO | — | — | — |
+| INT-010 | TODO | — | — | — |
+| INT-011 | TODO | — | — | — |
+| INT-012 | TODO | — | — | — |
+| INT-013 | TODO | — | — | — |
+| INT-014 | TODO | — | — | — |
+| INT-015 | TODO | — | — | — |
+| INT-016 | TODO | — | — | — |
+| INT-017 | TODO | — | — | — |
+| INT-018 | TODO | — | — | — |
+| INT-019 | TODO | — | — | — |
+| INT-020 | TODO | — | — | — |
+| INT-021 | TODO | — | — | — |
+| INT-022 | TODO | — | — | — |
+| INT-023 | TODO | — | — | — |
+| INT-024 | TODO | — | — | — |
+| INT-025 | TODO | — | — | — |
+| INT-026 | TODO | — | — | — |
+| INT-027 | TODO | — | — | — |
+| INT-028 | TODO | — | — | — |
+| INT-029 | TODO | — | — | — |
+| INT-030 | TODO | — | — | — |
+| INT-031 | TODO | — | — | — |
+| INT-032 | TODO | — | — | — |
+| INT-033 | TODO | — | — | — |
+| INT-034 | TODO | — | — | — |
+| INT-035 | TODO | — | — | — |
+| INT-036 | TODO | — | — | — |
+| INT-037 | TODO | — | — | — |
+| INT-038 | TODO | — | — | — |
+| INT-039 | TODO | — | — | — |
+| INT-040 | TODO | — | — | — |
+| INT-041 | TODO | — | — | — |
+| INT-042 | TODO | — | — | — |
+| INT-043 | TODO | — | — | — |
+| INT-044 | TODO | — | — | — |
+| INT-045 | TODO | — | — | — |
+
+## Diário de execução (acrescentar entradas, não apagar histórico)
+
+### Entrada inicial — 2026-10-14
+- **Atividade:** planejamento da integração com base nos ZIPs recebidos.
+- **Estado do repositório real:** ainda não verificado; nenhuma mudança de código executada por este plano.
+- **Decisões pendentes:** nome/commit da branch, pasta da importação, Angular canônico, organização dos serviços.
+- **Próximo item:** `INT-001`.
+
+### INT-001 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `236e033ec74b9773542e1add13343fc4819fc07c`.
+- **Arquivos modificados:** checklist e controle oficiais da integração.
+- **Resumo técnico:** raiz Git e `origin` confirmados; branch local confirmada sem upstream; commit-base registrado; 68 arquivos não rastreados identificados; mudanças preexistentes separadas e preservadas fora do staging.
+- **Comandos e resultados:** `git rev-parse HEAD`, `git branch -vv`, `git remote -v`, `git status --porcelain=v2 --branch`, `git diff --check`; verificações concluídas sem alterar código funcional.
+- **Evidência do aceite:** relatório de preflight registrado antes de qualquer edição de código; rollback disponível pela preservação do commit-base e por commits locais atômicos, sem reescrita de histórico.
+- **Riscos:** `.codex/rules/safety.rules`, `AGENTS.md` e duas exclusões antigas permanecem como mudanças preexistentes não incluídas; a pasta importada permanece não rastreada para tratamento em `INT-002`.
+- **Commit:** identificado pelo assunto `chore(integracao): validar INT-001`; o próprio commit que contém esta entrada é a evidência imutável, evitando referência circular ao seu SHA.
+- **Próximo item:** `INT-002`.
+
+### Modelo para cada execução
+
+```text
+Data/hora:
+Item:
+Estado anterior → novo:
+Branch/commit antes:
+Arquivos modificados:
+Resumo técnico:
+Comandos e resultados dos testes:
+Evidência do critério de aceite:
+Riscos/regressões identificados:
+Commit SHA (se validado):
+Próximo item/desbloqueios:
+```
+
+## Protocolo operacional para Codex
+
+1. Ler `AGENTS.md`, regras de segurança do repositório, checklist e este controle, além dos arquivos pertinentes ao item.
+2. Conferir branch e `git status`; não tocar em mudanças preexistentes sem identificar proprietário e pedir autorização.
+3. Selecionar **somente um** item `TODO` com pré-requisitos concluídos. Para itens de decisão, documentar e solicitar aprovação antes de executar alterações dependentes.
+4. Informar plano e caminhos; aplicar alteração mínima e reversível; não fazer exclusões não autorizadas.
+5. Rodar os testes do item, `git diff --check` e verificação de regressões apropriada. Não disparar chamadas externas institucionais.
+6. Se aprovado, criar commit específico (se a política de repositório permitir), marcar `VALIDATED`, registrar hash e evidência. Se falhar, registrar `FAILED` ou `BLOCKED` e não afirmar conclusão.
+7. Atualizar este painel, a tabela e diário **na mesma execução**, sem reescrever histórico.
+8. Parar e comunicar bloqueios ou necessidade de homologação; nunca avançar autonomamente para alterações destrutivas.
+
+## Prompt-base reutilizável
+
+> Leia as regras locais, `CHECKLIST_INTEGRACAO_CHATBOT_SIMULADOR.md` e `CONTROLE_PROGRESSO_INTEGRACAO_CHATBOT_SIMULADOR.md`. Execute **somente** o item `INT-XXX`, conferindo pré-requisitos, branch e worktree. Preserve integralmente os dois projetos e não execute coleta externa. Mostre diff, execute testes relevantes e `git diff --check`. Registre evidências, status e commit no controle. Em dúvida, bloqueie sem improvisar. Não execute outro item automaticamente.
+
+## Regras de contabilização
+
+- Total = 45 itens fixos (novos itens exigem atualização de ambos os arquivos, explicação e revisão de totais).
+- Percentual validado = `VALIDATED / total × 100`; `SKIPPED_APPROVED` não conta como trabalho validado.
+- Se um item validado regredir, reabrir como `FAILED` com justificativa e corrigir o painel.
+- A aprovação do PR, integração final e publicação são etapas distintas. Este controle não autoriza deploy nem merge.
