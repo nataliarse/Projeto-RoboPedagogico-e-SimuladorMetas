@@ -1,1 +1,8 @@
-<router-outlet />
+<header class="app-nav">
+  <a class="brand" routerLink="/">Robô Pedagógico CNJ</a>
+  <nav aria-label="Navegação principal">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Chat processual</a>
+    <a routerLink="/simulador" routerLinkActive="active">Simulador de metas</a>
+  </nav>
+</header>
+<main><router-outlet /></main>

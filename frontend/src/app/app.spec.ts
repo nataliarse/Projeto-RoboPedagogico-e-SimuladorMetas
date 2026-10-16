@@ -1,10 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
+      providers: [provideRouter([])],
     }).compileComponents();
   });
 
@@ -19,5 +21,18 @@ describe('App', () => {
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('router-outlet')).not.toBeNull();
+  });
+
+  it('oferece navegação única para chat e simulador', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const links = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('nav a'),
+    ).map(link => ({ text: link.textContent?.trim(), href: link.getAttribute('href') }));
+
+    expect(links).toEqual([
+      { text: 'Chat processual', href: '/' },
+      { text: 'Simulador de metas', href: '/simulador' },
+    ]);
   });
 });
