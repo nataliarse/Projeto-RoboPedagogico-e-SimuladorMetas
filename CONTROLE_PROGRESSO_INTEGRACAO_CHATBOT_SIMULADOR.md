@@ -26,26 +26,26 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 7 |
+| Validated | 8 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 38 |
+| Todo | 37 |
 | Skip aprovado | 0 |
-| Progresso validado | 15,56% |
+| Progresso validado | 17,78% |
 
 ## Fases
 
 | Fase | Itens | Total | Validados | Situação |
 |---|---|---:|---:|---|
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
-| 1 — Repositório e execução | INT-007–011 | 5 | 1 | IN_PROGRESS |
+| 1 — Repositório e execução | INT-007–011 | 5 | 2 | IN_PROGRESS |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 0 | TODO |
 | 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **7** | **IN_PROGRESS** |
+| **Total** | | **45** | **8** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -58,7 +58,7 @@
 | INT-005 | VALIDATED | `docs(integracao): mapear contratos no INT-005` | Matriz de 9 rotas com verbos, schemas, status, timeouts e dependências | Colisão de health e lacunas de proxy confirmadas |
 | INT-006 | VALIDATED | `docs(integracao): validar arquitetura híbrida no INT-006` | ADR-001 aprovado com `frontend/` canônico e UI importada como referência mais recente | Contratos/sessão/testes atuais serão combinados com a experiência visual importada |
 | INT-007 | VALIDATED | `chore(integracao): estabelecer estrutura no INT-007` | Backend promovido para `simulador_metas_cnj/`; hashes e smoke conferidos | Quarentena e legado preservados; transporte do frontend permanece incremental |
-| INT-008 | TODO | — | — | — |
+| INT-008 | VALIDATED | `chore(integracao): consolidar ignores no INT-008` | Modelos TypeScript visíveis; índice e exemplos de ambiente auditados | Variáveis do simulador serão consumidas no INT-011 |
 | INT-009 | TODO | — | — | — |
 | INT-010 | TODO | — | — | — |
 | INT-011 | TODO | — | — | — |
@@ -189,6 +189,17 @@
 - **Riscos:** whitespace legado de `robo_cnj_meta2.py` permanece preservado e possui exceção de atributo restrita ao arquivo; a UI ainda não foi transportada, conforme fases específicas.
 - **Commit:** identificado pelo assunto `chore(integracao): estabelecer estrutura no INT-007`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-008`.
+
+### INT-008 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `5f40c62`.
+- **Arquivos modificados:** `.gitignore`, `simulador_metas_cnj/.env.example`, `docs/integracao/INT-008_AUDITORIA_VERSIONAMENTO.md` e este controle.
+- **Resumo técnico:** ignore de modelos foi limitado a artefatos de ML; modelos TypeScript deixaram de ser ocultados; configuração exemplo do simulador foi adicionada sem segredos.
+- **Comandos e resultados:** inspeção de todos os `.gitignore`/`.env.example`, `git check-ignore`, busca de tipos proibidos no índice e varredura textual; nenhum segredo ou artefato proibido identificado.
+- **Evidência do aceite:** auditoria em `docs/integracao/INT-008_AUDITORIA_VERSIONAMENTO.md`.
+- **Riscos:** as variáveis propostas ainda não são consumidas pelo código; implementação pertence ao `INT-011`.
+- **Commit:** identificado pelo assunto `chore(integracao): consolidar ignores no INT-008`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-009`.
 
 ### Modelo para cada execução
 

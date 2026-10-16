@@ -111,9 +111,11 @@ temp/
 .p5-tmp/
 outputs/
 artifacts/
-models/
-# os modelos de dados do frontend não são artefatos de ML
-!frontend/src/app/core/models/
+# Artefatos de modelos de ML somente em destinos operacionais conhecidos.
+# Diretórios TypeScript `src/app/core/models/` são código-fonte e não devem ser ignorados.
+/models/
+chatbot_processual_ai/models/
+simulador_metas_cnj/models/
 checkpoints/
 *.sqlite
 *.sqlite3
