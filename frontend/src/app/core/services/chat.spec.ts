@@ -85,6 +85,23 @@ describe('ChatService', () => {
     request.flush(validResponse);
   });
 
+  it('duas perguntas consecutivas reutilizam a sessão devolvida pela primeira', () => {
+    service.enviar('Primeira pergunta').subscribe(response => {
+      sessionId = response.session_id;
+    });
+    const first = httpTesting.expectOne('/api/processos/chat');
+    expect(first.request.body).toEqual({ mensagem: 'Primeira pergunta' });
+    first.flush(validResponse);
+
+    service.enviar('Segunda pergunta').subscribe();
+    const second = httpTesting.expectOne('/api/processos/chat');
+    expect(second.request.body).toEqual({
+      session_id: validResponse.session_id,
+      mensagem: 'Segunda pergunta'
+    });
+    second.flush(validResponse);
+  });
+
   it('emite o envelope HTTP contratual recebido', () => {
     let emitted: ProcessualChatHttpResponse | undefined;
 
