@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 29 |
+| Validated | 30 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 16 |
+| Todo | 15 |
 | Skip aprovado | 0 |
-| Progresso validado | 64,44% |
+| Progresso validado | 66,67% |
 
 ## Fases
 
@@ -42,10 +42,10 @@
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
-| 4 — Simulador no frontend | INT-025–030 | 6 | 5 | IN_PROGRESS |
+| 4 — Simulador no frontend | INT-025–030 | 6 | 6 | VALIDATED |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **29** | **IN_PROGRESS** |
+| **Total** | | **45** | **30** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -80,7 +80,7 @@
 | INT-027 | VALIDATED | `test(integracao): cobrir API do simulador no INT-027` | 33 testes Angular; base, simulação, vazio, rede e payload inválido | Falhas não emitem sucesso e são visíveis pelo estado de erro |
 | INT-028 | VALIDATED | `test(integracao): cobrir comparar e otimizador no INT-028` | 35 testes Angular; requests/responses dos dois endpoints | Lacuna visual preservada e documentada conforme snapshot mais recente |
 | INT-029 | VALIDATED | `feat(integracao): unificar navegacao no INT-029` | 36 testes Angular e build aprovados | Barra responsiva liga chat e simulador no mesmo app |
-| INT-030 | TODO | — | — | — |
+| INT-030 | VALIDATED | `test(integracao): fixar snapshot numerico no INT-030` | 5 testes do simulador; baseline 86 registros com tolerância 0,01 | Simulação vazia é idêntica à base; fórmulas não duplicadas no teste |
 | INT-031 | TODO | — | — | — |
 | INT-032 | TODO | — | — | — |
 | INT-033 | TODO | — | — | — |
@@ -440,6 +440,17 @@
 - **Riscos:** permanece aviso não bloqueante e preexistente de orçamento CSS do chat; o bundle está abaixo do limite total.
 - **Commit:** identificado pelo assunto `feat(integracao): unificar navegacao no INT-029`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-030`.
+
+### INT-030 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `f83d02e`.
+- **Arquivos modificados:** fixture e teste de snapshot numérico, documentação e este controle.
+- **Resumo técnico:** baseline de 86 registros fixa Meta 1 em 109,86 e Meta 2 em 161,71 com tolerância absoluta 0,01; cenário vazio precisa reproduzir integralmente a base.
+- **Testes:** `python -m unittest discover -s tests -v` no simulador → 5 aprovados; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** resultados atuais equivalem ao baseline anterior documentado e a simulação neutra não altera registros ou métricas.
+- **Riscos:** mudanças intencionais em dados ou regras exigirão revisão explícita da fixture e justificativa, em vez de atualização automática.
+- **Commit:** identificado pelo assunto `test(integracao): fixar snapshot numerico no INT-030`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-031`.
 
 ### Modelo para cada execução
 
