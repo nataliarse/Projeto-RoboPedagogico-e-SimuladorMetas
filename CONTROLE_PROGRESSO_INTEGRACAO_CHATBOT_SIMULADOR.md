@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 21 |
+| Validated | 22 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 24 |
+| Todo | 23 |
 | Skip aprovado | 0 |
-| Progresso validado | 46,67% |
+| Progresso validado | 48,89% |
 
 ## Fases
 
@@ -41,11 +41,11 @@
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
-| 3 — Chat real | INT-017–024 | 8 | 5 | IN_PROGRESS |
+| 3 — Chat real | INT-017–024 | 8 | 6 | IN_PROGRESS |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **21** | **IN_PROGRESS** |
+| **Total** | | **45** | **22** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -72,7 +72,7 @@
 | INT-019 | VALIDATED | `feat(integracao): usar resposta real no INT-019` | 23 testes Angular; sucesso renderiza `resultado.resposta`; falhas não criam mensagem bot | Nenhum `responderMock` ou resposta simulada no código de produção |
 | INT-020 | VALIDATED | `test(integracao): validar sessao do chat no INT-020` | 25 testes Angular; duas requests consecutivas reutilizam o ID retornado | `sessionStorage` isola a sessão do navegador e permite limpeza explícita |
 | INT-021 | VALIDATED | `feat(integracao): definir ciclo da conversa no INT-021` | 26 testes Angular; nova conversa limpa sessão/mensagens e preserva histórico | Refresh e limites da persistência local documentados |
-| INT-022 | TODO | — | — | — |
+| INT-022 | VALIDATED | `feat(integracao): controlar envio do chat no INT-022` | 27 testes Angular cobrem loading, duplicidade, cancelamento, rede e nova tentativa | Resposta tardia após cancelamento é ignorada |
 | INT-023 | TODO | — | — | — |
 | INT-024 | TODO | — | — | — |
 | INT-025 | TODO | — | — | — |
@@ -352,6 +352,17 @@
 - **Riscos:** refresh na mesma aba mantém o ID em `sessionStorage`, mas o backend pode ter perdido seu estado; a documentação deixa explícita essa degradação.
 - **Commit:** identificado pelo assunto `feat(integracao): definir ciclo da conversa no INT-021`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-022`.
+
+### INT-022 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `335d344`.
+- **Arquivos modificados:** componente/template/teste do chat e este controle.
+- **Resumo técnico:** a assinatura HTTP ativa pode ser cancelada pela interface; envio concorrente permanece bloqueado, loading sempre finaliza, e nova tentativa limpa o erro anterior sem retry automático.
+- **Testes:** `npm test -- --watch=false` → 7 arquivos/27 testes aprovados; cancelamento confirma unsubscribe e ignora resposta tardia; matriz existente cobre timeout, rede, 4xx e 5xx; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** nenhuma segunda request é criada durante loading e nenhuma resposta cancelada vira mensagem ou sessão.
+- **Riscos:** cancelar no navegador não garante interromper computação já iniciada no servidor, conforme decisão de timeout.
+- **Commit:** identificado pelo assunto `feat(integracao): controlar envio do chat no INT-022`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-023`.
 
 ### Modelo para cada execução
 

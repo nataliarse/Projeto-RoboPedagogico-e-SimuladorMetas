@@ -97,6 +97,11 @@
       <button (click)="enviar()" [disabled]="state.carregando()">
         Consultar
       </button>
+      @if (state.carregando()) {
+        <button type="button" class="btn-cancel" (click)="cancelarEnvio()">
+          Cancelar
+        </button>
+      }
     </div>
 
   </div>

@@ -161,6 +161,24 @@ describe('ChatComponent', () => {
     expect(salvar).not.toHaveBeenCalled();
   });
 
+  it('cancela a request ativa e ignora qualquer resposta tardia', () => {
+    const request = new Subject<ProcessualChatHttpResponse>();
+    enviar.mockReturnValue(request);
+    component.texto = 'Consulta cancelável';
+    component.enviar();
+
+    expect(component.state.carregando()).toBe(true);
+    expect(request.observed).toBe(true);
+    component.cancelarEnvio();
+
+    expect(request.observed).toBe(false);
+    expect(component.state.carregando()).toBe(false);
+    expect(component.state.erro()).toBe('Solicitação cancelada.');
+    request.next(criarResponse());
+    expect(component.state.mensagens()).toHaveLength(1);
+    expect(setSessionId).not.toHaveBeenCalled();
+  });
+
   it('salva o processo ativo, e não a pergunta livre, no histórico', () => {
     const pergunta = 'qual foi a última movimentação?';
     enviar.mockReturnValue(of(criarResponse({ processo_ativo: 'PROCESSO-X' })));

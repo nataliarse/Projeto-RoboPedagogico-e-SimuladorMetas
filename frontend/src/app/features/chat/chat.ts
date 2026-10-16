@@ -8,13 +8,14 @@ import { LocalStorageService } from '../../core/services/local-storage';
 import { ChatSessionService } from '../../core/services/chat-session';
 import { ApiHealthService } from '../../core/services/api-health';
 import { ProcessoConsulta } from '../../core/models/chat.model';
-import { finalize, TimeoutError } from 'rxjs';
+import { finalize, Subscription, TimeoutError } from 'rxjs';
 
 const TIMEOUT_MESSAGE = 'A solicitação demorou mais que o esperado. Tente novamente.';
 const TRANSPORT_MESSAGE = 'Não foi possível conectar ao serviço.';
 const HTTP_4XX_MESSAGE = 'Não foi possível enviar a solicitação.';
 const TECHNICAL_MESSAGE = 'Não foi possível concluir a solicitação.';
 const INVALID_RESPONSE_MESSAGE = 'O serviço retornou uma resposta inválida. Tente novamente.';
+const CANCELLED_MESSAGE = 'Solicitação cancelada.';
 
 type ApiHealthStatus = 'verificando' | 'disponivel' | 'indisponivel';
 
@@ -37,6 +38,7 @@ export class ChatComponent implements AfterViewChecked {
   cardAberto  = signal(false);
   historico   = signal<ProcessoConsulta[]>([]);
   apiHealthStatus = signal<ApiHealthStatus>('verificando');
+  private activeRequest: Subscription | null = null;
 
   @ViewChild('fim') fim!: ElementRef;
 
@@ -63,9 +65,18 @@ export class ChatComponent implements AfterViewChecked {
   }
 
   novaConversa(): void {
+    this.cancelarEnvio(false);
     this.session.clearSession();
     this.state.limpar();
     this.texto = '';
+  }
+
+  cancelarEnvio(showMessage = true): void {
+    if (!this.activeRequest || this.activeRequest.closed) return;
+    this.activeRequest.unsubscribe();
+    this.activeRequest = null;
+    this.state.carregando.set(false);
+    if (showMessage) this.state.erro.set(CANCELLED_MESSAGE);
   }
 
   enviar() {
@@ -83,7 +94,7 @@ export class ChatComponent implements AfterViewChecked {
 
     this.state.carregando.set(true);
 
-    this.chat.enviar(pergunta)
+    this.activeRequest = this.chat.enviar(pergunta)
       .pipe(finalize(() => this.state.carregando.set(false)))
       .subscribe({
         next: response => {
@@ -105,8 +116,12 @@ export class ChatComponent implements AfterViewChecked {
           }
 
           this.state.erro.set(null);
+          this.activeRequest = null;
         },
-        error: error => this.state.erro.set(this.classificarErro(error))
+        error: error => {
+          this.activeRequest = null;
+          this.state.erro.set(this.classificarErro(error));
+        }
       });
   }
 
