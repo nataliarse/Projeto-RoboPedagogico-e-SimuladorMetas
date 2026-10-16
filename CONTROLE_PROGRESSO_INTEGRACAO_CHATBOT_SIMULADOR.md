@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 15 |
+| Validated | 16 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 30 |
+| Todo | 29 |
 | Skip aprovado | 0 |
-| Progresso validado | 33,33% |
+| Progresso validado | 35,56% |
 
 ## Fases
 
@@ -40,12 +40,12 @@
 |---|---|---:|---:|---|
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
-| 2 — Contratos e proxy | INT-012–016 | 5 | 4 | IN_PROGRESS |
+| 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
 | 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **15** | **IN_PROGRESS** |
+| **Total** | | **45** | **16** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -66,7 +66,7 @@
 | INT-013 | VALIDATED | `feat(integracao): formalizar contratos do simulador no INT-013` | Fixtures válidas/inválidas e 3 testes; quatro respostas validadas contra seus schemas | Requests rejeitam campos e valores fora do contrato; respostas publicadas no OpenAPI |
 | INT-014 | VALIDATED | `test(integracao): validar proxy no INT-014` | 3 testes/8 rotas confirmam destinos e rewrites por namespace | Healthchecks processual e simulador chegam a portas distintas |
 | INT-015 | VALIDATED | `feat(integracao): tratar falhas HTTP no INT-015` | 21 testes Angular cobrem timeout, rede, 4xx, 5xx e resposta 2xx inválida | Falhas permanecem no canal de erro e mensagens técnicas não são expostas |
-| INT-016 | TODO | — | — | — |
+| INT-016 | VALIDATED | `docs(integracao): definir timeouts no INT-016` | 21 testes Angular; timeout do chat exercitado com relógio virtual | Orçamentos centralizados por operação; chat reduzido de 135 s para 120 s |
 | INT-017 | TODO | — | — | — |
 | INT-018 | TODO | — | — | — |
 | INT-019 | TODO | — | — | — |
@@ -286,6 +286,17 @@
 - **Riscos:** a validação runtime checa o envelope e os campos discriminantes consumidos pela UI; validação integral de todas as propriedades permanece garantida pelo schema do backend e pela tipagem estática.
 - **Commit:** identificado pelo assunto `feat(integracao): tratar falhas HTTP no INT-015`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-016`.
+
+### INT-016 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `fdc3e23`.
+- **Arquivos modificados:** configuração central de timeouts, serviço/teste do chat, decisão técnica e este controle.
+- **Resumo técnico:** foram definidos limites distintos para health, base, cenário, comparação, otimizador e chat; o chat foi reduzido de 135 s para 120 s e passou a consumir a constante central.
+- **Testes:** `npm test -- --watch=false` → 6 arquivos/21 testes aprovados; teste com relógio virtual confirma ausência de timeout antes do limite e cancelamento depois dele; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** operações locais recebem limites curtos e proporcionais; somente coleta/agentes/RAG possuem orçamento longo, documentado sem elevar o valor anterior.
+- **Riscos:** os limites do simulador serão aplicados quando seu serviço Angular for transportado na fase 4; timeout do cliente não interrompe necessariamente trabalho já iniciado no backend.
+- **Commit:** identificado pelo assunto `docs(integracao): definir timeouts no INT-016`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-017`.
 
 ### Modelo para cada execução
 

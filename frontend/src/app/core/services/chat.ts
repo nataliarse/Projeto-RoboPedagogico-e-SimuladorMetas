@@ -7,8 +7,7 @@ import {
   ProcessualChatRequest
 } from '../types/processual-chat.types';
 import { ChatSessionService } from './chat-session';
-
-const PROCESSUAL_CHAT_TIMEOUT_MS = 135_000;
+import { HTTP_TIMEOUT_MS } from '../config/http-timeouts';
 
 export class InvalidApiResponseError extends Error {
   constructor() {
@@ -42,7 +41,7 @@ export class ChatService {
     return this.http
       .post<unknown>('/api/processos/chat', request)
       .pipe(
-        timeout(PROCESSUAL_CHAT_TIMEOUT_MS),
+        timeout(HTTP_TIMEOUT_MS.processualChat),
         map(response => {
           if (!isProcessualChatResponse(response)) throw new InvalidApiResponseError();
           return response;

@@ -95,7 +95,7 @@ describe('ChatService', () => {
     expect(observedError).toBeInstanceOf(InvalidApiResponseError);
   });
 
-  it('aplica timeout cliente de 135 segundos sem espera real', () => {
+  it('aplica orçamento de 120 segundos ao chat sem espera real', () => {
     let observedError: unknown;
 
     vi.useFakeTimers();
@@ -103,7 +103,7 @@ describe('ChatService', () => {
       service.enviar('Olá').subscribe({ error: error => observedError = error });
       const request = httpTesting.expectOne('/api/processos/chat');
 
-      vi.advanceTimersByTime(134_999);
+      vi.advanceTimersByTime(119_999);
       expect(observedError).toBeUndefined();
 
       vi.advanceTimersByTime(2);
