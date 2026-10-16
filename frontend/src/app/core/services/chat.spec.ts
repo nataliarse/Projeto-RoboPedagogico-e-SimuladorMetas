@@ -7,7 +7,7 @@ import { TestBed } from '@angular/core/testing';
 import { TimeoutError } from 'rxjs';
 
 import { ProcessualChatHttpResponse } from '../types/processual-chat.types';
-import { ChatService } from './chat';
+import { ChatService, InvalidApiResponseError } from './chat';
 import { ChatSessionService } from './chat-session';
 
 describe('ChatService', () => {
@@ -17,6 +17,15 @@ describe('ChatService', () => {
 
   const sessionStub: Pick<ChatSessionService, 'getSessionId'> = {
     getSessionId: () => sessionId
+  };
+
+  const validResponse: ProcessualChatHttpResponse = {
+    session_id: 'sessao-123',
+    resultado: {
+      tipo: 'processual_chat', intent: null, resposta: 'Resposta real',
+      processo_ativo: null, collection_status: null, failed_stage: null,
+      rag_status: 'not_needed', fontes: []
+    }
   };
 
   beforeEach(() => {
@@ -44,7 +53,7 @@ describe('ChatService', () => {
     expect(request.request.body).toEqual({ mensagem: 'Olá' });
     expect(request.request.body).not.toHaveProperty('session_id');
 
-    request.flush({});
+    request.flush(validResponse);
   });
 
   it('preserva session_id e mensagem no POST quando há sessão', () => {
@@ -59,30 +68,31 @@ describe('ChatService', () => {
       mensagem: 'Qual foi a última movimentação?'
     });
 
-    request.flush({});
+    request.flush(validResponse);
   });
 
   it('emite o envelope HTTP contratual recebido', () => {
-    const response: ProcessualChatHttpResponse = {
-      session_id: 'sessao-123',
-      resultado: {
-        tipo: 'processual_chat',
-        intent: null,
-        resposta: 'Resposta real',
-        processo_ativo: null,
-        collection_status: null,
-        failed_stage: null,
-        rag_status: 'not_needed',
-        fontes: []
-      }
-    };
     let emitted: ProcessualChatHttpResponse | undefined;
 
     service.enviar('Olá').subscribe(value => emitted = value);
     const request = httpTesting.expectOne('/api/processos/chat');
-    request.flush(response);
+    request.flush(validResponse);
 
-    expect(emitted).toEqual(response);
+    expect(emitted).toEqual(validResponse);
+  });
+
+  it('rejeita resposta 2xx inválida sem emitir falso sucesso', () => {
+    let emitted: ProcessualChatHttpResponse | undefined;
+    let observedError: unknown;
+
+    service.enviar('Olá').subscribe({
+      next: value => emitted = value,
+      error: error => observedError = error
+    });
+    httpTesting.expectOne('/api/processos/chat').flush({ session_id: 'sessao-123' });
+
+    expect(emitted).toBeUndefined();
+    expect(observedError).toBeInstanceOf(InvalidApiResponseError);
   });
 
   it('aplica timeout cliente de 135 segundos sem espera real', () => {

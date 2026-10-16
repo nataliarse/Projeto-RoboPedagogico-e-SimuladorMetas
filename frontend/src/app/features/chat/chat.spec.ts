@@ -4,7 +4,7 @@ import { Observable, of, Subject, TimeoutError } from 'rxjs';
 
 import { ProcessoConsulta } from '../../core/models/chat.model';
 import { ApiHealthService } from '../../core/services/api-health';
-import { ChatService } from '../../core/services/chat';
+import { ChatService, InvalidApiResponseError } from '../../core/services/chat';
 import { ChatSessionService } from '../../core/services/chat-session';
 import { LocalStorageService } from '../../core/services/local-storage';
 import {
@@ -169,6 +169,7 @@ describe('ChatComponent', () => {
     ['transporte', new HttpErrorResponse({ status: 0, statusText: 'segredo-rede' }), TRANSPORT_MESSAGE],
     ['HTTP 4xx', new HttpErrorResponse({ status: 422, statusText: 'segredo-validacao' }), HTTP_4XX_MESSAGE],
     ['HTTP 5xx', new HttpErrorResponse({ status: 500, statusText: 'segredo-servidor' }), TECHNICAL_MESSAGE],
+    ['resposta inválida', new InvalidApiResponseError(), 'O serviço retornou uma resposta inválida. Tente novamente.'],
   ])('apresenta erro seguro e finaliza loading para %s', (_cenario, error, mensagemPublica) => {
     const request = new Subject<ProcessualChatHttpResponse>();
     enviar.mockReturnValue(request);

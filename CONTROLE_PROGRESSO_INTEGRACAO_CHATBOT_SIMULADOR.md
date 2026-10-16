@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 14 |
+| Validated | 15 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 31 |
+| Todo | 30 |
 | Skip aprovado | 0 |
-| Progresso validado | 31,11% |
+| Progresso validado | 33,33% |
 
 ## Fases
 
@@ -40,12 +40,12 @@
 |---|---|---:|---:|---|
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
-| 2 — Contratos e proxy | INT-012–016 | 5 | 3 | IN_PROGRESS |
+| 2 — Contratos e proxy | INT-012–016 | 5 | 4 | IN_PROGRESS |
 | 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **14** | **IN_PROGRESS** |
+| **Total** | | **45** | **15** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -65,7 +65,7 @@
 | INT-012 | VALIDATED | `feat(integracao): tipar contrato do chat no INT-012` | 15 testes de API e contrato; 19 testes Angular; OpenAPI declara request, resposta e erro 422 | Bloqueio ambiental removido com ambientes locais isolados e Node portátil ignorado pelo Git |
 | INT-013 | VALIDATED | `feat(integracao): formalizar contratos do simulador no INT-013` | Fixtures válidas/inválidas e 3 testes; quatro respostas validadas contra seus schemas | Requests rejeitam campos e valores fora do contrato; respostas publicadas no OpenAPI |
 | INT-014 | VALIDATED | `test(integracao): validar proxy no INT-014` | 3 testes/8 rotas confirmam destinos e rewrites por namespace | Healthchecks processual e simulador chegam a portas distintas |
-| INT-015 | TODO | — | — | — |
+| INT-015 | VALIDATED | `feat(integracao): tratar falhas HTTP no INT-015` | 21 testes Angular cobrem timeout, rede, 4xx, 5xx e resposta 2xx inválida | Falhas permanecem no canal de erro e mensagens técnicas não são expostas |
 | INT-016 | TODO | — | — | — |
 | INT-017 | TODO | — | — | — |
 | INT-018 | TODO | — | — | — |
@@ -275,6 +275,17 @@
 - **Riscos:** o teste verifica deterministicamente configuração, precedência e rewrite; disponibilidade dos processos locais permanece responsabilidade dos scripts de inicialização já validados.
 - **Commit:** identificado pelo assunto `test(integracao): validar proxy no INT-014`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-015`.
+
+### INT-015 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `9125e4e`.
+- **Arquivos modificados:** serviço e componente do chat, testes correspondentes e este controle.
+- **Resumo técnico:** o cliente valida em runtime o envelope de sucesso antes de entregá-lo à interface e emite erro específico para payload inválido; a UI classifica timeout, transporte, 4xx, 5xx e resposta inválida em mensagens públicas seguras.
+- **Testes:** `npm test -- --watch=false` → 6 arquivos/21 testes aprovados; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** nenhum cenário de falha emite valor de sucesso; loading é finalizado, o erro aparece com `role=alert`, e detalhes técnicos não são renderizados.
+- **Riscos:** a validação runtime checa o envelope e os campos discriminantes consumidos pela UI; validação integral de todas as propriedades permanece garantida pelo schema do backend e pela tipagem estática.
+- **Commit:** identificado pelo assunto `feat(integracao): tratar falhas HTTP no INT-015`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-016`.
 
 ### Modelo para cada execução
 

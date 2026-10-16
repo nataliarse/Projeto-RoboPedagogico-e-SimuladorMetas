@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { StateService } from '../../core/services/state';
-import { ChatService } from '../../core/services/chat';
+import { ChatService, InvalidApiResponseError } from '../../core/services/chat';
 import { LocalStorageService } from '../../core/services/local-storage';
 import { ChatSessionService } from '../../core/services/chat-session';
 import { ApiHealthService } from '../../core/services/api-health';
@@ -14,6 +14,7 @@ const TIMEOUT_MESSAGE = 'A solicitação demorou mais que o esperado. Tente nova
 const TRANSPORT_MESSAGE = 'Não foi possível conectar ao serviço.';
 const HTTP_4XX_MESSAGE = 'Não foi possível enviar a solicitação.';
 const TECHNICAL_MESSAGE = 'Não foi possível concluir a solicitação.';
+const INVALID_RESPONSE_MESSAGE = 'O serviço retornou uma resposta inválida. Tente novamente.';
 
 type ApiHealthStatus = 'verificando' | 'disponivel' | 'indisponivel';
 
@@ -113,6 +114,10 @@ export class ChatComponent implements AfterViewChecked {
   private classificarErro(error: unknown): string {
     if (error instanceof TimeoutError) {
       return TIMEOUT_MESSAGE;
+    }
+
+    if (error instanceof InvalidApiResponseError) {
+      return INVALID_RESPONSE_MESSAGE;
     }
 
     if (error instanceof HttpErrorResponse) {
