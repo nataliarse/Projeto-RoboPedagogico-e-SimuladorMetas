@@ -26,26 +26,26 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 6 |
+| Validated | 7 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 39 |
+| Todo | 38 |
 | Skip aprovado | 0 |
-| Progresso validado | 13,33% |
+| Progresso validado | 15,56% |
 
 ## Fases
 
 | Fase | Itens | Total | Validados | Situação |
 |---|---|---:|---:|---|
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
-| 1 — Repositório e execução | INT-007–011 | 5 | 0 | TODO |
+| 1 — Repositório e execução | INT-007–011 | 5 | 1 | IN_PROGRESS |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 0 | TODO |
 | 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **6** | **IN_PROGRESS** |
+| **Total** | | **45** | **7** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -57,7 +57,7 @@
 | INT-004 | VALIDATED | `test(integracao): registrar baselines no INT-004` | Versões, comandos e resultados offline documentados; smoke do simulador aprovado | Pytest e Node/npm ausentes; Angular importado sem angular.json |
 | INT-005 | VALIDATED | `docs(integracao): mapear contratos no INT-005` | Matriz de 9 rotas com verbos, schemas, status, timeouts e dependências | Colisão de health e lacunas de proxy confirmadas |
 | INT-006 | VALIDATED | `docs(integracao): validar arquitetura híbrida no INT-006` | ADR-001 aprovado com `frontend/` canônico e UI importada como referência mais recente | Contratos/sessão/testes atuais serão combinados com a experiência visual importada |
-| INT-007 | TODO | — | — | — |
+| INT-007 | VALIDATED | `chore(integracao): estabelecer estrutura no INT-007` | Backend promovido para `simulador_metas_cnj/`; hashes e smoke conferidos | Quarentena e legado preservados; transporte do frontend permanece incremental |
 | INT-008 | TODO | — | — | — |
 | INT-009 | TODO | — | — | — |
 | INT-010 | TODO | — | — | — |
@@ -178,6 +178,17 @@
 - **Evidência do aceite:** aprovação humana registrada na conversa e incorporada ao ADR.
 - **Commit:** identificado pelo assunto `docs(integracao): validar arquitetura híbrida no INT-006`.
 - **Próximo item:** `INT-007`.
+
+### INT-007 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `3839bd3b5db895c78a7ae2b3136aab011e1ef468`.
+- **Arquivos modificados:** nova árvore `simulador_metas_cnj/`, `.gitattributes` e este controle.
+- **Resumo técnico:** backend e dados do simulador foram copiados para o destino operacional aprovado; a origem em quarentena e todas as árvores legadas permaneceram intactas.
+- **Comandos e resultados:** comparação SHA-256 confirmou igualdade dos sete arquivos de origem; cache Python gerado localmente foi excluído do destino; parsing/import/smoke offline foram repetidos no novo caminho.
+- **Evidência do aceite:** `simulador_metas_cnj/README.md` registra proveniência, função e destino; movimentação rastreável e somente aditiva.
+- **Riscos:** whitespace legado de `robo_cnj_meta2.py` permanece preservado e possui exceção de atributo restrita ao arquivo; a UI ainda não foi transportada, conforme fases específicas.
+- **Commit:** identificado pelo assunto `chore(integracao): estabelecer estrutura no INT-007`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-008`.
 
 ### Modelo para cada execução
 

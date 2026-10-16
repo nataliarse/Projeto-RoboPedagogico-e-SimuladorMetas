@@ -4,3 +4,4 @@ integracao_entrada/TCC-Simulador-CNJ/backend/robo_cnj_meta2.py whitespace=-blank
 integracao_entrada/TCC-Simulador-CNJ/frontend/meu-primeiro-app/simulador-metas/LEIAME.md whitespace=-blank-at-eol,-blank-at-eof
 integracao_entrada/TCC-Simulador-CNJ/frontend/meu-primeiro-app/src/app/app.ts whitespace=-blank-at-eol,-blank-at-eof
 integracao_entrada/TCC-Simulador-CNJ/frontend/meu-primeiro-app/src/app/features/simulador/simulador-shell.component.ts whitespace=-blank-at-eol,-blank-at-eof
+simulador_metas_cnj/robo_cnj_meta2.py whitespace=-blank-at-eol,-blank-at-eof
