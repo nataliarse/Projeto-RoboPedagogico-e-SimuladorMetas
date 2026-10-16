@@ -68,6 +68,21 @@
   margin-bottom: 14px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-new {
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--texto);
+  background: var(--surface);
+  cursor: pointer;
+}
+
 .header-left {
   display: flex;
   align-items: center;

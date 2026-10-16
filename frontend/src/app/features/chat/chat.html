@@ -18,9 +18,12 @@
         </div>
         <div class="badge-mvp">MVP</div>
       </div>
-      <button class="btn-dark" (click)="toggleDark()" [title]="darkMode() ? 'Modo claro' : 'Modo escuro'">
-        {{ darkMode() ? '☀️' : '🌙' }}
-      </button>
+      <div class="header-actions">
+        <button type="button" class="btn-new" (click)="novaConversa()">Nova conversa</button>
+        <button type="button" class="btn-dark" (click)="toggleDark()" [title]="darkMode() ? 'Modo claro' : 'Modo escuro'">
+          {{ darkMode() ? '☀️' : '🌙' }}
+        </button>
+      </div>
     </div>
 
     <!-- Card expansível -->

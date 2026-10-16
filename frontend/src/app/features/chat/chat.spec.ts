@@ -42,6 +42,7 @@ describe('ChatComponent', () => {
   let fixture: ComponentFixture<ChatComponent>;
   let enviar: ReturnType<typeof vi.fn<(mensagem: string) => Observable<ProcessualChatHttpResponse>>>;
   let setSessionId: ReturnType<typeof vi.fn<(sessionId: string) => void>>;
+  let clearSession: ReturnType<typeof vi.fn<() => void>>;
   let carregar: ReturnType<typeof vi.fn<() => ProcessoConsulta[]>>;
   let salvar: ReturnType<typeof vi.fn<(processo: ProcessoConsulta) => void>>;
   let check: ReturnType<typeof vi.fn<ApiHealthService['check']>>;
@@ -73,6 +74,7 @@ describe('ChatComponent', () => {
   beforeEach(async () => {
     enviar = vi.fn();
     setSessionId = vi.fn();
+    clearSession = vi.fn();
     carregar = vi.fn(() => []);
     salvar = vi.fn();
     check = vi.fn(() => of({ status: 'ok' as const }));
@@ -83,7 +85,10 @@ describe('ChatComponent', () => {
         { provide: ChatService, useValue: { enviar } satisfies Pick<ChatService, 'enviar'> },
         {
           provide: ChatSessionService,
-          useValue: { setSessionId } satisfies Pick<ChatSessionService, 'setSessionId'>,
+          useValue: { setSessionId, clearSession } satisfies Pick<
+            ChatSessionService,
+            'setSessionId' | 'clearSession'
+          >,
         },
         {
           provide: LocalStorageService,
@@ -137,6 +142,23 @@ describe('ChatComponent', () => {
     expect(salvar).toHaveBeenCalledWith(
       expect.objectContaining({ numero_processo: response.resultado.processo_ativo }),
     );
+  });
+
+  it('inicia nova conversa sem apagar o histórico local de processos', () => {
+    component.state.adicionarMensagem({
+      role: 'bot', content: 'Conversa anterior', timestamp: new Date()
+    });
+    component.state.erro.set('Erro anterior');
+    component.texto = 'Rascunho';
+
+    component.novaConversa();
+
+    expect(clearSession).toHaveBeenCalledOnce();
+    expect(component.state.mensagens()).toEqual([]);
+    expect(component.state.erro()).toBeNull();
+    expect(component.texto).toBe('');
+    expect(carregar).toHaveBeenCalledOnce();
+    expect(salvar).not.toHaveBeenCalled();
   });
 
   it('salva o processo ativo, e não a pergunta livre, no histórico', () => {

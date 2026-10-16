@@ -62,6 +62,12 @@ export class ChatComponent implements AfterViewChecked {
     this.cardAberto.update(v => !v);
   }
 
+  novaConversa(): void {
+    this.session.clearSession();
+    this.state.limpar();
+    this.texto = '';
+  }
+
   enviar() {
     if (!this.texto.trim() || this.state.carregando()) return;
 

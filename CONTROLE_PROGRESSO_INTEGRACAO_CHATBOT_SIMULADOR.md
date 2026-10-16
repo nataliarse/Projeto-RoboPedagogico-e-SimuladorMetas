@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 20 |
+| Validated | 21 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 25 |
+| Todo | 24 |
 | Skip aprovado | 0 |
-| Progresso validado | 44,44% |
+| Progresso validado | 46,67% |
 
 ## Fases
 
@@ -41,11 +41,11 @@
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
-| 3 — Chat real | INT-017–024 | 8 | 4 | IN_PROGRESS |
+| 3 — Chat real | INT-017–024 | 8 | 5 | IN_PROGRESS |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **20** | **IN_PROGRESS** |
+| **Total** | | **45** | **21** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -71,7 +71,7 @@
 | INT-018 | VALIDATED | `refactor(integracao): consolidar modelos do chat no INT-018` | Build Angular aprovado; modelos sem `any` | Payload real, mensagens e erros estruturados centralizados em `chat.model.ts` |
 | INT-019 | VALIDATED | `feat(integracao): usar resposta real no INT-019` | 23 testes Angular; sucesso renderiza `resultado.resposta`; falhas não criam mensagem bot | Nenhum `responderMock` ou resposta simulada no código de produção |
 | INT-020 | VALIDATED | `test(integracao): validar sessao do chat no INT-020` | 25 testes Angular; duas requests consecutivas reutilizam o ID retornado | `sessionStorage` isola a sessão do navegador e permite limpeza explícita |
-| INT-021 | TODO | — | — | — |
+| INT-021 | VALIDATED | `feat(integracao): definir ciclo da conversa no INT-021` | 26 testes Angular; nova conversa limpa sessão/mensagens e preserva histórico | Refresh e limites da persistência local documentados |
 | INT-022 | TODO | — | — | — |
 | INT-023 | TODO | — | — | — |
 | INT-024 | TODO | — | — | — |
@@ -341,6 +341,17 @@
 - **Riscos:** a sessão é intencionalmente limitada à aba/sessão do navegador e não representa persistência durável no servidor.
 - **Commit:** identificado pelo assunto `test(integracao): validar sessao do chat no INT-020`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-021`.
+
+### INT-021 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `9016059`.
+- **Arquivos modificados:** componente/template/estilo/teste do chat, documentação do ciclo e este controle.
+- **Resumo técnico:** a interface ganhou “Nova conversa”, que limpa `session_id`, mensagens, erro e rascunho, preservando deliberadamente o histórico visual de processos.
+- **Testes:** `npm test -- --watch=false` → 7 arquivos/26 testes aprovados; cenário verifica limpeza sem escrita/remoção indevida do histórico; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** comportamento de refresh, fechamento da aba, nova conversa e histórico local foi documentado e testado; histórico não é tratado como sessão do servidor.
+- **Riscos:** refresh na mesma aba mantém o ID em `sessionStorage`, mas o backend pode ter perdido seu estado; a documentação deixa explícita essa degradação.
+- **Commit:** identificado pelo assunto `feat(integracao): definir ciclo da conversa no INT-021`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-022`.
 
 ### Modelo para cada execução
 
