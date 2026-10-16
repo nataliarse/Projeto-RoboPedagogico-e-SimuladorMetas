@@ -1,6 +1,6 @@
 # ADR-001 — Arquitetura da aplicação unificada
 
-- Status: **PROPOSTO — AGUARDANDO APROVAÇÃO**
+- Status: **ACEITO COM DIRECIONAMENTO HÍBRIDO**
 - Data: 2026-10-16
 - Checklist: `INT-006`
 
@@ -28,21 +28,23 @@ O repositório possui um Angular executável em `frontend/`, já conectado ao co
 - Reduz transporte inicial.
 - Não atende ao requisito de produto único e duplica navegação, build e operação.
 
-## Decisão proposta
+## Decisão aprovada
 
-Adotar a alternativa A:
+Adotar uma composição híbrida baseada na alternativa A:
 
 1. `frontend/` permanece o único workspace Angular canônico.
-2. A identidade visual, shell e funcionalidades de simulador do snapshot serão transportadas incrementalmente para `frontend/src/app/`, preservando primeiro o chat real e seus testes.
-3. O backend processual permanece em `chatbot_processual_ai/`, porta local 8000.
-4. O backend real do simulador será promovido, por cópia rastreável, para `simulador_metas_cnj/`, porta local 8001; as fórmulas e planilhas não serão alteradas durante o transporte.
-5. `integracao_entrada/TCC-Simulador-CNJ/` permanece como snapshot de comparação durante a integração; não será apagado automaticamente.
-6. O frontend usará rotas públicas não ambíguas:
+2. A versão importada é a referência mais recente para identidade visual, shell, navegação e funcionalidades de simulador; uma parte relevante dela será transportada para `frontend/src/app/`.
+3. Do frontend atual serão preservados os elementos tecnicamente mais maduros: contrato real do chat, controle de sessão, tratamento de erros/timeouts, modelos tipados e testes.
+4. Em conflitos de apresentação ou funcionalidade visual não coberta pelo frontend atual, prevalece a versão importada, salvo regressão comprovada ou incompatibilidade de contrato.
+5. O backend processual permanece em `chatbot_processual_ai/`, porta local 8000.
+6. O backend real do simulador será promovido, por cópia rastreável, para `simulador_metas_cnj/`, porta local 8001; as fórmulas e planilhas não serão alteradas durante o transporte.
+7. `integracao_entrada/TCC-Simulador-CNJ/` permanece como snapshot de comparação durante a integração; não será apagado automaticamente.
+8. O frontend usará rotas públicas não ambíguas:
    - `/api/processos/*` para o backend processual;
    - `/api/simulador/*` para o backend de metas.
-7. Os serviços manterão aliases legados quando necessário, mas a UI não dependerá de `/api/health` genérico. Serão usados `/api/processos/health` e `/api/simulador/health`.
-8. No desenvolvimento, um único proxy Angular roteará cada namespace à porta correspondente.
-9. Não haverá fusão física dos processos FastAPI nesta etapa.
+9. Os serviços manterão aliases legados quando necessário, mas a UI não dependerá de `/api/health` genérico. Serão usados `/api/processos/health` e `/api/simulador/health`.
+10. No desenvolvimento, um único proxy Angular roteará cada namespace à porta correspondente.
+11. Não haverá fusão física dos processos FastAPI nesta etapa.
 
 ## Estrutura-alvo
 
@@ -62,6 +64,6 @@ docs/integracao/          ADRs, inventários e evidências
 - O desenvolvimento continuará exigindo três processos, posteriormente reunidos por scripts locais.
 - A árvore Angular parcial importada não será tratada como aplicação executável nem removida sem autorização específica.
 
-## Aprovação necessária
+## Registro de aprovação
 
-O `INT-006` só pode ser promovido a `VALIDATED` após aprovação humana desta decisão. Nenhum código será movido ou copiado para a estrutura-alvo antes dessa aprovação.
+Em 2026-10-16, o responsável aprovou a base da alternativa A com direcionamento híbrido: manter `frontend/` como workspace, transportar parte relevante do frontend importado e preservar a versão mais recente da experiência visual. O transporte deve combinar essa UI recente com os contratos e controles funcionais maduros do frontend atual.

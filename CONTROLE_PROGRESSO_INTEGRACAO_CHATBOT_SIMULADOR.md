@@ -26,26 +26,26 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 5 |
+| Validated | 6 |
 | In progress | 0 |
-| Blocked | 1 |
+| Blocked | 0 |
 | Failed | 0 |
 | Todo | 39 |
 | Skip aprovado | 0 |
-| Progresso validado | 11,11% |
+| Progresso validado | 13,33% |
 
 ## Fases
 
 | Fase | Itens | Total | Validados | Situação |
 |---|---|---:|---:|---|
-| 0 — Segurança e inventário | INT-001–006 | 6 | 5 | BLOCKED |
+| 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
 | 1 — Repositório e execução | INT-007–011 | 5 | 0 | TODO |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 0 | TODO |
 | 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **5** | **BLOCKED** |
+| **Total** | | **45** | **6** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -56,7 +56,7 @@
 | INT-003 | VALIDATED | `docs(integracao): mapear componentes no INT-003` | Mapa aplicação→função→destino, duplicatas SHA-256 e candidatos inativos documentados | Nenhum arquivo removido; decisões reservadas ao INT-006 |
 | INT-004 | VALIDATED | `test(integracao): registrar baselines no INT-004` | Versões, comandos e resultados offline documentados; smoke do simulador aprovado | Pytest e Node/npm ausentes; Angular importado sem angular.json |
 | INT-005 | VALIDATED | `docs(integracao): mapear contratos no INT-005` | Matriz de 9 rotas com verbos, schemas, status, timeouts e dependências | Colisão de health e lacunas de proxy confirmadas |
-| INT-006 | BLOCKED | `docs(integracao): propor arquitetura no INT-006` | ADR-001 proposto após inventário e matriz de contratos | Aguarda aprovação humana antes de mover código |
+| INT-006 | VALIDATED | `docs(integracao): validar arquitetura híbrida no INT-006` | ADR-001 aprovado com `frontend/` canônico e UI importada como referência mais recente | Contratos/sessão/testes atuais serão combinados com a experiência visual importada |
 | INT-007 | TODO | — | — | — |
 | INT-008 | TODO | — | — | — |
 | INT-009 | TODO | — | — | — |
@@ -169,6 +169,15 @@
 - **Bloqueio:** o critério de aceite exige aprovação antes de mover código; nenhuma movimentação foi iniciada.
 - **Commit:** identificado pelo assunto `docs(integracao): propor arquitetura no INT-006`.
 - **Próximo passo:** obter aprovação humana do ADR-001; somente então validar `INT-006` e iniciar `INT-007`.
+
+### INT-006 — 2026-10-16 — desbloqueio
+- **Estado anterior → novo:** `BLOCKED` → `VALIDATED`.
+- **Direcionamento aprovado:** solução híbrida; `frontend/` é o workspace canônico, enquanto a interface e as funcionalidades visuais importadas representam a versão mais recente a preservar.
+- **Critério de composição:** transportar a UI recente e manter do frontend atual o contrato processual real, sessão, erros/timeouts, tipos e testes.
+- **Arquivos modificados:** ADR-001 e este controle.
+- **Evidência do aceite:** aprovação humana registrada na conversa e incorporada ao ADR.
+- **Commit:** identificado pelo assunto `docs(integracao): validar arquitetura híbrida no INT-006`.
+- **Próximo item:** `INT-007`.
 
 ### Modelo para cada execução
 
