@@ -1,20 +1,23 @@
+from __future__ import annotations
+
+from typing import Protocol
+
 from schemas.meta_contracts import MetaSimulationRequest, MetaSimulationResponse
 
 
-def simulate_meta(request: MetaSimulationRequest) -> MetaSimulationResponse:
-    return MetaSimulationResponse(
-        tipo="meta_simulation",
-        meta_id=request.meta_id,
-        ano=request.ano,
-        status="not_integrated",
-        resultado=None,
-        meta_alvo=None,
-        indicadores={
-            "unidade": request.unidade,
-            "cenario": request.cenario,
-        },
-        observacoes=[
-            "Simulador de metas ainda não integrado ao backend.",
-            "Contrato de entrada e saída precisa ser validado com a equipe responsável.",
-        ],
-    )
+class SimulatorUnavailableError(RuntimeError):
+    """O motor real não está configurado ou não pôde responder."""
+
+
+class SimulatorGateway(Protocol):
+    def simulate(self, request: MetaSimulationRequest) -> MetaSimulationResponse:
+        """Executa o cenário no motor real e devolve somente resposta validada."""
+
+
+def simulate_meta(
+    request: MetaSimulationRequest,
+    gateway: SimulatorGateway | None = None,
+) -> MetaSimulationResponse:
+    if gateway is None:
+        raise SimulatorUnavailableError("Gateway do simulador real não configurado.")
+    return gateway.simulate(request)

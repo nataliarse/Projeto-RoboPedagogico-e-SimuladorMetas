@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 31 |
+| Validated | 32 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 14 |
+| Todo | 13 |
 | Skip aprovado | 0 |
-| Progresso validado | 68,89% |
+| Progresso validado | 71,11% |
 
 ## Fases
 
@@ -43,9 +43,9 @@
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 6 | VALIDATED |
-| 5 — Integração entre motores | INT-031–036 | 6 | 1 | IN_PROGRESS |
+| 5 — Integração entre motores | INT-031–036 | 6 | 2 | IN_PROGRESS |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **31** | **IN_PROGRESS** |
+| **Total** | | **45** | **32** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -82,7 +82,7 @@
 | INT-029 | VALIDATED | `feat(integracao): unificar navegacao no INT-029` | 36 testes Angular e build aprovados | Barra responsiva liga chat e simulador no mesmo app |
 | INT-030 | VALIDATED | `test(integracao): fixar snapshot numerico no INT-030` | 5 testes do simulador; baseline 86 registros com tolerância 0,01 | Simulação vazia é idêntica à base; fórmulas não duplicadas no teste |
 | INT-031 | VALIDATED | `docs(integracao): definir casos de uso no INT-031` | Matriz separa seis categorias e regras/proibições | Processo, diagnóstico individual e cenário agregado têm destinos distintos |
-| INT-032 | TODO | — | — | — |
+| INT-032 | VALIDATED | `refactor(integracao): definir gateway de metas no INT-032` | 2 testes unitários com gateway fake | Placeholder `not_integrated` removido; ausência de motor vira erro transparente |
 | INT-033 | TODO | — | — | — |
 | INT-034 | TODO | — | — | — |
 | INT-035 | TODO | — | — | — |
@@ -462,6 +462,17 @@
 - **Riscos:** a intenção atual baseada apenas na palavra “meta” é ampla; o INT-034 deverá restringir o roteamento conforme esta matriz.
 - **Commit:** identificado pelo assunto `docs(integracao): definir casos de uso no INT-031`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-032`.
+
+### INT-032 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `8ee405e`.
+- **Arquivos modificados:** adapter do simulador, teste unitário e este controle.
+- **Resumo técnico:** foi criado `SimulatorGateway` testável; o adapter delega a request exata e não fabrica mais uma resposta `not_integrated` que pudesse parecer cálculo.
+- **Testes:** `pytest tests/test_meta_simulator_adapter.py` → 2 aprovados; double confirma delegação e ausência de gateway confirma erro explícito; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** interface separa orquestração do transporte e aceita implementação real ou fake sem alterar consumidores.
+- **Riscos:** o endpoint ficará indisponível até o gateway HTTP default ser ligado no INT-033; não retorna números falsos nesse intervalo.
+- **Commit:** identificado pelo assunto `refactor(integracao): definir gateway de metas no INT-032`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-033`.
 
 ### Modelo para cada execução
 
