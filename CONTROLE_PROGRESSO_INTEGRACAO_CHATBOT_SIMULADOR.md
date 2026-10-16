@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 13 |
+| Validated | 14 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 32 |
+| Todo | 31 |
 | Skip aprovado | 0 |
-| Progresso validado | 28,89% |
+| Progresso validado | 31,11% |
 
 ## Fases
 
@@ -40,12 +40,12 @@
 |---|---|---:|---:|---|
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
-| 2 — Contratos e proxy | INT-012–016 | 5 | 2 | IN_PROGRESS |
+| 2 — Contratos e proxy | INT-012–016 | 5 | 3 | IN_PROGRESS |
 | 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **13** | **IN_PROGRESS** |
+| **Total** | | **45** | **14** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -64,7 +64,7 @@
 | INT-011 | VALIDATED | `feat(integracao): configurar ambientes no INT-011` | Proxy dividido por namespace; scripts parametrizados; simulador usa configuração de ambiente | Alias `/api/health` mantido temporariamente para compatibilidade |
 | INT-012 | VALIDATED | `feat(integracao): tipar contrato do chat no INT-012` | 15 testes de API e contrato; 19 testes Angular; OpenAPI declara request, resposta e erro 422 | Bloqueio ambiental removido com ambientes locais isolados e Node portátil ignorado pelo Git |
 | INT-013 | VALIDATED | `feat(integracao): formalizar contratos do simulador no INT-013` | Fixtures válidas/inválidas e 3 testes; quatro respostas validadas contra seus schemas | Requests rejeitam campos e valores fora do contrato; respostas publicadas no OpenAPI |
-| INT-014 | TODO | — | — | — |
+| INT-014 | VALIDATED | `test(integracao): validar proxy no INT-014` | 3 testes/8 rotas confirmam destinos e rewrites por namespace | Healthchecks processual e simulador chegam a portas distintas |
 | INT-015 | TODO | — | — | — |
 | INT-016 | TODO | — | — | — |
 | INT-017 | TODO | — | — | — |
@@ -264,6 +264,17 @@
 - **Riscos:** os registros mensais continuam flexíveis (`Dict[str, Any]`) porque a base tabular contém colunas heterogêneas; os campos de envelope e métricas são estritos.
 - **Commit:** identificado pelo assunto `feat(integracao): formalizar contratos do simulador no INT-013`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-014`.
+
+### INT-014 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `ea99197`.
+- **Arquivos modificados:** script npm, teste automatizado do proxy e este controle.
+- **Resumo técnico:** teste resolve a regra mais específica do proxy e aplica os mesmos rewrites declarados, cobrindo chatbot, metas integradas e todos os quatro endpoints do simulador.
+- **Testes:** `npm run test:proxy` → 3 testes aprovados, cobrindo 8 rotas; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** `/api/processos/health` chega a `127.0.0.1:8000/api/health` e `/api/simulador/health` a `127.0.0.1:8001/api/health`, sem colisão; demais rotas mantêm o backend correto.
+- **Riscos:** o teste verifica deterministicamente configuração, precedência e rewrite; disponibilidade dos processos locais permanece responsabilidade dos scripts de inicialização já validados.
+- **Commit:** identificado pelo assunto `test(integracao): validar proxy no INT-014`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-015`.
 
 ### Modelo para cada execução
 
