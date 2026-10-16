@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 30 |
+| Validated | 31 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 15 |
+| Todo | 14 |
 | Skip aprovado | 0 |
-| Progresso validado | 66,67% |
+| Progresso validado | 68,89% |
 
 ## Fases
 
@@ -43,9 +43,9 @@
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 6 | VALIDATED |
-| 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
+| 5 — Integração entre motores | INT-031–036 | 6 | 1 | IN_PROGRESS |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **30** | **IN_PROGRESS** |
+| **Total** | | **45** | **31** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -81,7 +81,7 @@
 | INT-028 | VALIDATED | `test(integracao): cobrir comparar e otimizador no INT-028` | 35 testes Angular; requests/responses dos dois endpoints | Lacuna visual preservada e documentada conforme snapshot mais recente |
 | INT-029 | VALIDATED | `feat(integracao): unificar navegacao no INT-029` | 36 testes Angular e build aprovados | Barra responsiva liga chat e simulador no mesmo app |
 | INT-030 | VALIDATED | `test(integracao): fixar snapshot numerico no INT-030` | 5 testes do simulador; baseline 86 registros com tolerância 0,01 | Simulação vazia é idêntica à base; fórmulas não duplicadas no teste |
-| INT-031 | TODO | — | — | — |
+| INT-031 | VALIDATED | `docs(integracao): definir casos de uso no INT-031` | Matriz separa seis categorias e regras/proibições | Processo, diagnóstico individual e cenário agregado têm destinos distintos |
 | INT-032 | TODO | — | — | — |
 | INT-033 | TODO | — | — | — |
 | INT-034 | TODO | — | — | — |
@@ -451,6 +451,17 @@
 - **Riscos:** mudanças intencionais em dados ou regras exigirão revisão explícita da fixture e justificativa, em vez de atualização automática.
 - **Commit:** identificado pelo assunto `test(integracao): fixar snapshot numerico no INT-030`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-031`.
+
+### INT-031 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `f209304`.
+- **Arquivos modificados:** especificação de casos de uso e este controle.
+- **Resumo técnico:** foram separados consulta/pergunta processual, impacto individual por regras determinísticas e simulação/comparação/otimização agregada no motor real.
+- **Testes/evidência:** matriz de seis categorias, seis regras de autorização e cinco casos proibidos revisada contra o roteamento existente; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** a especificação impede que perguntas processuais sejam desviadas e exige parâmetros explícitos para cenários CNJ.
+- **Riscos:** a intenção atual baseada apenas na palavra “meta” é ampla; o INT-034 deverá restringir o roteamento conforme esta matriz.
+- **Commit:** identificado pelo assunto `docs(integracao): definir casos de uso no INT-031`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-032`.
 
 ### Modelo para cada execução
 
