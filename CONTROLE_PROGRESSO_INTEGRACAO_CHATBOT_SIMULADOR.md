@@ -26,26 +26,26 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 4 |
+| Validated | 5 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 41 |
+| Todo | 40 |
 | Skip aprovado | 0 |
-| Progresso validado | 8,89% |
+| Progresso validado | 11,11% |
 
 ## Fases
 
 | Fase | Itens | Total | Validados | Situação |
 |---|---|---:|---:|---|
-| 0 — Segurança e inventário | INT-001–006 | 6 | 4 | IN_PROGRESS |
+| 0 — Segurança e inventário | INT-001–006 | 6 | 5 | IN_PROGRESS |
 | 1 — Repositório e execução | INT-007–011 | 5 | 0 | TODO |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 0 | TODO |
 | 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **4** | **IN_PROGRESS** |
+| **Total** | | **45** | **5** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -55,7 +55,7 @@
 | INT-002 | VALIDATED | `chore(integracao): importar snapshot no INT-002` | 69 arquivos/665.467 bytes inventariados; importação somente aditiva; varredura de segredos sem achados | Três modelos TypeScript adicionados explicitamente por conflito conhecido com `.gitignore` |
 | INT-003 | VALIDATED | `docs(integracao): mapear componentes no INT-003` | Mapa aplicação→função→destino, duplicatas SHA-256 e candidatos inativos documentados | Nenhum arquivo removido; decisões reservadas ao INT-006 |
 | INT-004 | VALIDATED | `test(integracao): registrar baselines no INT-004` | Versões, comandos e resultados offline documentados; smoke do simulador aprovado | Pytest e Node/npm ausentes; Angular importado sem angular.json |
-| INT-005 | TODO | — | — | — |
+| INT-005 | VALIDATED | `docs(integracao): mapear contratos no INT-005` | Matriz de 9 rotas com verbos, schemas, status, timeouts e dependências | Colisão de health e lacunas de proxy confirmadas |
 | INT-006 | TODO | — | — | — |
 | INT-007 | TODO | — | — | — |
 | INT-008 | TODO | — | — | — |
@@ -148,6 +148,17 @@
 - **Riscos:** não há baseline Angular executada neste host; nenhuma falha foi atribuída à integração sem ambiente compatível.
 - **Commit:** identificado pelo assunto `test(integracao): registrar baselines no INT-004`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-005`.
+
+### INT-005 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `7221dbc`.
+- **Arquivos modificados:** `docs/integracao/INT-005_MATRIZ_ROTAS_CONTRATOS.md` e este controle.
+- **Resumo técnico:** nove rotas FastAPI e os clientes/proxies Angular foram mapeados por verbo, entrada, saída, status, timeout e dependências.
+- **Comandos e resultados:** leitura dos decoradores/modelos/serviços, busca de timeouts e geração local da OpenAPI do simulador; 200/400/422/500 e contratos efetivos documentados.
+- **Evidência do aceite:** matriz revisável em `docs/integracao/INT-005_MATRIZ_ROTAS_CONTRATOS.md`.
+- **Riscos:** os dois healthchecks colidem; `/api/chat` não existe; `comparar`/`otimizador` não estão integralmente ligados ao proxy/UI; respostas FastAPI do simulador ainda não têm modelos declarados.
+- **Commit:** identificado pelo assunto `docs(integracao): mapear contratos no INT-005`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-006`.
 
 ### Modelo para cada execução
 
