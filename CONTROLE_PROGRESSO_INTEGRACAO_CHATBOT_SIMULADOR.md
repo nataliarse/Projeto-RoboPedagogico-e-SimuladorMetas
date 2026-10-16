@@ -28,9 +28,9 @@
 | Total de itens | 45 |
 | Validated | 11 |
 | In progress | 0 |
-| Blocked | 0 |
+| Blocked | 1 |
 | Failed | 0 |
-| Todo | 34 |
+| Todo | 33 |
 | Skip aprovado | 0 |
 | Progresso validado | 24,44% |
 
@@ -40,12 +40,12 @@
 |---|---|---:|---:|---|
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
-| 2 — Contratos e proxy | INT-012–016 | 5 | 0 | TODO |
+| 2 — Contratos e proxy | INT-012–016 | 5 | 0 | BLOCKED |
 | 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **11** | **IN_PROGRESS** |
+| **Total** | | **45** | **11** | **BLOCKED** |
 
 ## Registro item a item
 
@@ -62,7 +62,7 @@
 | INT-009 | VALIDATED | `docs(integracao): documentar ambiente no INT-009` | Python/Node/npm/Angular, manifests e comandos reproduzíveis documentados | Backends exigem ambientes Python separados |
 | INT-010 | VALIDATED | `chore(integracao): adicionar inicialização no INT-010` | Scripts PowerShell analisados sintaticamente; portas 8000/8001/4200 distintas | Execução integral depende dos ambientes documentados no INT-009 |
 | INT-011 | VALIDATED | `feat(integracao): configurar ambientes no INT-011` | Proxy dividido por namespace; scripts parametrizados; simulador usa configuração de ambiente | Alias `/api/health` mantido temporariamente para compatibilidade |
-| INT-012 | TODO | — | — | — |
+| INT-012 | BLOCKED | `chore(integracao): registrar bloqueio do INT-012` | Ambiente local não possui Pydantic 2/pytest nem cache offline | Requer autorização para baixar dependências de desenvolvimento; API não foi alterada |
 | INT-013 | TODO | — | — | — |
 | INT-014 | TODO | — | — | — |
 | INT-015 | TODO | — | — | — |
@@ -231,6 +231,16 @@
 - **Riscos:** o health do frontend ainda usa alias `/api/health` por compatibilidade; migração ao namespace explícito pertence ao `INT-041`.
 - **Commit:** identificado pelo assunto `feat(integracao): configurar ambientes no INT-011`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-012`.
+
+### INT-012 — 2026-10-16 — checkpoint ambiental
+- **Estado anterior → novo:** `TODO` → `BLOCKED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `f48447f`.
+- **Diagnóstico:** o Python global possui Pydantic 1.10.26 e não possui pytest; o backend processual exige Pydantic 2 (`field_validator`). Não há `.venv`, wheel ou pacote aplicável no cache local.
+- **Verificações:** `python -m pytest` falha por módulo ausente; import de `api` falha pela versão de Pydantic; `pip cache` não oferece os pacotes necessários; apenas um Python 3.12 está instalado.
+- **Bloqueio:** o critério exige teste de contrato correspondente ao backend. Sem dependências e sem autorização de rede, não é possível validar uma alteração de API com segurança.
+- **Mudanças funcionais:** nenhuma; contratos e código permaneceram intactos.
+- **Commit:** identificado pelo assunto `chore(integracao): registrar bloqueio do INT-012`.
+- **Desbloqueio necessário:** autorização explícita para criar `.venv` e baixar as dependências versionadas do chatbot. A instalação de Node/npm também será necessária antes dos itens Angular.
 
 ### Modelo para cada execução
 
