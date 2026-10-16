@@ -28,9 +28,9 @@
 | Total de itens | 45 |
 | Validated | 5 |
 | In progress | 0 |
-| Blocked | 0 |
+| Blocked | 1 |
 | Failed | 0 |
-| Todo | 40 |
+| Todo | 39 |
 | Skip aprovado | 0 |
 | Progresso validado | 11,11% |
 
@@ -38,14 +38,14 @@
 
 | Fase | Itens | Total | Validados | Situação |
 |---|---|---:|---:|---|
-| 0 — Segurança e inventário | INT-001–006 | 6 | 5 | IN_PROGRESS |
+| 0 — Segurança e inventário | INT-001–006 | 6 | 5 | BLOCKED |
 | 1 — Repositório e execução | INT-007–011 | 5 | 0 | TODO |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 0 | TODO |
 | 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **5** | **IN_PROGRESS** |
+| **Total** | | **45** | **5** | **BLOCKED** |
 
 ## Registro item a item
 
@@ -56,7 +56,7 @@
 | INT-003 | VALIDATED | `docs(integracao): mapear componentes no INT-003` | Mapa aplicação→função→destino, duplicatas SHA-256 e candidatos inativos documentados | Nenhum arquivo removido; decisões reservadas ao INT-006 |
 | INT-004 | VALIDATED | `test(integracao): registrar baselines no INT-004` | Versões, comandos e resultados offline documentados; smoke do simulador aprovado | Pytest e Node/npm ausentes; Angular importado sem angular.json |
 | INT-005 | VALIDATED | `docs(integracao): mapear contratos no INT-005` | Matriz de 9 rotas com verbos, schemas, status, timeouts e dependências | Colisão de health e lacunas de proxy confirmadas |
-| INT-006 | TODO | — | — | — |
+| INT-006 | BLOCKED | `docs(integracao): propor arquitetura no INT-006` | ADR-001 proposto após inventário e matriz de contratos | Aguarda aprovação humana antes de mover código |
 | INT-007 | TODO | — | — | — |
 | INT-008 | TODO | — | — | — |
 | INT-009 | TODO | — | — | — |
@@ -159,6 +159,16 @@
 - **Riscos:** os dois healthchecks colidem; `/api/chat` não existe; `comparar`/`otimizador` não estão integralmente ligados ao proxy/UI; respostas FastAPI do simulador ainda não têm modelos declarados.
 - **Commit:** identificado pelo assunto `docs(integracao): mapear contratos no INT-005`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-006`.
+
+### INT-006 — 2026-10-16 — checkpoint de decisão
+- **Estado anterior → novo:** `TODO` → `BLOCKED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `c12cf1d`.
+- **Arquivos modificados:** `docs/integracao/ADR-001_ARQUITETURA_APLICACAO_UNIFICADA.md` e este controle.
+- **Resumo técnico:** três alternativas foram comparadas. A proposta mantém `frontend/` como Angular canônico, promove o backend do simulador para `simulador_metas_cnj/`, conserva dois FastAPI e separa rotas em `/api/processos/*` e `/api/simulador/*`.
+- **Evidência:** ADR-001 fundamentado pelos inventários `INT-003` e `INT-005`.
+- **Bloqueio:** o critério de aceite exige aprovação antes de mover código; nenhuma movimentação foi iniciada.
+- **Commit:** identificado pelo assunto `docs(integracao): propor arquitetura no INT-006`.
+- **Próximo passo:** obter aprovação humana do ADR-001; somente então validar `INT-006` e iniciar `INT-007`.
 
 ### Modelo para cada execução
 
