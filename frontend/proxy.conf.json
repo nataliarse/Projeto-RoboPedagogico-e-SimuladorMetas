@@ -1,6 +1,28 @@
 {
-  "/api": {
-    "target": "http://localhost:8000",
+  "/api/processos/health": {
+    "target": "http://127.0.0.1:8000",
+    "secure": false,
+    "pathRewrite": {
+      "^/api/processos/health": "/api/health"
+    }
+  },
+  "/api/processos": {
+    "target": "http://127.0.0.1:8000",
+    "secure": false
+  },
+  "/api/metas": {
+    "target": "http://127.0.0.1:8000",
+    "secure": false
+  },
+  "/api/simulador": {
+    "target": "http://127.0.0.1:8001",
+    "secure": false,
+    "pathRewrite": {
+      "^/api/simulador": "/api"
+    }
+  },
+  "/api/health": {
+    "target": "http://127.0.0.1:8000",
     "secure": false
   }
 }

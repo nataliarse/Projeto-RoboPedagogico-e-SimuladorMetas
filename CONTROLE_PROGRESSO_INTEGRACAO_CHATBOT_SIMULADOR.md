@@ -26,26 +26,26 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 10 |
+| Validated | 11 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 35 |
+| Todo | 34 |
 | Skip aprovado | 0 |
-| Progresso validado | 22,22% |
+| Progresso validado | 24,44% |
 
 ## Fases
 
 | Fase | Itens | Total | Validados | Situação |
 |---|---|---:|---:|---|
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
-| 1 — Repositório e execução | INT-007–011 | 5 | 4 | IN_PROGRESS |
+| 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 0 | TODO |
 | 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **10** | **IN_PROGRESS** |
+| **Total** | | **45** | **11** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -61,7 +61,7 @@
 | INT-008 | VALIDATED | `chore(integracao): consolidar ignores no INT-008` | Modelos TypeScript visíveis; índice e exemplos de ambiente auditados | Variáveis do simulador serão consumidas no INT-011 |
 | INT-009 | VALIDATED | `docs(integracao): documentar ambiente no INT-009` | Python/Node/npm/Angular, manifests e comandos reproduzíveis documentados | Backends exigem ambientes Python separados |
 | INT-010 | VALIDATED | `chore(integracao): adicionar inicialização no INT-010` | Scripts PowerShell analisados sintaticamente; portas 8000/8001/4200 distintas | Execução integral depende dos ambientes documentados no INT-009 |
-| INT-011 | TODO | — | — | — |
+| INT-011 | VALIDATED | `feat(integracao): configurar ambientes no INT-011` | Proxy dividido por namespace; scripts parametrizados; simulador usa configuração de ambiente | Alias `/api/health` mantido temporariamente para compatibilidade |
 | INT-012 | TODO | — | — | — |
 | INT-013 | TODO | — | — | — |
 | INT-014 | TODO | — | — | — |
@@ -220,6 +220,17 @@
 - **Evidência do aceite:** seção “Inicialização individual” de `docs/development.md` e scripts versionados.
 - **Commit:** identificado pelo assunto `chore(integracao): adicionar inicialização no INT-010`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-011`.
+
+### INT-011 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `1429a6d`.
+- **Arquivos modificados:** proxy Angular, três scripts de inicialização, `simulador_metas_cnj/main.py`, documentação e este controle.
+- **Resumo técnico:** URLs permanecem relativas no Angular; proxy separa processo e simulador; host/porta são configuráveis; o simulador resolve diretório de dados por ambiente e usa 8001 como default.
+- **Testes:** JSON do proxy parseado; scripts PowerShell analisados; simulador importado/smoke com configuração default e customizada; `git diff --check` aprovado.
+- **Evidência do aceite:** desenvolvimento usa `/api/processos/*` → 8000 e `/api/simulador/*` → 8001, sem endereços institucionais ou credenciais.
+- **Riscos:** o health do frontend ainda usa alias `/api/health` por compatibilidade; migração ao namespace explícito pertence ao `INT-041`.
+- **Commit:** identificado pelo assunto `feat(integracao): configurar ambientes no INT-011`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-012`.
 
 ### Modelo para cada execução
 

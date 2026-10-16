@@ -16,12 +16,14 @@ npm start
 ```
 
 A interface fica em `http://localhost:4200`. `npm start` carrega o proxy
-versionado em `proxy.conf.json`: chamadas relativas `/api/*` são encaminhadas
-para o FastAPI local em `http://localhost:8000`, sem reescrever o caminho. Não
-edite `ChatService` nem adicione uma URL absoluta para o fluxo normal.
+versionado em `proxy.conf.json`: `/api/processos/*` e `/api/metas/*` seguem
+para o backend processual em `127.0.0.1:8000`; `/api/simulador/*` segue para o
+simulador em `127.0.0.1:8001` com reescrita para o prefixo interno `/api`.
+Não adicione URLs absolutas aos serviços Angular.
 
-O chat envia `POST /api/processos/chat`; o indicador de disponibilidade consulta
-`GET /api/health`. Um health 200 comprova apenas que a fronteira FastAPI responde
+O chat envia `POST /api/processos/chat`; o indicador de disponibilidade ainda
+consulta o alias legado `GET /api/health`, encaminhado ao backend processual.
+Um health 200 comprova apenas que a fronteira FastAPI responde
 ao contrato mínimo, não que banco, agentes, Ollama, Qdrant ou RAG estejam
 saudáveis.
 

@@ -79,8 +79,9 @@ npm ci
 npm start
 ```
 
-A UI fica em `http://localhost:4200`; `proxy.conf.json` encaminha `/api/*` para
-`http://localhost:8000`. Não codifique URL absoluta no cliente.
+A UI fica em `http://localhost:4200`; `proxy.conf.json` encaminha os namespaces
+processuais a `127.0.0.1:8000` e `/api/simulador/*` a `127.0.0.1:8001`. Não
+codifique URL absoluta no cliente.
 
 ## Inicialização individual
 
@@ -94,7 +95,9 @@ Depois de preparar os ambientes, abra três terminais na raiz e execute:
 
 Cada script permanece em primeiro plano e usa, respectivamente, as portas
 8000, 8001 e 4200. Eles verificam os ambientes locais antes de iniciar e não
-instalam dependências automaticamente.
+instalam dependências automaticamente. As portas podem ser sobrescritas pelos
+parâmetros `-Port` ou variáveis `CHATBOT_PORT`, `SIMULADOR_PORT` e
+`FRONTEND_PORT`; os hosts seguem o mesmo padrão com sufixo `_HOST`.
 
 ## Testes e validação offline
 

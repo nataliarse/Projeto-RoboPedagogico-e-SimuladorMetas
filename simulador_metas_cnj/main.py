@@ -27,11 +27,14 @@ from pydantic import BaseModel, Field, conint, validator
 
 # ── Caminhos dos arquivos Excel ──────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.abspath(
+    os.path.join(BASE_DIR, os.getenv("SIMULADOR_DATA_DIR", "dados"))
+)
 
-ARQ_NOVOS          = os.path.join(BASE_DIR, "dados", "casos_novos.xlsx")
-ARQ_JULGADOS       = os.path.join(BASE_DIR, "dados", "julgados.xlsx")
-ARQ_DESSOBRESTADOS = os.path.join(BASE_DIR, "dados", "dessobrestados.xlsx")
-ARQ_SUSPENSOS      = os.path.join(BASE_DIR, "dados", "suspensos.xlsx")
+ARQ_NOVOS          = os.path.join(DATA_DIR, "casos_novos.xlsx")
+ARQ_JULGADOS       = os.path.join(DATA_DIR, "julgados.xlsx")
+ARQ_DESSOBRESTADOS = os.path.join(DATA_DIR, "dessobrestados.xlsx")
+ARQ_SUSPENSOS      = os.path.join(DATA_DIR, "suspensos.xlsx")
 
 # ── Configurações ────────────────────────────────────────────────────────────
 META_ALVO          = 100.0
@@ -457,4 +460,12 @@ def _meta_final_ano(df: pd.DataFrame, col: str, ano: int = ANO_SIMULACAO):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    reload_enabled = os.getenv("SIMULADOR_RELOAD", "true").strip().lower() in {
+        "1", "true", "yes", "sim",
+    }
+    uvicorn.run(
+        "main:app",
+        host=os.getenv("SIMULADOR_HOST", "127.0.0.1"),
+        port=int(os.getenv("SIMULADOR_PORT", "8001")),
+        reload=reload_enabled,
+    )
