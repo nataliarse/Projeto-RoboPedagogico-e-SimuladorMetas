@@ -26,33 +26,33 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 1 |
+| Validated | 2 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 44 |
+| Todo | 43 |
 | Skip aprovado | 0 |
-| Progresso validado | 2,22% |
+| Progresso validado | 4,44% |
 
 ## Fases
 
 | Fase | Itens | Total | Validados | Situação |
 |---|---|---:|---:|---|
-| 0 — Segurança e inventário | INT-001–006 | 6 | 1 | IN_PROGRESS |
+| 0 — Segurança e inventário | INT-001–006 | 6 | 2 | IN_PROGRESS |
 | 1 — Repositório e execução | INT-007–011 | 5 | 0 | TODO |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 0 | TODO |
 | 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **1** | **IN_PROGRESS** |
+| **Total** | | **45** | **2** | **IN_PROGRESS** |
 
 ## Registro item a item
 
 | ID | Estado | Commit | Teste/evidência | Observação |
 |---|---|---|---|---|
 | INT-001 | VALIDATED | `chore(integracao): validar INT-001` | Branch, raiz, origin, commit-base, status e rollback conferidos | Branch local sem upstream; alterações preexistentes preservadas fora do staging |
-| INT-002 | TODO | — | — | — |
+| INT-002 | VALIDATED | `chore(integracao): importar snapshot no INT-002` | 69 arquivos/665.467 bytes inventariados; importação somente aditiva; varredura de segredos sem achados | Três modelos TypeScript adicionados explicitamente por conflito conhecido com `.gitignore` |
 | INT-003 | TODO | — | — | — |
 | INT-004 | TODO | — | — | — |
 | INT-005 | TODO | — | — | — |
@@ -115,6 +115,17 @@
 - **Riscos:** `.codex/rules/safety.rules`, `AGENTS.md` e duas exclusões antigas permanecem como mudanças preexistentes não incluídas; a pasta importada permanece não rastreada para tratamento em `INT-002`.
 - **Commit:** identificado pelo assunto `chore(integracao): validar INT-001`; o próprio commit que contém esta entrada é a evidência imutável, evitando referência circular ao seu SHA.
 - **Próximo item:** `INT-002`.
+
+### INT-002 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `7fd8d7cf8adecf5f282dc74bb887106efff66e26`.
+- **Arquivos modificados:** 69 arquivos sob `integracao_entrada/TCC-Simulador-CNJ/`, `.gitattributes`, inventário `docs/integracao/INT-002_INVENTARIO_IMPORTACAO.md` e este controle.
+- **Resumo técnico:** snapshot preservado em quarentena, sem sobreposição; 66 arquivos normalmente versionáveis e três modelos TypeScript forçados por uma regra genérica `models/` do `.gitignore`.
+- **Comandos e resultados:** inventário recursivo, `git ls-files --others`, `git check-ignore -v`, inspeção de links, nomes e padrões de segredo e conteúdo textual das planilhas; 69 arquivos, 665.467 bytes, nenhum link e nenhum indício de segredo.
+- **Evidência do aceite:** diff do item exclusivamente aditivo e inventário em `docs/integracao/INT-002_INVENTARIO_IMPORTACAO.md`.
+- **Riscos:** a regra genérica de ignore será corrigida no `INT-008`; cinco caminhos de quarentena possuem exceção de whitespace para preservar o snapshot; as planilhas são preservadas como baseline somente leitura.
+- **Commit:** identificado pelo assunto `chore(integracao): importar snapshot no INT-002`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-003`.
 
 ### Modelo para cada execução
 

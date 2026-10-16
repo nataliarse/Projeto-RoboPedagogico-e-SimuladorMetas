@@ -1,0 +1,256 @@
+/* You can add global styles to this file, and also import other style files */
+/* src/styles.css */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cor-primaria:  #185FA5;
+  --cor-fundo:     #F8F7F4;
+  --cor-sidebar:   #1a1a2e;
+  --cor-texto:     #2C2C2A;
+  --cor-borda:     #D3D1C7;
+  --raio:          8px;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Tema escuro global (ativado via body.tema-dark) ── */
+body.tema-dark {
+  background: #0f0f1e;
+  color: #e8e8f0;
+}
+
+body.tema-dark .header {
+  background: #0C3060;
+}
+
+body.tema-dark .nav-abas {
+  background: #12122a;
+  border-bottom-color: #2a2a4a;
+}
+
+body.tema-dark .aba-btn {
+  color: rgba(255,255,255,0.6);
+}
+
+body.tema-dark .aba-btn:not(.ativa):hover {
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+}
+
+body.tema-dark .card {
+  background: #1a1a2e;
+  border-color: #2a2a4a;
+  color: #e8e8f0;
+}
+
+body.tema-dark .card-title {
+  color: #a0a8c0;
+}
+
+body.tema-dark .tabela th {
+  background: #12122a;
+  color: #a0a8c0;
+}
+
+body.tema-dark .tabela td {
+  border-bottom-color: #2a2a4a;
+  color: #e8e8f0;
+}
+
+body.tema-dark .tabela tr.par td {
+  background: #1a1a2e;
+}
+
+body.tema-dark .tabela tr:not(.par) td {
+  background: #15152a;
+}
+
+body.tema-dark .input-text,
+body.tema-dark .input-num,
+body.tema-dark .select {
+  background: #12122a;
+  border-color: #2a2a4a;
+  color: #e8e8f0;
+}
+
+body.tema-dark .hint {
+  color: #6b7280;
+}
+
+body.tema-dark .main-content {
+  background: #0f0f1e;
+}
+
+body.tema-dark .formula-box {
+  background: #12122a;
+  border-color: #2a2a4a;
+  color: #7ab8f5;
+}
+
+body.tema-dark .explicacao p {
+  color: #a0a8c0;
+}
+
+body.tema-dark .desc {
+  color: #6b7280;
+}
+
+/* ══════════════════════════════════════════
+   TEMA ESCURO — sobrescreve estilos inline
+   ══════════════════════════════════════════ */
+
+body.tema-dark {
+  background: #0f0f1e;
+  color: #e8e8f0;
+}
+
+/* Cards */
+body.tema-dark .card {
+  background: #1a1a2e !important;
+  border-color: #2a2a4a !important;
+  color: #e8e8f0 !important;
+}
+
+body.tema-dark .card-title {
+  color: #a0a8c0 !important;
+}
+
+/* Tabela */
+body.tema-dark .tabela th {
+  background: #12122a !important;
+  color: #a0a8c0 !important;
+}
+
+body.tema-dark .tabela tr.par td {
+  background: #1a1a2e !important;
+  color: #e8e8f0 !important;
+}
+
+body.tema-dark .tabela tr:not(.par) td {
+  background: #15152a !important;
+  color: #e8e8f0 !important;
+}
+
+body.tema-dark .tabela td {
+  border-bottom-color: #2a2a4a !important;
+}
+
+/* Inputs e selects */
+body.tema-dark input[type="text"],
+body.tema-dark input[type="number"],
+body.tema-dark select,
+body.tema-dark textarea,
+body.tema-dark .input-text,
+body.tema-dark .input-num,
+body.tema-dark .select {
+  background: #12122a !important;
+  border-color: #2a2a4a !important;
+  color: #e8e8f0 !important;
+}
+
+/* Header do simulador */
+body.tema-dark .header {
+  background: #0C3060 !important;
+}
+
+/* Nav de abas */
+body.tema-dark .nav-abas {
+  background: #12122a !important;
+  border-bottom-color: #2a2a4a !important;
+}
+
+body.tema-dark .aba-btn {
+  color: rgba(255,255,255,0.6) !important;
+}
+
+body.tema-dark .aba-btn:not(.ativa):hover {
+  background: rgba(255,255,255,0.06) !important;
+  color: #fff !important;
+}
+
+/* Fórmula */
+body.tema-dark .formula-box {
+  background: #12122a !important;
+  border-color: #2a2a4a !important;
+  color: #7ab8f5 !important;
+}
+
+/* Área principal */
+body.tema-dark .main-content {
+  background: #0f0f1e !important;
+}
+
+/* Textos secundários */
+body.tema-dark .hint,
+body.tema-dark .desc,
+body.tema-dark .explicacao p {
+  color: #6b7280 !important;
+}
+
+body.tema-dark .field-label {
+  color: #a0a8c0 !important;
+}
+
+body.tema-dark .td-mes {
+  color: #e8e8f0 !important;
+}
+
+/* Barras de comparação */
+body.tema-dark .barra-track {
+  background: #12122a !important;
+}
+
+/* Resultado otimizador */
+body.tema-dark .resultado.ok {
+  background: #0d2a1a !important;
+  border-color: #1F6E3A !important;
+}
+
+body.tema-dark .resultado.nok {
+  background: #2a0d0d !important;
+  border-color: #B91C1C !important;
+}
+
+body.tema-dark .resultado-msg {
+  color: #a0a8c0 !important;
+}
+
+body.tema-dark .kpi-val {
+  color: #e8e8f0 !important;
+}
+
+/* Badge */
+body.tema-dark .badge.verde   { background: #0d2a1a !important; }
+body.tema-dark .badge.amarelo { background: #2a1a0d !important; }
+body.tema-dark .badge.vermelho{ background: #2a0d0d !important; }
+
+/* Seletor de meta no otimizador */
+body.tema-dark .btn-meta {
+  background: #12122a !important;
+  border-color: #2a2a4a !important;
+  color: #a0a8c0 !important;
+}
+
+body.tema-dark .btn-meta.ativo {
+  background: #1B4F8A !important;
+  color: #fff !important;
+  border-color: #1B4F8A !important;
+}
+
+body.tema-dark,
+body.tema-dark app-root,
+body.tema-dark router-outlet ~ * {
+  background: #0f0f1e !important;
+}
+
+/* Garante que o fundo cobre toda a tela */
+body.tema-dark {
+  min-height: 100vh;
+  background: #0f0f1e !important;
+}

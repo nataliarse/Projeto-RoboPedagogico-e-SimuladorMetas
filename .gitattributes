@@ -1,0 +1,6 @@
+# Preserve known whitespace from the untouched integration quarantine snapshot.
+integracao_entrada/TCC-Simulador-CNJ/Checklist_Melhorias_Correcoes_Simulador.md whitespace=-blank-at-eol,-blank-at-eof
+integracao_entrada/TCC-Simulador-CNJ/backend/robo_cnj_meta2.py whitespace=-blank-at-eol,-blank-at-eof
+integracao_entrada/TCC-Simulador-CNJ/frontend/meu-primeiro-app/simulador-metas/LEIAME.md whitespace=-blank-at-eol,-blank-at-eof
+integracao_entrada/TCC-Simulador-CNJ/frontend/meu-primeiro-app/src/app/app.ts whitespace=-blank-at-eol,-blank-at-eof
+integracao_entrada/TCC-Simulador-CNJ/frontend/meu-primeiro-app/src/app/features/simulador/simulador-shell.component.ts whitespace=-blank-at-eol,-blank-at-eof
