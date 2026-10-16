@@ -150,6 +150,24 @@ class ProcessualChatHTTPTestCase(unittest.TestCase):
         self.assertIsNone(result["failed_stage"])
         self.assertIsInstance(result["fontes"], list)
 
+    def test_openapi_formalizes_chat_success_and_validation_error_contracts(self) -> None:
+        operation = api.app.openapi()["paths"]["/api/processos/chat"]["post"]
+        request_schema = operation["requestBody"]["content"]["application/json"]["schema"]
+        success_schema = operation["responses"]["200"]["content"]["application/json"]["schema"]
+        validation_schema = operation["responses"]["422"]["content"]["application/json"]["schema"]
+
+        self.assertEqual(request_schema["$ref"], "#/components/schemas/ProcessualChatHTTPRequest")
+        self.assertEqual(success_schema["$ref"], "#/components/schemas/ProcessualChatHTTPResponse")
+        self.assertEqual(validation_schema["$ref"], "#/components/schemas/HTTPValidationError")
+
+        schemas = api.app.openapi()["components"]["schemas"]
+        response_properties = schemas["ProcessualChatHTTPResponse"]["properties"]
+        result_properties = schemas["ProcessualChatHTTPResult"]["properties"]
+        self.assertIn("session_id", response_properties)
+        self.assertIn("resultado", response_properties)
+        self.assertIn("resposta", result_properties)
+        self.assertEqual(result_properties["tipo"]["const"], "processual_chat")
+
     def test_processual_chat_preserves_explicit_session_context(self) -> None:
         process_number = "0011000-82.1981.5.18.0051"
         received_states: list[dict] = []

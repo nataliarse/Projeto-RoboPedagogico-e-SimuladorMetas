@@ -18,3 +18,15 @@ export interface ProcessualChatHttpResponse {
   session_id: string;
   resultado: ProcessualChatResponse;
 }
+
+export interface ApiValidationErrorItem {
+  loc: ReadonlyArray<string | number>;
+  msg: string;
+  type: string;
+  input?: unknown;
+  ctx?: Readonly<Record<string, unknown>>;
+}
+
+export interface ApiValidationErrorResponse {
+  detail: ReadonlyArray<ApiValidationErrorItem>;
+}

@@ -27,6 +27,7 @@ MANIFEST
 
 # Test, coverage and tool caches
 .pytest_cache/
+pytest-cache-files-*/
 .mypy_cache/
 .ruff_cache/
 .tox/
@@ -55,6 +56,7 @@ coverage/
 
 # Package-manager caches and diagnostic logs
 .npm/
+.tools/
 .yarn/cache/
 .yarn/unplugged/
 .yarn/build-state.yml

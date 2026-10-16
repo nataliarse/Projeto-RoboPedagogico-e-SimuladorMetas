@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Any
+from typing import Any, Literal
 from uuid import uuid4
 
 from fastapi import FastAPI
@@ -35,6 +35,22 @@ class ProcessualChatHTTPRequest(BaseModel):
         return value
 
 
+class ProcessualChatHTTPResult(BaseModel):
+    tipo: Literal["processual_chat"]
+    intent: str | None
+    resposta: str
+    processo_ativo: str | None
+    collection_status: str | None
+    failed_stage: str | None
+    rag_status: str | None
+    fontes: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class ProcessualChatHTTPResponse(BaseModel):
+    session_id: str
+    resultado: ProcessualChatHTTPResult
+
+
 class MetaSimulationHTTPRequest(BaseModel):
     session_id: str | None = None
     pergunta_usuario: str | None = None
@@ -57,18 +73,18 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.post("/api/processos/chat")
-def chat_processual(request: ProcessualChatHTTPRequest) -> dict[str, Any]:
+@app.post("/api/processos/chat", response_model=ProcessualChatHTTPResponse)
+def chat_processual(request: ProcessualChatHTTPRequest) -> ProcessualChatHTTPResponse:
     session_id = _normalize_session_id(request.session_id)
     session_state = _get_session_state(session_id)
 
     result = run_processual_chat_step(request.mensagem, session_state)
     _register_assistant_message(result.response.resposta, session_state)
 
-    return {
-        "session_id": session_id,
-        "resultado": asdict(result.response),
-    }
+    return ProcessualChatHTTPResponse(
+        session_id=session_id,
+        resultado=ProcessualChatHTTPResult.model_validate(asdict(result.response)),
+    )
 
 
 @app.post("/api/metas/simular")

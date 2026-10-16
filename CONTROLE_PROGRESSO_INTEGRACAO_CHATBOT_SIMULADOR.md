@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 11 |
+| Validated | 12 |
 | In progress | 0 |
-| Blocked | 1 |
+| Blocked | 0 |
 | Failed | 0 |
 | Todo | 33 |
 | Skip aprovado | 0 |
-| Progresso validado | 24,44% |
+| Progresso validado | 26,67% |
 
 ## Fases
 
@@ -40,12 +40,12 @@
 |---|---|---:|---:|---|
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
-| 2 — Contratos e proxy | INT-012–016 | 5 | 0 | BLOCKED |
+| 2 — Contratos e proxy | INT-012–016 | 5 | 1 | IN_PROGRESS |
 | 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **11** | **BLOCKED** |
+| **Total** | | **45** | **12** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -62,7 +62,7 @@
 | INT-009 | VALIDATED | `docs(integracao): documentar ambiente no INT-009` | Python/Node/npm/Angular, manifests e comandos reproduzíveis documentados | Backends exigem ambientes Python separados |
 | INT-010 | VALIDATED | `chore(integracao): adicionar inicialização no INT-010` | Scripts PowerShell analisados sintaticamente; portas 8000/8001/4200 distintas | Execução integral depende dos ambientes documentados no INT-009 |
 | INT-011 | VALIDATED | `feat(integracao): configurar ambientes no INT-011` | Proxy dividido por namespace; scripts parametrizados; simulador usa configuração de ambiente | Alias `/api/health` mantido temporariamente para compatibilidade |
-| INT-012 | BLOCKED | `chore(integracao): registrar bloqueio do INT-012` | Ambiente local não possui Pydantic 2/pytest nem cache offline | Requer autorização para baixar dependências de desenvolvimento; API não foi alterada |
+| INT-012 | VALIDATED | `feat(integracao): tipar contrato do chat no INT-012` | 15 testes de API e contrato; 19 testes Angular; OpenAPI declara request, resposta e erro 422 | Bloqueio ambiental removido com ambientes locais isolados e Node portátil ignorado pelo Git |
 | INT-013 | TODO | — | — | — |
 | INT-014 | TODO | — | — | — |
 | INT-015 | TODO | — | — | — |
@@ -241,6 +241,18 @@
 - **Mudanças funcionais:** nenhuma; contratos e código permaneceram intactos.
 - **Commit:** identificado pelo assunto `chore(integracao): registrar bloqueio do INT-012`.
 - **Desbloqueio necessário:** autorização explícita para criar `.venv` e baixar as dependências versionadas do chatbot. A instalação de Node/npm também será necessária antes dos itens Angular.
+
+### INT-012 — 2026-10-16 — desbloqueio e validação
+- **Estado anterior → novo:** `BLOCKED` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `d02c3ce`.
+- **Arquivos modificados:** contrato HTTP do chatbot, tipos compartilhados do Angular, teste de contrato, `.gitignore` e este controle.
+- **Resumo técnico:** a rota `POST /api/processos/chat` agora publica modelos Pydantic explícitos para request e response; `tipo` é discriminado, `session_id` e `resultado.resposta` são obrigatórios, e o erro de validação 422 permanece formalizado pelo OpenAPI. O frontend possui tipos correspondentes para sucesso e erro estruturado.
+- **Ambiente local:** dependências instaladas em `.venv` isoladas; Node 24.19.0/npm 11.17.0 portátil validado por SHA-256 e mantido em `.tools/`, ignorado pelo Git.
+- **Testes:** `python -m pytest tests/test_api_processual_chat.py -q` → 15 aprovados; suíte Python completa com cache desativado → 144 aprovados; `npm test -- --watch=false` → 6 arquivos/19 testes aprovados; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** OpenAPI referencia `ProcessualChatHTTPRequest`, `ProcessualChatHTTPResponse` e `HTTPValidationError`; resposta serializada e tipagem Angular cobrem os campos obrigatórios e os erros.
+- **Riscos:** `npm audit` reportou vulnerabilidades transitivas; não foi aplicado `npm audit fix` porque alteraria o lockfile fora do item. O aviso de cache do pytest é restrição local e não afetou os testes.
+- **Commit:** identificado pelo assunto `feat(integracao): tipar contrato do chat no INT-012`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-013`.
 
 ### Modelo para cada execução
 
