@@ -28,7 +28,8 @@ function isProcessualChatResponse(value: unknown): value is ProcessualChatHttpRe
     && typeof envelope.resultado === 'object'
     && envelope.resultado !== null
     && envelope.resultado.tipo === 'processual_chat'
-    && typeof envelope.resultado.resposta === 'string';
+    && typeof envelope.resultado.resposta === 'string'
+    && envelope.resultado.resposta.trim().length > 0;
 }
 
 @Injectable({ providedIn: 'root' })

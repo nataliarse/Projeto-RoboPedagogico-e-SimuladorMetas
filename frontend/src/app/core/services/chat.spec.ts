@@ -109,6 +109,18 @@ describe('ChatService', () => {
     expect(observedError).toBeInstanceOf(InvalidApiResponseError);
   });
 
+  it('não transforma resposta vazia em sucesso aparente', () => {
+    let observedError: unknown;
+    service.enviar('Olá').subscribe({ error: error => observedError = error });
+
+    httpTesting.expectOne('/api/processos/chat').flush({
+      ...validResponse,
+      resultado: { ...validResponse.resultado, resposta: '   ' }
+    });
+
+    expect(observedError).toBeInstanceOf(InvalidApiResponseError);
+  });
+
   it('aplica orçamento de 120 segundos ao chat sem espera real', () => {
     let observedError: unknown;
 
