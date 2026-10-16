@@ -110,7 +110,7 @@ export class ChatComponent implements AfterViewChecked {
             this.storage.salvar({
               numero_processo: processoAtivo,
               data_consulta: new Date().toLocaleString('pt-BR'),
-              resposta_resumo: response.resultado.resposta.slice(0, 80)
+              resposta_resumo: 'Consulta processual realizada.'
             });
             this.historico.set(this.storage.carregar());
           }

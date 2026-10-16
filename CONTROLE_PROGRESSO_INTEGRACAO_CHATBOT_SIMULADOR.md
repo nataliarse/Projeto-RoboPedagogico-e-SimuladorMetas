@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 22 |
+| Validated | 23 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 23 |
+| Todo | 22 |
 | Skip aprovado | 0 |
-| Progresso validado | 48,89% |
+| Progresso validado | 51,11% |
 
 ## Fases
 
@@ -41,11 +41,11 @@
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
-| 3 — Chat real | INT-017–024 | 8 | 6 | IN_PROGRESS |
+| 3 — Chat real | INT-017–024 | 8 | 7 | IN_PROGRESS |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **22** | **IN_PROGRESS** |
+| **Total** | | **45** | **23** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -73,7 +73,7 @@
 | INT-020 | VALIDATED | `test(integracao): validar sessao do chat no INT-020` | 25 testes Angular; duas requests consecutivas reutilizam o ID retornado | `sessionStorage` isola a sessão do navegador e permite limpeza explícita |
 | INT-021 | VALIDATED | `feat(integracao): definir ciclo da conversa no INT-021` | 26 testes Angular; nova conversa limpa sessão/mensagens e preserva histórico | Refresh e limites da persistência local documentados |
 | INT-022 | VALIDATED | `feat(integracao): controlar envio do chat no INT-022` | 27 testes Angular cobrem loading, duplicidade, cancelamento, rede e nova tentativa | Resposta tardia após cancelamento é ignorada |
-| INT-023 | TODO | — | — | — |
+| INT-023 | VALIDATED | `fix(integracao): proteger dados do chat no INT-023` | 28 testes Angular; markup permanece texto e resposta não vai ao storage | Revisão de logs documentada; histórico usa resumo genérico |
 | INT-024 | TODO | — | — | — |
 | INT-025 | TODO | — | — | — |
 | INT-026 | TODO | — | — | — |
@@ -363,6 +363,17 @@
 - **Riscos:** cancelar no navegador não garante interromper computação já iniciada no servidor, conforme decisão de timeout.
 - **Commit:** identificado pelo assunto `feat(integracao): controlar envio do chat no INT-022`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-023`.
+
+### INT-023 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `4dd7da3`.
+- **Arquivos modificados:** componente/teste do chat, revisão de dados sensíveis e este controle.
+- **Resumo técnico:** respostas continuam em interpolação Angular segura e deixaram de ser parcialmente copiadas ao `localStorage`; o histórico registra apenas descrição genérica.
+- **Testes:** `npm test -- --watch=false` → 7 arquivos/28 testes aprovados; payload com `<img onerror>` permanece texto, não cria elemento e seu marcador não chega ao storage; revisão por `rg` dos pontos de log; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** não há `innerHTML`/bypass no frontend nem logs de payload processual; logger do coletor usa somente estágio e classe da exceção.
+- **Riscos:** o número do processo permanece no histórico por ser a função explícita desse recurso; usuários podem limpá-lo pelo serviço existente.
+- **Commit:** identificado pelo assunto `fix(integracao): proteger dados do chat no INT-023`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-024`.
 
 ### Modelo para cada execução
 

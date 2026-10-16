@@ -204,6 +204,22 @@ describe('ChatComponent', () => {
     expect(salvar).not.toHaveBeenCalled();
   });
 
+  it('renderiza conteúdo potencialmente injetável como texto e não o persiste', () => {
+    const sensitive = '<img src=x onerror="globalThis.__xss=true">segredo-processual';
+    enviar.mockReturnValue(of(criarResponse({ resposta: sensitive })));
+    component.texto = 'Consulte';
+
+    component.enviar();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain(sensitive);
+    expect(fixture.nativeElement.querySelector('.bolha img')).toBeNull();
+    expect(salvar).toHaveBeenCalledWith(expect.objectContaining({
+      resposta_resumo: 'Consulta processual realizada.'
+    }));
+    expect(JSON.stringify(salvar.mock.calls)).not.toContain('segredo-processual');
+  });
+
   it.each([
     ['timeout', new TimeoutError(), TIMEOUT_MESSAGE],
     ['transporte', new HttpErrorResponse({ status: 0, statusText: 'segredo-rede' }), TRANSPORT_MESSAGE],
