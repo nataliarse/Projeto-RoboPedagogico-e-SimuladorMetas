@@ -49,6 +49,12 @@ export interface RespostaSimulacao {
   meta2Final: number | null;
 }
 
+export interface RespostaBaseApi {
+  registros: RegistroApi[];
+  meta1_final: number | null;
+  meta2_final: number | null;
+}
+
 export interface AlteracaoMes {
   julgados?: number;
   dessobrestados?: number;
@@ -56,6 +62,39 @@ export interface AlteracaoMes {
 }
 
 export type AlteracoesCenario = Record<string, AlteracaoMes>;
+
+export interface SimularRequest { alteracoes: AlteracoesCenario; }
+export interface CompararCenarioRequest { nome: string; alteracoes: AlteracoesCenario; }
+export interface CompararRequest { cenarios: CompararCenarioRequest[]; }
+export interface CenarioComparadoApi {
+  nome: string;
+  meta1_final: number | null;
+  meta2_final: number | null;
+  dif_meta1: number | null;
+  dif_meta2: number | null;
+  mensal: RegistroApi[];
+}
+export interface CompararResponse {
+  cenarios: CenarioComparadoApi[];
+  meta1_base: number | null;
+  meta2_base: number | null;
+}
+export interface OtimizadorRequest {
+  variavel: 'julgados' | 'dessobrestados' | 'suspensos';
+  mes: string;
+  meta_alvo: number;
+  meta: 'meta1' | 'meta2';
+}
+export interface RespostaOtimizador {
+  variavel: string;
+  mes: string;
+  meta_alvo: number;
+  meta_atual: number | null;
+  incremento_necessario: number | null;
+  meta_resultante: number | null;
+  mensagem: string;
+  ok: boolean;
+}
 
 export interface Cenario {
   id: number;

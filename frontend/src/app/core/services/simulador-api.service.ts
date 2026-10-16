@@ -1,42 +1,26 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, catchError, finalize, map, throwError } from 'rxjs';
+import { Observable, catchError, finalize, map, throwError, timeout } from 'rxjs';
 import {
   AlteracaoMes,
+  CompararRequest,
+  CompararResponse,
+  OtimizadorRequest,
   RegistroApi,
   RegistroCalculado,
+  RespostaBaseApi,
+  RespostaOtimizador,
   RespostaSimulacao,
+  SimularRequest,
   TipoDado,
   TipoDadoApi,
 } from '../models/simulador.model';
-
-interface RespostaBaseApi {
-  registros: RegistroApi[];
-  meta1_final: number | null;
-  meta2_final: number | null;
-}
-export interface RespostaOtimizador {
-  variavel: string;
-  mes: string;
-  meta_alvo: number;
-  meta_atual: number | null;
-  incremento_necessario: number | null;
-  meta_resultante: number | null;
-  mensagem: string;
-  ok: boolean;
-}
-
-export interface OtimizadorRequest {
-  variavel: 'julgados' | 'dessobrestados' | 'suspensos';
-  mes: string;
-  meta_alvo: number;
-  meta: 'meta1' | 'meta2';
-}
+import { HTTP_TIMEOUT_MS } from '../config/http-timeouts';
 
 @Injectable({ providedIn: 'root' })
 export class SimuladorApiService {
   private readonly http = inject(HttpClient);
-  private readonly API = '/api';
+  private readonly API = '/api/simulador';
 
   carregando = signal(false);
   erro = signal<string | null>(null);
@@ -45,6 +29,7 @@ export class SimuladorApiService {
     this.carregando.set(true);
     this.erro.set(null);
     return this.http.get<RespostaBaseApi>(`${this.API}/base`).pipe(
+      timeout(HTTP_TIMEOUT_MS.simulatorBase),
       map((res) => this.paraApresentacao(res)),
       catchError((err) => {
         this.erro.set(this.msg(err));
@@ -57,7 +42,9 @@ export class SimuladorApiService {
   simular(alteracoes: Record<string, AlteracaoMes>): Observable<RespostaSimulacao> {
     this.carregando.set(true);
     this.erro.set(null);
-    return this.http.post<RespostaBaseApi>(`${this.API}/simular`, { alteracoes }).pipe(
+    const request: SimularRequest = { alteracoes };
+    return this.http.post<RespostaBaseApi>(`${this.API}/simular`, request).pipe(
+      timeout(HTTP_TIMEOUT_MS.simulatorScenario),
       map((res) => this.paraApresentacao(res)),
       catchError((err) => {
         this.erro.set(this.msg(err));
@@ -101,6 +88,20 @@ export class SimuladorApiService {
     this.carregando.set(true);
     this.erro.set(null);
     return this.http.post<RespostaOtimizador>(`${this.API}/otimizador`, req).pipe(
+      timeout(HTTP_TIMEOUT_MS.simulatorOptimizer),
+      catchError((err) => {
+        this.erro.set(this.msg(err));
+        return throwError(() => err);
+      }),
+      finalize(() => this.carregando.set(false)),
+    );
+  }
+
+  comparar(req: CompararRequest): Observable<CompararResponse> {
+    this.carregando.set(true);
+    this.erro.set(null);
+    return this.http.post<CompararResponse>(`${this.API}/comparar`, req).pipe(
+      timeout(HTTP_TIMEOUT_MS.simulatorComparison),
       catchError((err) => {
         this.erro.set(this.msg(err));
         return throwError(() => err);

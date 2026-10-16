@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 25 |
+| Validated | 26 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 20 |
+| Todo | 19 |
 | Skip aprovado | 0 |
-| Progresso validado | 55,56% |
+| Progresso validado | 57,78% |
 
 ## Fases
 
@@ -42,10 +42,10 @@
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
-| 4 — Simulador no frontend | INT-025–030 | 6 | 1 | IN_PROGRESS |
+| 4 — Simulador no frontend | INT-025–030 | 6 | 2 | IN_PROGRESS |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **25** | **IN_PROGRESS** |
+| **Total** | | **45** | **26** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -76,7 +76,7 @@
 | INT-023 | VALIDATED | `fix(integracao): proteger dados do chat no INT-023` | 28 testes Angular; markup permanece texto e resposta não vai ao storage | Revisão de logs documentada; histórico usa resumo genérico |
 | INT-024 | VALIDATED | `test(integracao): validar chat offline no INT-024` | 8 testes E2E backend e 28 testes Angular previamente aprovados | Fixture local percorre HTTP→orquestrador→repositório→resposta; coletor externo proibido |
 | INT-025 | VALIDATED | `feat(integracao): transportar UI do simulador no INT-025` | Build Angular aprovado; inventário antes/depois de 9 artefatos | Base, cenários, gráficos, tabela, otimizador e shell preservados na rota `/simulador` |
-| INT-026 | TODO | — | — | — |
+| INT-026 | VALIDATED | `feat(integracao): adaptar API do simulador no INT-026` | Build Angular aprovado; quatro contratos e timeouts tipados | URLs usam `/api/simulador/*`; nenhuma fórmula Python alterada |
 | INT-027 | TODO | — | — | — |
 | INT-028 | TODO | — | — | — |
 | INT-029 | TODO | — | — | — |
@@ -396,6 +396,17 @@
 - **Riscos:** URLs e contratos importados ainda refletem o snapshot e serão adaptados/testados nos INT-026–028, sem mudança nas fórmulas do backend.
 - **Commit:** identificado pelo assunto `feat(integracao): transportar UI do simulador no INT-025`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-026`.
+
+### INT-026 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `47c29d5`.
+- **Arquivos modificados:** modelo e cliente HTTP do simulador, além deste controle.
+- **Resumo técnico:** base, simulação, comparação e otimizador possuem requests/responses tipadas e usam `/api/simulador/*`, compatível com o rewrite ao backend 8001; cada operação consome seu orçamento de timeout central.
+- **Testes:** `npm run build` aprovado; compilação de produção validou todos os consumidores e contratos; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** não restam chamadas do serviço importado para `/api/base`, `/api/simular` ou `/api/otimizador`; todos os quatro endpoints reais estão representados.
+- **Riscos:** validação de comportamento HTTP e respostas vazias/erradas pertence ao INT-027; componentes ainda mantêm a experiência importada.
+- **Commit:** identificado pelo assunto `feat(integracao): adaptar API do simulador no INT-026`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-027`.
 
 ### Modelo para cada execução
 
