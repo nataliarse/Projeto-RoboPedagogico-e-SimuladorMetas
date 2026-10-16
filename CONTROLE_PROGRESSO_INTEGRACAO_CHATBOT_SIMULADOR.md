@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 16 |
+| Validated | 17 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 29 |
+| Todo | 28 |
 | Skip aprovado | 0 |
-| Progresso validado | 35,56% |
+| Progresso validado | 37,78% |
 
 ## Fases
 
@@ -41,11 +41,11 @@
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
-| 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
+| 3 — Chat real | INT-017–024 | 8 | 1 | IN_PROGRESS |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **16** | **IN_PROGRESS** |
+| **Total** | | **45** | **17** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -67,7 +67,7 @@
 | INT-014 | VALIDATED | `test(integracao): validar proxy no INT-014` | 3 testes/8 rotas confirmam destinos e rewrites por namespace | Healthchecks processual e simulador chegam a portas distintas |
 | INT-015 | VALIDATED | `feat(integracao): tratar falhas HTTP no INT-015` | 21 testes Angular cobrem timeout, rede, 4xx, 5xx e resposta 2xx inválida | Falhas permanecem no canal de erro e mensagens técnicas não são expostas |
 | INT-016 | VALIDATED | `docs(integracao): definir timeouts no INT-016` | 21 testes Angular; timeout do chat exercitado com relógio virtual | Orçamentos centralizados por operação; chat reduzido de 135 s para 120 s |
-| INT-017 | TODO | — | — | — |
+| INT-017 | VALIDATED | `feat(integracao): tipar envio do chat no INT-017` | 22 testes Angular; spy HTTP confirma POST, corpo e sessão opcional | Sessão explícita pode sobrescrever a armazenada sem alterar o contrato público |
 | INT-018 | TODO | — | — | — |
 | INT-019 | TODO | — | — | — |
 | INT-020 | TODO | — | — | — |
@@ -297,6 +297,17 @@
 - **Riscos:** os limites do simulador serão aplicados quando seu serviço Angular for transportado na fase 4; timeout do cliente não interrompe necessariamente trabalho já iniciado no backend.
 - **Commit:** identificado pelo assunto `docs(integracao): definir timeouts no INT-016`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-017`.
+
+### INT-017 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `dceeab9`.
+- **Arquivos modificados:** serviço/teste HTTP do chat e este controle.
+- **Resumo técnico:** `ChatService.enviar` usa request tipada em `POST /api/processos/chat` e aceita opção tipada de `sessionId`; quando omitida, mantém a sessão corrente, e quando nula, omite o campo do payload.
+- **Testes:** `npm test -- --watch=false` → 6 arquivos/22 testes aprovados; spy HTTP confirma verbo, URL, mensagem e `session_id` explícito; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** o teste intercepta a chamada real do `HttpClientTestingController` e compara exatamente o corpo enviado.
+- **Riscos:** nenhum retry automático foi introduzido; a validação runtime da resposta permanece ativa.
+- **Commit:** identificado pelo assunto `feat(integracao): tipar envio do chat no INT-017`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-018`.
 
 ### Modelo para cada execução
 

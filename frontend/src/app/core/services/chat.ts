@@ -16,6 +16,10 @@ export class InvalidApiResponseError extends Error {
   }
 }
 
+export interface ChatSendOptions {
+  sessionId?: string | null;
+}
+
 function isProcessualChatResponse(value: unknown): value is ProcessualChatHttpResponse {
   if (typeof value !== 'object' || value === null) return false;
   const envelope = value as Partial<ProcessualChatHttpResponse>;
@@ -32,8 +36,13 @@ export class ChatService {
   private http = inject(HttpClient);
   private session = inject(ChatSessionService);
 
-  enviar(mensagem: string): Observable<ProcessualChatHttpResponse> {
-    const sessionId = this.session.getSessionId();
+  enviar(
+    mensagem: string,
+    options: ChatSendOptions = {},
+  ): Observable<ProcessualChatHttpResponse> {
+    const sessionId = options.sessionId === undefined
+      ? this.session.getSessionId()
+      : options.sessionId;
     const request: ProcessualChatRequest = sessionId === null
       ? { mensagem }
       : { session_id: sessionId, mensagem };

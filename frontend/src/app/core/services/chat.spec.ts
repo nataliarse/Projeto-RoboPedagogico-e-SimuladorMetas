@@ -71,6 +71,20 @@ describe('ChatService', () => {
     request.flush(validResponse);
   });
 
+  it('aceita session_id explícito na request tipada', () => {
+    sessionId = 'sessao-armazenada';
+
+    service.enviar('Continue', { sessionId: 'sessao-explicita' }).subscribe();
+
+    const request = httpTesting.expectOne('/api/processos/chat');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({
+      session_id: 'sessao-explicita',
+      mensagem: 'Continue'
+    });
+    request.flush(validResponse);
+  });
+
   it('emite o envelope HTTP contratual recebido', () => {
     let emitted: ProcessualChatHttpResponse | undefined;
 
