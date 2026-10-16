@@ -26,26 +26,26 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 3 |
+| Validated | 4 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 42 |
+| Todo | 41 |
 | Skip aprovado | 0 |
-| Progresso validado | 6,67% |
+| Progresso validado | 8,89% |
 
 ## Fases
 
 | Fase | Itens | Total | Validados | Situação |
 |---|---|---:|---:|---|
-| 0 — Segurança e inventário | INT-001–006 | 6 | 3 | IN_PROGRESS |
+| 0 — Segurança e inventário | INT-001–006 | 6 | 4 | IN_PROGRESS |
 | 1 — Repositório e execução | INT-007–011 | 5 | 0 | TODO |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 0 | TODO |
 | 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **3** | **IN_PROGRESS** |
+| **Total** | | **45** | **4** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -54,7 +54,7 @@
 | INT-001 | VALIDATED | `chore(integracao): validar INT-001` | Branch, raiz, origin, commit-base, status e rollback conferidos | Branch local sem upstream; alterações preexistentes preservadas fora do staging |
 | INT-002 | VALIDATED | `chore(integracao): importar snapshot no INT-002` | 69 arquivos/665.467 bytes inventariados; importação somente aditiva; varredura de segredos sem achados | Três modelos TypeScript adicionados explicitamente por conflito conhecido com `.gitignore` |
 | INT-003 | VALIDATED | `docs(integracao): mapear componentes no INT-003` | Mapa aplicação→função→destino, duplicatas SHA-256 e candidatos inativos documentados | Nenhum arquivo removido; decisões reservadas ao INT-006 |
-| INT-004 | TODO | — | — | — |
+| INT-004 | VALIDATED | `test(integracao): registrar baselines no INT-004` | Versões, comandos e resultados offline documentados; smoke do simulador aprovado | Pytest e Node/npm ausentes; Angular importado sem angular.json |
 | INT-005 | TODO | — | — | — |
 | INT-006 | TODO | — | — | — |
 | INT-007 | TODO | — | — | — |
@@ -137,6 +137,17 @@
 - **Riscos:** o frontend importado não é executável isoladamente no estado recebido por ausência de `angular.json`; a árvore Angular canônica permanece decisão do `INT-006`.
 - **Commit:** identificado pelo assunto `docs(integracao): mapear componentes no INT-003`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-004`.
+
+### INT-004 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `70ae343`.
+- **Arquivos modificados:** `docs/integracao/INT-004_BASELINES_LOCAIS.md` e este controle.
+- **Resumo técnico:** comandos e testes de ambos os projetos foram identificados e tentados offline; versões e limitações ambientais foram separadas de falhas funcionais.
+- **Comandos e resultados:** Python 3.12.10; backend do simulador importado e smoke de `health/base/simular/comparar/otimizador` aprovados; chatbot/collector limitados por `pytest`, package e versão global de Pydantic; frontends limitados pela ausência de Node/npm e o importado também pela ausência de `angular.json`.
+- **Evidência do aceite:** relatório reproduzível em `docs/integracao/INT-004_BASELINES_LOCAIS.md`.
+- **Riscos:** não há baseline Angular executada neste host; nenhuma falha foi atribuída à integração sem ambiente compatível.
+- **Commit:** identificado pelo assunto `test(integracao): registrar baselines no INT-004`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-005`.
 
 ### Modelo para cada execução
 
