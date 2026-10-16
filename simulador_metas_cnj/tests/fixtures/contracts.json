@@ -1,0 +1,12 @@
+{
+  "valid": {
+    "simular": {"alteracoes": {"2026-06": {"julgados": 10}}},
+    "comparar": {"cenarios": [{"nome": "Aceleração", "alteracoes": {"2026-06": {"julgados": 10}}}]},
+    "otimizador": {"variavel": "julgados", "mes": "2026-06", "meta_alvo": 100.0, "meta": "meta1"}
+  },
+  "invalid": {
+    "simular": {"alteracoes": {"2026-13": {"julgados": 10}}},
+    "comparar": {"cenarios": [{"nome": "Inválido", "alteracoes": {"2026-06": {"novos": 1}}}]},
+    "otimizador": {"variavel": "novos", "mes": "2026-06", "meta_alvo": 100.0, "meta": "meta3"}
+  }
+}

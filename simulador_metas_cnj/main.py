@@ -17,7 +17,7 @@ import re
 import unicodedata
 from datetime import datetime
 from functools import reduce
-from typing import Dict, List
+from typing import Any, Dict, List, Literal, Optional
 
 import numpy as np
 import pandas as pd
@@ -332,22 +332,58 @@ class SimularRequest(ModeloEntrada):
     _validar_meses = validator("alteracoes", pre=True, allow_reuse=True)(validar_meses_disponiveis)
 
 
-class CenarioItem(BaseModel):
+class CenarioItem(ModeloEntrada):
     nome:       str
     alteracoes: Dict[str, AlteracaoMes] = Field(default_factory=dict)
 
     _validar_meses = validator("alteracoes", pre=True, allow_reuse=True)(validar_meses_disponiveis)
 
 
-class CompararRequest(BaseModel):
+class CompararRequest(ModeloEntrada):
     cenarios: List[CenarioItem]
 
 
-class OtimizadorRequest(BaseModel):
-    variavel:   str   = "julgados"
+class OtimizadorRequest(ModeloEntrada):
+    variavel:   Literal["julgados", "dessobrestados", "suspensos"] = "julgados"
     mes:        str   = "2026-06"
     meta_alvo:  float = 100.0
-    meta:       str   = "meta1"   # "meta1" ou "meta2"
+    meta:       Literal["meta1", "meta2"] = "meta1"
+
+    _validar_mes = validator("mes", allow_reuse=True)(
+        lambda value: next(iter(validar_meses_disponiveis({value: {}})))
+    )
+
+
+class ResultadoMetasResponse(BaseModel):
+    registros: List[Dict[str, Any]]
+    meta1_final: Optional[float]
+    meta2_final: Optional[float]
+
+
+class CenarioComparadoResponse(BaseModel):
+    nome: str
+    meta1_final: Optional[float]
+    meta2_final: Optional[float]
+    dif_meta1: Optional[float]
+    dif_meta2: Optional[float]
+    mensal: List[Dict[str, Any]]
+
+
+class CompararResponse(BaseModel):
+    cenarios: List[CenarioComparadoResponse]
+    meta1_base: Optional[float]
+    meta2_base: Optional[float]
+
+
+class OtimizadorResponse(BaseModel):
+    variavel: str
+    mes: str
+    meta_alvo: float
+    meta_atual: Optional[float]
+    incremento_necessario: Optional[int]
+    meta_resultante: Optional[float]
+    mensagem: str
+    ok: bool
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -374,7 +410,7 @@ def health():
     return {"status": "ok", "registros": len(BASE_GLOBAL)}
 
 
-@app.get("/api/base")
+@app.get("/api/base", response_model=ResultadoMetasResponse)
 def get_base():
     """Retorna a base consolidada com Meta 1 e Meta 2 calculadas."""
     resultado = calcular_metas(BASE_GLOBAL)
@@ -385,7 +421,7 @@ def get_base():
     }
 
 
-@app.post("/api/simular")
+@app.post("/api/simular", response_model=ResultadoMetasResponse)
 def simular(req: SimularRequest):
     """Simula um cenário com alterações e retorna os resultados calculados."""
     alteracoes = {
@@ -400,7 +436,7 @@ def simular(req: SimularRequest):
     }
 
 
-@app.post("/api/comparar")
+@app.post("/api/comparar", response_model=CompararResponse)
 def comparar(req: CompararRequest):
     """Executa e compara múltiplos cenários."""
     comparacao = []
@@ -433,7 +469,7 @@ def comparar(req: CompararRequest):
     return {"cenarios": comparacao, "meta1_base": meta1_base, "meta2_base": meta2_base}
 
 
-@app.post("/api/otimizador")
+@app.post("/api/otimizador", response_model=OtimizadorResponse)
 def otimizador(req: OtimizadorRequest):
     """Encontra o ajuste mínimo para atingir a meta desejada."""
     if req.variavel not in VARIAVEIS_EDITAVEIS:
