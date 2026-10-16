@@ -67,6 +67,9 @@ def test_api_local_hit_uses_real_repository_without_collector(integrated_flow, m
 
     assert result["collection_status"] == "success"
     assert result["processo_ativo"] == FORMATTED_NUMBER
+    assert result["failed_stage"] is None
+    assert isinstance(result["resposta"], str) and result["resposta"].strip()
+    assert "Teste offline" in result["resposta"]
 
 
 def test_api_success_persists_reloads_and_survives_session_and_restart(integrated_flow, monkeypatch):

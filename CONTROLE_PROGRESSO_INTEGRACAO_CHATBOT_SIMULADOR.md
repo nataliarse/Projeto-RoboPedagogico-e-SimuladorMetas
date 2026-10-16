@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 23 |
+| Validated | 24 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 22 |
+| Todo | 21 |
 | Skip aprovado | 0 |
-| Progresso validado | 51,11% |
+| Progresso validado | 53,33% |
 
 ## Fases
 
@@ -41,11 +41,11 @@
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
-| 3 — Chat real | INT-017–024 | 8 | 7 | IN_PROGRESS |
+| 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **23** | **IN_PROGRESS** |
+| **Total** | | **45** | **24** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -74,7 +74,7 @@
 | INT-021 | VALIDATED | `feat(integracao): definir ciclo da conversa no INT-021` | 26 testes Angular; nova conversa limpa sessão/mensagens e preserva histórico | Refresh e limites da persistência local documentados |
 | INT-022 | VALIDATED | `feat(integracao): controlar envio do chat no INT-022` | 27 testes Angular cobrem loading, duplicidade, cancelamento, rede e nova tentativa | Resposta tardia após cancelamento é ignorada |
 | INT-023 | VALIDATED | `fix(integracao): proteger dados do chat no INT-023` | 28 testes Angular; markup permanece texto e resposta não vai ao storage | Revisão de logs documentada; histórico usa resumo genérico |
-| INT-024 | TODO | — | — | — |
+| INT-024 | VALIDATED | `test(integracao): validar chat offline no INT-024` | 8 testes E2E backend e 28 testes Angular previamente aprovados | Fixture local percorre HTTP→orquestrador→repositório→resposta; coletor externo proibido |
 | INT-025 | TODO | — | — | — |
 | INT-026 | TODO | — | — | — |
 | INT-027 | TODO | — | — | — |
@@ -374,6 +374,17 @@
 - **Riscos:** o número do processo permanece no histórico por ser a função explícita desse recurso; usuários podem limpá-lo pelo serviço existente.
 - **Commit:** identificado pelo assunto `fix(integracao): proteger dados do chat no INT-023`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-024`.
+
+### INT-024 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `377a355`.
+- **Arquivos modificados:** teste E2E offline, documentação do fluxo e este controle.
+- **Resumo técnico:** processo de fixture é ingerido em SQLite temporário e consultado pelo endpoint ASGI real; contexto, análise, resposta, contrato e projeção Angular são exercitados sem consulta externa.
+- **Testes:** suíte `test_p6_end_to_end_integration.py` → 8 aprovados; cenário local exige resposta não vazia contendo dado da fixture e falha imediatamente se o coletor for chamado; suíte Angular mais recente → 28 aprovados; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** pergunta → HTTP → orquestrador/agentes → repositório local → `resultado.resposta`; teste Angular correspondente confirma resposta no DOM.
+- **Riscos:** intenção e RAG são doubles determinísticos para excluir Ollama/Qdrant; contexto, análise, resposta, repositório e FastAPI permanecem reais.
+- **Commit:** identificado pelo assunto `test(integracao): validar chat offline no INT-024`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-025`.
 
 ### Modelo para cada execução
 
