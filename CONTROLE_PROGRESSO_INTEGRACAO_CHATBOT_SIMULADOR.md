@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 27 |
+| Validated | 28 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 18 |
+| Todo | 17 |
 | Skip aprovado | 0 |
-| Progresso validado | 60,00% |
+| Progresso validado | 62,22% |
 
 ## Fases
 
@@ -42,10 +42,10 @@
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
-| 4 — Simulador no frontend | INT-025–030 | 6 | 3 | IN_PROGRESS |
+| 4 — Simulador no frontend | INT-025–030 | 6 | 4 | IN_PROGRESS |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **27** | **IN_PROGRESS** |
+| **Total** | | **45** | **28** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -78,7 +78,7 @@
 | INT-025 | VALIDATED | `feat(integracao): transportar UI do simulador no INT-025` | Build Angular aprovado; inventário antes/depois de 9 artefatos | Base, cenários, gráficos, tabela, otimizador e shell preservados na rota `/simulador` |
 | INT-026 | VALIDATED | `feat(integracao): adaptar API do simulador no INT-026` | Build Angular aprovado; quatro contratos e timeouts tipados | URLs usam `/api/simulador/*`; nenhuma fórmula Python alterada |
 | INT-027 | VALIDATED | `test(integracao): cobrir API do simulador no INT-027` | 33 testes Angular; base, simulação, vazio, rede e payload inválido | Falhas não emitem sucesso e são visíveis pelo estado de erro |
-| INT-028 | TODO | — | — | — |
+| INT-028 | VALIDATED | `test(integracao): cobrir comparar e otimizador no INT-028` | 35 testes Angular; requests/responses dos dois endpoints | Lacuna visual preservada e documentada conforme snapshot mais recente |
 | INT-029 | TODO | — | — | — |
 | INT-030 | TODO | — | — | — |
 | INT-031 | TODO | — | — | — |
@@ -418,6 +418,17 @@
 - **Riscos:** validação runtime detalhada de cada coluna numérica será reforçada no teste de contrato global do INT-038.
 - **Commit:** identificado pelo assunto `test(integracao): cobrir API do simulador no INT-027`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-028`.
+
+### INT-028 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `6afaa6e`.
+- **Arquivos modificados:** testes do cliente do simulador, decisão de UI e este controle.
+- **Resumo técnico:** `/comparar` e `/otimizador` têm chamadas Angular tipadas e cobertas; a UI continua sem acionar comparar e mantém otimizador desabilitado, como no snapshot mais recente.
+- **Testes:** `npm test -- --watch=false` → 8 arquivos/35 testes aprovados; spies confirmam URL, POST, corpo e resposta dos dois endpoints; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** há cobertura automatizada do contrato e registro explícito da lacuna visual, sem apresentar funcionalidade pendente como pronta.
+- **Riscos:** habilitação visual futura precisa de testes próprios de interação e não deve duplicar cálculos divergentes.
+- **Commit:** identificado pelo assunto `test(integracao): cobrir comparar e otimizador no INT-028`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-029`.
 
 ### Modelo para cada execução
 

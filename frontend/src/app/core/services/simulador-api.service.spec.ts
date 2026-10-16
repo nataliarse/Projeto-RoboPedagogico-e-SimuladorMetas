@@ -77,4 +77,32 @@ describe('SimuladorApiService', () => {
     expect(error).toBeInstanceOf(InvalidSimulatorResponseError);
     expect(service.erro()).toContain('resposta inválida');
   });
+
+  it('chama comparar com cenários tipados', () => {
+    const body = { cenarios: [{ nome: 'Cenário A', alteracoes: { '2026-06': { julgados: 10 } } }] };
+    let received: unknown;
+    service.comparar(body).subscribe(value => received = value);
+    const request = http.expectOne('/api/simulador/comparar');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual(body);
+    const response = { cenarios: [], meta1_base: 109.09, meta2_base: 127.66 };
+    request.flush(response);
+    expect(received).toEqual(response);
+  });
+
+  it('chama otimizador com variável, mês e meta tipados', () => {
+    const body = { variavel: 'julgados' as const, mes: '2026-06', meta_alvo: 100, meta: 'meta1' as const };
+    let received: unknown;
+    service.otimizador(body).subscribe(value => received = value);
+    const request = http.expectOne('/api/simulador/otimizador');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual(body);
+    const response = {
+      variavel: 'julgados', mes: '2026-06', meta_alvo: 100,
+      meta_atual: 98, incremento_necessario: 2, meta_resultante: 100,
+      mensagem: 'Ajuste calculado.', ok: true,
+    };
+    request.flush(response);
+    expect(received).toEqual(response);
+  });
 });
