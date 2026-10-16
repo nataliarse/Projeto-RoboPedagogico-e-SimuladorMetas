@@ -82,6 +82,20 @@ npm start
 A UI fica em `http://localhost:4200`; `proxy.conf.json` encaminha `/api/*` para
 `http://localhost:8000`. Não codifique URL absoluta no cliente.
 
+## Inicialização individual
+
+Depois de preparar os ambientes, abra três terminais na raiz e execute:
+
+```powershell
+.\scripts\start-chatbot.ps1
+.\scripts\start-simulador.ps1
+.\scripts\start-frontend.ps1
+```
+
+Cada script permanece em primeiro plano e usa, respectivamente, as portas
+8000, 8001 e 4200. Eles verificam os ambientes locais antes de iniciar e não
+instalam dependências automaticamente.
+
 ## Testes e validação offline
 
 ```text
