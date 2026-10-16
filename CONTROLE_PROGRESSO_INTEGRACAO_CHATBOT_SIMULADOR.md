@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 24 |
+| Validated | 25 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 21 |
+| Todo | 20 |
 | Skip aprovado | 0 |
-| Progresso validado | 53,33% |
+| Progresso validado | 55,56% |
 
 ## Fases
 
@@ -42,10 +42,10 @@
 | 1 — Repositório e execução | INT-007–011 | 5 | 5 | VALIDATED |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
-| 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
+| 4 — Simulador no frontend | INT-025–030 | 6 | 1 | IN_PROGRESS |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **24** | **IN_PROGRESS** |
+| **Total** | | **45** | **25** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -75,7 +75,7 @@
 | INT-022 | VALIDATED | `feat(integracao): controlar envio do chat no INT-022` | 27 testes Angular cobrem loading, duplicidade, cancelamento, rede e nova tentativa | Resposta tardia após cancelamento é ignorada |
 | INT-023 | VALIDATED | `fix(integracao): proteger dados do chat no INT-023` | 28 testes Angular; markup permanece texto e resposta não vai ao storage | Revisão de logs documentada; histórico usa resumo genérico |
 | INT-024 | VALIDATED | `test(integracao): validar chat offline no INT-024` | 8 testes E2E backend e 28 testes Angular previamente aprovados | Fixture local percorre HTTP→orquestrador→repositório→resposta; coletor externo proibido |
-| INT-025 | TODO | — | — | — |
+| INT-025 | VALIDATED | `feat(integracao): transportar UI do simulador no INT-025` | Build Angular aprovado; inventário antes/depois de 9 artefatos | Base, cenários, gráficos, tabela, otimizador e shell preservados na rota `/simulador` |
 | INT-026 | TODO | — | — | — |
 | INT-027 | TODO | — | — | — |
 | INT-028 | TODO | — | — | — |
@@ -385,6 +385,17 @@
 - **Riscos:** intenção e RAG são doubles determinísticos para excluir Ollama/Qdrant; contexto, análise, resposta, repositório e FastAPI permanecem reais.
 - **Commit:** identificado pelo assunto `test(integracao): validar chat offline no INT-024`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-025`.
+
+### INT-025 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `4f4e50a`.
+- **Arquivos modificados:** nove artefatos recentes do simulador, rota Angular, inventário comparativo e este controle.
+- **Resumo técnico:** modelo, serviços, base/estado, cenários, gráficos, tabela, otimizador e shell foram transportados do snapshot mais recente para o `frontend/` canônico, mantendo o chat existente.
+- **Testes:** `npm run build` aprovado; nove pares origem/destino comparados, divergindo somente pela quebra de linha final introduzida pelo transporte; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** inventário antes/depois cobre todas as capacidades pedidas e o compilador inclui a rota `/simulador` no bundle.
+- **Riscos:** URLs e contratos importados ainda refletem o snapshot e serão adaptados/testados nos INT-026–028, sem mudança nas fórmulas do backend.
+- **Commit:** identificado pelo assunto `feat(integracao): transportar UI do simulador no INT-025`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-026`.
 
 ### Modelo para cada execução
 
