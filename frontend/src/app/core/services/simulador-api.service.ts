@@ -17,6 +17,13 @@ import {
 } from '../models/simulador.model';
 import { HTTP_TIMEOUT_MS } from '../config/http-timeouts';
 
+export class InvalidSimulatorResponseError extends Error {
+  constructor() {
+    super('A API do simulador retornou uma resposta inválida.');
+    this.name = 'InvalidSimulatorResponseError';
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class SimuladorApiService {
   private readonly http = inject(HttpClient);
@@ -55,6 +62,9 @@ export class SimuladorApiService {
   }
 
   private paraApresentacao(res: RespostaBaseApi): RespostaSimulacao {
+    if (!res || !Array.isArray(res.registros)) {
+      throw new InvalidSimulatorResponseError();
+    }
     return {
       registros: res.registros.map((registro) => this.mapearRegistro(registro)),
       meta1Final: res.meta1_final,
@@ -110,9 +120,11 @@ export class SimuladorApiService {
     );
   }
 
-  private msg(err: HttpErrorResponse): string {
+  private msg(err: unknown): string {
+    if (err instanceof InvalidSimulatorResponseError) return err.message;
+    if (!(err instanceof HttpErrorResponse)) return 'Falha inesperada no simulador.';
     if (err.status === 0)
-      return 'NÃ£o foi possÃ­vel conectar. Verifique se a API estÃ¡ disponÃ­vel.';
+      return 'Não foi possível conectar. Verifique se a API está disponível.';
     const detail = err.error?.detail;
     if (typeof detail === 'string') return detail;
     if (Array.isArray(detail)) {
@@ -121,6 +133,6 @@ export class SimuladorApiService {
         .filter((item): item is string => item !== null);
       if (mensagens.length) return mensagens.join(' ');
     }
-    return `Erro ${err.status}: ${err.statusText || 'solicitaÃ§Ã£o rejeitada'}`;
+    return `Erro ${err.status}: ${err.statusText || 'solicitação rejeitada'}`;
   }
 }
