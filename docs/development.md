@@ -3,8 +3,10 @@
 ## Pré-requisitos e manifests
 
 O bootstrap foi validado com Python 3.12.10; `trt18_collector` declara Python
-`>=3.10`. O frontend foi validado com Node.js 24.19.0, npm 11.17.0 e Angular
-21.2.x.
+`>=3.10`. Use Python 3.12.x para os dois backends, em ambientes virtuais
+separados. O frontend foi validado com Node.js 24.19.0, npm 11.x e Angular
+21.2.x; `package.json` declara npm 11.11.1, a validação anterior usou 11.17.0
+e o lockfile v3 é a fonte reproduzível do grafo Node.
 
 As fontes canônicas de dependências são:
 
@@ -12,6 +14,8 @@ As fontes canônicas de dependências são:
 - `chatbot_processual_ai/requirements-dev.txt`: pytest;
 - `entrada-de-dados/pyproject.toml`: package e extra `collect`;
 - `entrada-de-dados/requirements-notebook.txt`: pesquisa, fora do runtime.
+- `simulador_metas_cnj/requirements.txt`: runtime isolado do simulador;
+- `frontend/package-lock.json`: grafo exato do Angular canônico.
 
 ## Backend e collector
 
@@ -36,6 +40,24 @@ sobrescreva nem versione `.env`. A API fica em `http://localhost:8000`; o health
 O Chromium instalado pelo Playwright é o browser padrão. O override opcional
 `TRT18_COLLECTOR_BROWSER_EXECUTABLE` deve apontar para um executável válido.
 Não há requisito de Chrome/Edge instalado manualmente.
+
+## Backend do simulador
+
+O simulador precisa de ambiente separado porque preserva FastAPI 0.95.2 e
+Pydantic 1.10.26, enquanto o chatbot exige Pydantic 2 ou superior.
+
+```powershell
+cd simulador_metas_cnj
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env
+python -m uvicorn main:app --reload --host 127.0.0.1 --port 8001
+```
+
+Em POSIX, use `source .venv/bin/activate` e `cp .env.example .env`. A API fica
+em `http://127.0.0.1:8001`. Não reutilize a `.venv` do chatbot e não altere as
+planilhas em `dados/` durante preparação ou testes.
 
 ## Configuração e paths
 
@@ -73,6 +95,9 @@ cd ../frontend
 npm test -- --watch=false
 npm run build
 npx tsc -p tsconfig.app.json --noEmit
+
+cd ../simulador_metas_cnj
+python -c "import main; print(main.health()); print(len(main.get_base()['registros']))"
 ```
 
 Execute o pytest do backend dentro de `chatbot_processual_ai/`; os imports
@@ -95,7 +120,8 @@ rede e autorização institucional.
   só deve ocorrer de forma consciente/autorizada.
 
 Não versione `.venv`, `.env`, SQLite de runtime, caches, debug, dados reais,
-`node_modules`, `.angular/cache/` ou `dist/`.
+`node_modules`, `.angular/cache/` ou `dist/`. Em máquina limpa, use sempre
+`npm ci`, não copie `node_modules` de outra instalação.
 
 Consulte [data-ingestion.md](data-ingestion.md) e
 [orchestration.md](orchestration.md).

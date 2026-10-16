@@ -26,26 +26,26 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 8 |
+| Validated | 9 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 37 |
+| Todo | 36 |
 | Skip aprovado | 0 |
-| Progresso validado | 17,78% |
+| Progresso validado | 20,00% |
 
 ## Fases
 
 | Fase | Itens | Total | Validados | Situação |
 |---|---|---:|---:|---|
 | 0 — Segurança e inventário | INT-001–006 | 6 | 6 | VALIDATED |
-| 1 — Repositório e execução | INT-007–011 | 5 | 2 | IN_PROGRESS |
+| 1 — Repositório e execução | INT-007–011 | 5 | 3 | IN_PROGRESS |
 | 2 — Contratos e proxy | INT-012–016 | 5 | 0 | TODO |
 | 3 — Chat real | INT-017–024 | 8 | 0 | TODO |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 0 | TODO |
 | 5 — Integração entre motores | INT-031–036 | 6 | 0 | TODO |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **8** | **IN_PROGRESS** |
+| **Total** | | **45** | **9** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -59,7 +59,7 @@
 | INT-006 | VALIDATED | `docs(integracao): validar arquitetura híbrida no INT-006` | ADR-001 aprovado com `frontend/` canônico e UI importada como referência mais recente | Contratos/sessão/testes atuais serão combinados com a experiência visual importada |
 | INT-007 | VALIDATED | `chore(integracao): estabelecer estrutura no INT-007` | Backend promovido para `simulador_metas_cnj/`; hashes e smoke conferidos | Quarentena e legado preservados; transporte do frontend permanece incremental |
 | INT-008 | VALIDATED | `chore(integracao): consolidar ignores no INT-008` | Modelos TypeScript visíveis; índice e exemplos de ambiente auditados | Variáveis do simulador serão consumidas no INT-011 |
-| INT-009 | TODO | — | — | — |
+| INT-009 | VALIDATED | `docs(integracao): documentar ambiente no INT-009` | Python/Node/npm/Angular, manifests e comandos reproduzíveis documentados | Backends exigem ambientes Python separados |
 | INT-010 | TODO | — | — | — |
 | INT-011 | TODO | — | — | — |
 | INT-012 | TODO | — | — | — |
@@ -200,6 +200,16 @@
 - **Riscos:** as variáveis propostas ainda não são consumidas pelo código; implementação pertence ao `INT-011`.
 - **Commit:** identificado pelo assunto `chore(integracao): consolidar ignores no INT-008`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-009`.
+
+### INT-009 — 2026-10-16
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `b07bb4d`.
+- **Arquivos modificados:** `docs/development.md`, `simulador_metas_cnj/README.md`, matriz de ambiente e este controle.
+- **Resumo técnico:** versões suportadas, manifests, isolamento e comandos de instalação/execução/teste foram consolidados para chatbot, collector, simulador e Angular.
+- **Evidência do aceite:** `docs/integracao/INT-009_MATRIZ_AMBIENTE.md` e instruções completas em `docs/development.md`.
+- **Limitações:** a reprodução não foi executada neste host por ausência de Node/npm e pytest; nenhuma dependência foi baixada. O lockfile Node e os pins do simulador são exatos; o chatbot preserva os limites declarados nos manifests existentes.
+- **Commit:** identificado pelo assunto `docs(integracao): documentar ambiente no INT-009`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-010`.
 
 ### Modelo para cada execução
 
