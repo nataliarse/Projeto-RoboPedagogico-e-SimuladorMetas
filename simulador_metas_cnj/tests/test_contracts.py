@@ -1,4 +1,5 @@
 import json
+import asyncio
 import unittest
 from pathlib import Path
 
@@ -10,6 +11,38 @@ import main
 FIXTURES = json.loads(
     (Path(__file__).parent / "fixtures" / "contracts.json").read_text(encoding="utf-8")
 )
+
+
+def asgi_request(method, path, payload, *, raise_server_exceptions=True):
+    body = json.dumps(payload).encode()
+    received = [{"type": "http.request", "body": body, "more_body": False}]
+    sent = []
+
+    async def receive():
+        return received.pop(0) if received else {"type": "http.disconnect"}
+
+    async def send(message):
+        sent.append(message)
+
+    scope = {
+        "type": "http", "asgi": {"version": "3.0"}, "http_version": "1.1",
+        "method": method, "scheme": "http", "path": path,
+        "raw_path": path.encode(), "query_string": b"", "root_path": "",
+        "headers": [(b"content-type", b"application/json")],
+        "client": ("127.0.0.1", 1), "server": ("test", 80),
+    }
+    try:
+        asyncio.run(main.app(scope, receive, send))
+    except Exception:
+        if raise_server_exceptions:
+            raise
+    status = next(item["status"] for item in sent if item["type"] == "http.response.start")
+    content = b"".join(item.get("body", b"") for item in sent if item["type"] == "http.response.body")
+    try:
+        payload = json.loads(content)
+    except json.JSONDecodeError:
+        payload = {"detail": content.decode("utf-8", errors="replace")}
+    return status, payload
 
 
 class SimulatorContractTestCase(unittest.TestCase):
@@ -41,6 +74,28 @@ class SimulatorContractTestCase(unittest.TestCase):
                 response = paths[path][method]["responses"]["200"]
                 reference = response["content"]["application/json"]["schema"]["$ref"]
                 self.assertEqual(reference, f"#/components/schemas/{schema}")
+
+    def test_invalid_http_payload_returns_structured_422(self):
+        status, payload = asgi_request("POST", "/api/simular", FIXTURES["invalid"]["simular"])
+        self.assertEqual(status, 422)
+        self.assertIsInstance(payload["detail"], list)
+
+    def test_unexpected_failure_returns_500_without_internal_detail(self):
+        original = main.calcular_metas
+        try:
+            main.calcular_metas = lambda *_: (_ for _ in ()).throw(RuntimeError("PRIVATE"))
+            status, payload = asgi_request("GET", "/api/base", {}, raise_server_exceptions=False)
+        finally:
+            main.calcular_metas = original
+        self.assertEqual(status, 500)
+        self.assertNotIn("PRIVATE", json.dumps(payload))
+
+    def test_numeric_response_fields_are_json_numbers(self):
+        status, payload = asgi_request("GET", "/api/base", {})
+        self.assertEqual(status, 200)
+        self.assertIsInstance(payload["meta1_final"], (int, float))
+        self.assertIsInstance(payload["meta2_final"], (int, float))
+        self.assertNotIsInstance(payload["meta1_final"], bool)
 
 
 if __name__ == "__main__":
