@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 38 |
+| Validated | 39 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 7 |
+| Todo | 6 |
 | Skip aprovado | 0 |
-| Progresso validado | 84,44% |
+| Progresso validado | 86,67% |
 
 ## Fases
 
@@ -44,8 +44,8 @@
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 6 | VALIDATED |
 | 5 — Integração entre motores | INT-031–036 | 6 | 6 | VALIDATED |
-| 6 — Qualidade e entrega | INT-037–045 | 9 | 2 | IN_PROGRESS |
-| **Total** | | **45** | **38** | **IN_PROGRESS** |
+| 6 — Qualidade e entrega | INT-037–045 | 9 | 3 | IN_PROGRESS |
+| **Total** | | **45** | **39** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -89,7 +89,7 @@
 | INT-036 | VALIDATED | `fix(integracao): degradar metas com transparencia no INT-036` | 155 testes Python; 503/502 sem resultado falso | Falha do motor e schema inválido não vazam detalhes nem números |
 | INT-037 | VALIDATED | `test(integracao): executar suites no INT-037` | Chatbot 155, simulador 5, Angular 36 e build aprovados | Relatório registra comandos, cwd, resultados e aviso CSS não bloqueante |
 | INT-038 | VALIDATED | `test(integracao): automatizar contratos no INT-038` | Gate única: Python 21+6 e Angular 29 aprovados | Cobre 422/500, sessão, envelopes e tipos numéricos |
-| INT-039 | TODO | — | — | — |
+| INT-039 | VALIDATED | `test(integracao): adicionar smoke local no INT-039` | Três processos, proxy, chat, base e duas rotas aprovados | Offline; processos encerrados e portas liberadas |
 | INT-040 | TODO | — | — | — |
 | INT-041 | TODO | — | — | — |
 | INT-042 | TODO | — | — | — |
@@ -539,6 +539,17 @@
 - **Riscos:** a gate pressupõe ambientes `.venv` e dependências npm instaladas conforme documentação de desenvolvimento.
 - **Commit:** identificado pelo assunto `test(integracao): automatizar contratos no INT-038`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-039`.
+
+### INT-039 — 2026-10-19
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `5728c9e`.
+- **Arquivos modificados:** roteiro automatizado, relatório de evidências e este controle.
+- **Resumo técnico:** o smoke inicia Uvicorn×2 e Angular, acessa ambos backends exclusivamente pelo proxy e valida chat, base e navegação.
+- **Testes:** `scripts/Test-LocalSmoke.ps1` aprovado: healths `ok`, simulador 86 registros/Meta 1 109,86, chat com sessão/resposta, rotas `/` e `/simulador` HTTP 200; portas confirmadas livres ao final.
+- **Evidência do aceite:** roteiro é reproduzível, encerra seus próprios PIDs em `finally` e força dependências opcionais a permanecer locais/offline.
+- **Riscos:** smoke valida shell/HTTP, não pixel/renderização em navegador gráfico; essa limitação é registrada para a demonstração final.
+- **Commit:** identificado pelo assunto `test(integracao): adicionar smoke local no INT-039`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-040`.
 
 ### Modelo para cada execução
 
