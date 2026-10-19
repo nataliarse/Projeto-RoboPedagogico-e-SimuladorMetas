@@ -7,6 +7,11 @@ param(
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $frontendRoot = Join-Path $repositoryRoot 'frontend'
+$portableNode = Join-Path $repositoryRoot '.tools\node-v24.19.0-win-x64'
+
+if (Test-Path -LiteralPath (Join-Path $portableNode 'npm.cmd') -PathType Leaf) {
+    $env:Path = "$portableNode;$env:Path"
+}
 
 if ($Port -lt 1 -or $Port -gt 65535) {
     throw "Porta inválida para o frontend: $Port"

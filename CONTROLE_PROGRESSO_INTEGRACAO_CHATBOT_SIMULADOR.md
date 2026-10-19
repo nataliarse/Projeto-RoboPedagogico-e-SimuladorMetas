@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 41 |
+| Validated | 42 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 4 |
+| Todo | 3 |
 | Skip aprovado | 0 |
-| Progresso validado | 91,11% |
+| Progresso validado | 93,33% |
 
 ## Fases
 
@@ -44,8 +44,8 @@
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 6 | VALIDATED |
 | 5 — Integração entre motores | INT-031–036 | 6 | 6 | VALIDATED |
-| 6 — Qualidade e entrega | INT-037–045 | 9 | 5 | IN_PROGRESS |
-| **Total** | | **45** | **41** | **IN_PROGRESS** |
+| 6 — Qualidade e entrega | INT-037–045 | 9 | 6 | IN_PROGRESS |
+| **Total** | | **45** | **42** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -92,7 +92,7 @@
 | INT-039 | VALIDATED | `test(integracao): adicionar smoke local no INT-039` | Três processos, proxy, chat, base e duas rotas aprovados | Offline; processos encerrados e portas liberadas |
 | INT-040 | VALIDATED | `fix(integracao): endurecer fronteiras no INT-040` | Chatbot 157+2 subtestes e simulador 8 aprovados | Limites de entrada/sessão, CORS restrito e riscos classificados |
 | INT-041 | VALIDATED | `feat(integracao): separar healthchecks no INT-041` | Angular 37, build e 3 testes de proxy aprovados | Queda isolada mantém estado do outro backend; alias ambíguo removido |
-| INT-042 | TODO | — | — | — |
+| INT-042 | VALIDATED | `docs(integracao): consolidar desenvolvimento no INT-042` | 5 scripts PowerShell analisados; docs sem rotas/módulos legados | Guia cobre instalação, portas, imports, banco e opcionais |
 | INT-043 | TODO | — | — | — |
 | INT-044 | TODO | — | — | — |
 | INT-045 | TODO | — | — | — |
@@ -572,6 +572,17 @@
 - **Riscos:** healthchecks indicam disponibilidade, não prontidão de Ollama/Qdrant/PJe, que continuam opcionais e degradáveis.
 - **Commit:** identificado pelo assunto `feat(integracao): separar healthchecks no INT-041`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-042`.
+
+### INT-042 — 2026-10-19
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `7b6c2df`.
+- **Arquivos modificados:** guia de desenvolvimento, README, inicializador do frontend e este controle.
+- **Resumo técnico:** documentação agora cobre os dois ambientes Python, Angular, namespaces, gateway de metas, gates/smoke e troubleshooting de portas, imports, SQLite, Ollama/Qdrant e 502/503.
+- **Testes/evidência:** parser PowerShell aprovou os 5 scripts; busca confirmou ausência das rotas/módulos legados nos guias; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** outro dev dispõe de comandos desde `venv`/`npm ci` até inicialização, testes, contratos e smoke, sem paths pessoais.
+- **Riscos:** instalação do Chromium e coleta externa continuam passos opcionais que exigem autorização e rede.
+- **Commit:** identificado pelo assunto `docs(integracao): consolidar desenvolvimento no INT-042`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-043`.
 
 ### Modelo para cada execução
 

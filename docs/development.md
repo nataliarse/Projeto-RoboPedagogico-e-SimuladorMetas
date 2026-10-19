@@ -34,8 +34,9 @@ python -m uvicorn api:app --reload
 ```
 
 Em POSIX, use `source .venv/bin/activate` e `cp .env.example .env`. Não
-sobrescreva nem versione `.env`. A API fica em `http://localhost:8000`; o health
-é `GET /api/health` e não verifica collector, SQLite, Ollama ou Qdrant.
+sobrescreva nem versione `.env`. A API fica em `http://localhost:8000`; pelo
+frontend, o health é `GET /api/processos/health` e não verifica collector,
+SQLite, Ollama ou Qdrant.
 
 O Chromium instalado pelo Playwright é o browser padrão. O override opcional
 `TRT18_COLLECTOR_BROWSER_EXECUTABLE` deve apontar para um executável válido.
@@ -62,7 +63,8 @@ planilhas em `dados/` durante preparação ou testes.
 ## Configuração e paths
 
 `.env.example` documenta as variáveis suportadas de Ollama, SQLite, RAG/Qdrant
-e browser. `LOCAL_DB_PATH` relativo é resolvido a partir de
+e browser, além de `SIMULATOR_API_URL`/`SIMULATOR_TIMEOUT_SECONDS` para o motor
+local de metas. `LOCAL_DB_PATH` relativo é resolvido a partir de
 `chatbot_processual_ai/`, não do CWD. O default é
 `chatbot_processual_ai/data/processual.sqlite3`.
 
@@ -82,6 +84,9 @@ npm start
 A UI fica em `http://localhost:4200`; `proxy.conf.json` encaminha os namespaces
 processuais a `127.0.0.1:8000` e `/api/simulador/*` a `127.0.0.1:8001`. Não
 codifique URL absoluta no cliente.
+
+O script `start-frontend.ps1` usa Node/npm do `PATH` ou, quando presente, o
+runtime portátil em `.tools/node-v24.19.0-win-x64`, sempre ignorado pelo Git.
 
 ## Inicialização individual
 
@@ -114,7 +119,11 @@ npm run build
 npx tsc -p tsconfig.app.json --noEmit
 
 cd ../simulador_metas_cnj
-python -c "import main; print(main.health()); print(len(main.get_base()['registros']))"
+python -m unittest discover -s tests -v
+
+cd ..
+.\scripts\Test-IntegrationContracts.ps1
+.\scripts\Test-LocalSmoke.ps1
 ```
 
 Execute o pytest do backend dentro de `chatbot_processual_ai/`; os imports
@@ -133,6 +142,13 @@ rede e autorização institucional.
   validação TLS ou políticas institucionais.
 - HTTP 403/429: interrompa consultas e aguarde; não aumente tentativas.
 - Erro de import no pytest: execute no diretório operacional correto.
+- Porta ocupada: use `Get-NetTCPConnection -State Listen | Where-Object LocalPort -in 8000,8001,4200`
+  e encerre somente o processo conhecido; as portas precisam coincidir com o proxy.
+- Banco SQLite inesperado: confira `LOCAL_DB_PATH`; remova somente banco descartável
+  conhecido ou aponte outro path, nunca dados reais para “corrigir” um teste.
+- Simulador 502/503 pelo chatbot: confira porta 8001, `SIMULATOR_API_URL`, health e
+  schema; não converta indisponibilidade em resultado numérico.
+- Ollama/Qdrant ausentes: consultas estruturadas continuam e o RAG degrada explicitamente.
 - Cache ignorado: o bruto não satisfez o critério estrutural e uma nova coleta
   só deve ocorrer de forma consciente/autorizada.
 

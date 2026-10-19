@@ -10,8 +10,8 @@ regras oficiais do simulador de metas ainda não estão homologadas.
 ```text
 chatbot_processual_ai/  backend FastAPI, orquestrador, agentes, SQLite e testes
 entrada-de-dados/       package trt18_collector, coleta e normalização TRT18
-frontend/               interface Angular do Chatbot Processual
-simulador-de-metas/     estudos e artefatos provisórios do domínio de metas
+frontend/               interface Angular única: chat e simulador
+simulador_metas_cnj/    backend FastAPI real do simulador de Metas 1 e 2
 docs/                   documentação técnica do produto
 ```
 
@@ -80,8 +80,8 @@ Backend, dentro de `chatbot_processual_ai/` e com o venv ativo:
 python -m uvicorn api:app --reload
 ```
 
-A API fica em `http://localhost:8000`; `GET /api/health` comprova somente a
-fronteira FastAPI. Em outro terminal:
+A API fica em `http://localhost:8000`; pela UI, `GET /api/processos/health`
+comprova somente a fronteira FastAPI. Em outro terminal:
 
 ```text
 cd frontend
@@ -89,8 +89,9 @@ npm ci
 npm start
 ```
 
-A interface fica em `http://localhost:4200` e usa o proxy de desenvolvimento
-para `/api/*`. Ollama e Qdrant são necessários somente para a capacidade RAG
+A interface fica em `http://localhost:4200`, com chat em `/` e simulador em
+`/simulador`. O proxy usa `/api/processos/*` e `/api/simulador/*`. Ollama e
+Qdrant são necessários somente para a capacidade RAG
 completa; consultas estruturadas continuam usando SQLite.
 
 ## Testar
