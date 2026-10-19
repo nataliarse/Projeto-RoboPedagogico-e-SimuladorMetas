@@ -14,36 +14,36 @@ import { AlteracoesCenario, ANO_SIM } from '../../core/models/simulador.model';
 
       @if (meta === 'meta1') {
       <div class="card">
-        <div class="card-title">Criar novo cenÃ¡rio</div>
+        <div class="card-title">Criar novo cenário</div>
 
         <div class="row-gap">
           <div class="field-grow">
-            <label class="field-label">Nome do cenÃ¡rio</label>
-            <input [(ngModel)]="nomeCenario" placeholder="Ex: ForÃ§a-tarefa Outubro"
+            <label class="field-label">Nome do cenário</label>
+            <input [(ngModel)]="nomeCenario" placeholder="Ex: Força-tarefa Outubro"
               class="input-text" />
           </div>
           <button class="btn-primary" (click)="adicionar()"
             [disabled]="!nomeCenario.trim() || !sim.basePronta() || api.carregando() || entradasInvalidas.size > 0">
-            {{ api.carregando() ? 'Calculando...' : 'Adicionar cenÃ¡rio' }}
+            {{ api.carregando() ? 'Calculando...' : 'Adicionar cenário' }}
           </button>
         </div>
 
         @if (api.erro()) {
-          <div class="erro-api">âš ï¸ {{ api.erro() }}</div>
+          <div class="erro-api">⚠️ {{ api.erro() }}</div>
         }
 
         <p class="hint">
-          Defina valores mensais. Casos novos sÃ£o <strong>fixos</strong> e nÃ£o podem ser alterados.
+          Defina valores mensais. Casos novos são <strong>fixos</strong> e não podem ser alterados.
         </p>
 
         <div class="table-scroll">
           <table class="tabela">
             <thead>
               <tr>
-                <th>MÃªs</th>
-                <th class="th-azul">Î” Julgados</th>
-                <th class="th-verde">Î” Dessobrestados</th>
-                <th class="th-verm">Î” Suspensos</th>
+                <th>Mês</th>
+                <th class="th-azul">Δ Julgados</th>
+                <th class="th-verde">Δ Dessobrestados</th>
+                <th class="th-verm">Δ Suspensos</th>
               </tr>
             </thead>
             <tbody>
@@ -67,12 +67,12 @@ import { AlteracoesCenario, ANO_SIM } from '../../core/models/simulador.model';
       }
 
       <div class="card">
-        <div class="card-title">ComparaÃ§Ã£o de cenÃ¡rios</div>
+        <div class="card-title">Comparação de cenários</div>
         <div class="table-scroll">
           <table class="tabela">
             <thead>
               <tr>
-                <th>CenÃ¡rio</th>
+                <th>Cenário</th>
                 <th>{{ meta === 'meta2' ? 'Meta 2 Final' : 'Meta 1 Final' }}</th>
                 <th>Status</th>
                 <th></th>
@@ -180,7 +180,7 @@ export class CenariosComponent {
     const val = Number(texto);
     if (!Number.isFinite(val) || !Number.isInteger(val)) {
       this.entradasInvalidas.add(chave);
-      this.api.erro.set('Os valores preenchidos devem ser nÃºmeros inteiros.');
+      this.api.erro.set('Os valores preenchidos devem ser números inteiros.');
       return;
     }
 
@@ -193,11 +193,11 @@ export class CenariosComponent {
     const nome = this.nomeCenario.trim();
     if (!nome || !this.sim.basePronta() || this.api.carregando() || this.entradasInvalidas.size) return;
     if (this.sim.nomeCenarioExiste(nome)) {
-      this.api.erro.set('JÃ¡ existe um cenÃ¡rio com esse nome.');
+      this.api.erro.set('Já existe um cenário com esse nome.');
       return;
     }
 
-    // Monta as alteraÃ§Ãµes
+    // Monta as alterações
     const alteracoes: AlteracoesCenario = {};
     Object.entries(this.inc).forEach(([mes, vars]) => {
       const algum = Object.values(vars).some(v => v !== 0);
@@ -235,9 +235,9 @@ export class CenariosComponent {
   }
 
   badgeLabel(v: number | null): string {
-    if (v == null)  return 'NÃ£o calculÃ¡vel';
+    if (v == null)  return 'Não calculável';
     if (v >= 100)   return `Cumprida ${this.sim.fmt(v)}`;
-    if (v >= 95)    return `â‰¥95% ${this.sim.fmt(v)}`;
+    if (v >= 95)    return `≥95% ${this.sim.fmt(v)}`;
     return `Abaixo ${this.sim.fmt(v)}`;
   }
 }

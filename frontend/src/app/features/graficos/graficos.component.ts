@@ -10,9 +10,9 @@ import { ANO_SIM } from '../../core/models/simulador.model';
   template: `
     <div class="col">
 
-      <!-- GrÃ¡fico de linhas -->
+      <!-- Gráfico de linhas -->
       <div class="card">
-        <div class="card-title">Meta 1 â€” evoluÃ§Ã£o mensal por cenÃ¡rio ({{ anoSim }})</div>
+        <div class="card-title">Meta 1 — evolução mensal por cenário ({{ anoSim }})</div>
         <div class="legenda">
           @for (c of sim.cenariosCalculados(); track c.id) {
             <span class="leg-item">
@@ -23,14 +23,14 @@ import { ANO_SIM } from '../../core/models/simulador.model';
         <div class="canvas-wrap">
           <canvas #linhaCanvas></canvas>
           @if (graficoIndisponivel()) {
-            <div class="grafico-indisponivel">GrÃ¡fico indisponÃ­vel. Consulte os resultados por cenÃ¡rio abaixo.</div>
+            <div class="grafico-indisponivel">Gráfico indisponível. Consulte os resultados por cenário abaixo.</div>
           }
         </div>
       </div>
 
-      <!-- GrÃ¡fico de barras -->
+      <!-- Gráfico de barras -->
       <div class="card">
-        <div class="card-title">Meta 1 final por cenÃ¡rio</div>
+        <div class="card-title">Meta 1 final por cenário</div>
         <div class="barras-wrap">
           @for (b of sim.dadosBarras(); track b.nome) {
             <div class="barra-row">
@@ -41,12 +41,12 @@ import { ANO_SIM } from '../../core/models/simulador.model';
                   [style.background]="barraColor(b.meta1)">
                 </div>
                 <span class="barra-val" [style.color]="barraColor(b.meta1)">
-                  {{ b.meta1 == null ? 'â€”' : b.meta1.toFixed(2) + '%' }}
+                  {{ b.meta1 == null ? '—' : b.meta1.toFixed(2) + '%' }}
                 </span>
               </div>
             </div>
           }
-          <!-- Linhas de referÃªncia -->
+          <!-- Linhas de referência -->
           <div class="refs">
             <span class="ref-tag ref-100">100%</span>
             <span class="ref-tag ref-95">95%</span>
@@ -94,7 +94,7 @@ export class GraficosComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     effect((onCleanup) => {
-      // reage a mudanÃ§as nos cenÃ¡rios
+      // reage a mudanças nos cenários
       this.sim.dadosGrafico();
       const timer = setTimeout(() => this.desenharGrafico(), 50);
       onCleanup(() => clearTimeout(timer));

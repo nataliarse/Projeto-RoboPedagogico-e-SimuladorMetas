@@ -20,7 +20,7 @@
   --btn-dark-bg:#1a1a2e;
   --btn-dark-cl:#ffffff;
 
-  min-height: 100vh;
+  min-height: calc(100dvh - var(--app-nav-height, 58px));
   background: var(--bg);
   transition: background .3s, color .3s;
 }
@@ -52,7 +52,8 @@
 .chat-wrapper {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: calc(100dvh - var(--app-nav-height, 58px));
+  box-sizing: border-box;
   max-width: 780px;
   margin: 0 auto;
   padding: 0 16px 16px;

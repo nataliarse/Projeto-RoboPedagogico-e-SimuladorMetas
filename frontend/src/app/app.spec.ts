@@ -34,7 +34,7 @@ describe('App', () => {
     expect(compiled.querySelector('router-outlet')).not.toBeNull();
   });
 
-  it('oferece navegação única para chat e simulador', () => {
+  it('oferece navegação global para chat e simulador', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const links = Array.from(
@@ -45,5 +45,17 @@ describe('App', () => {
       { text: 'Chat processual', href: '/' },
       { text: 'Simulador de metas', href: '/simulador' },
     ]);
+  });
+
+  it('mantém a navegação fora do conteúdo roteado', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const navigation = root.querySelector('.app-nav');
+    const routedContent = root.querySelector('main');
+
+    expect(navigation).not.toBeNull();
+    expect(routedContent).not.toBeNull();
+    expect(routedContent?.contains(navigation)).toBe(false);
   });
 });

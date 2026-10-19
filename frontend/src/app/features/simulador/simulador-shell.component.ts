@@ -10,10 +10,10 @@ import { SimuladorApiService } from '../../core/services/simulador-api.service';
   standalone: true,
   imports: [CommonModule, CenariosComponent, GraficosComponent],
   template: `
-    <!-- â”€â”€ HEADER â”€â”€ -->
+    <!-- HEADER -->
     <header class="header">
       <div class="header-left">
-        <h1 class="header-title">Simulador das Metas 1 e 2 do Poder JudiciÃ¡rio</h1>
+        <h1 class="header-title">Simulador das Metas 1 e 2 do Poder Judiciário</h1>
       </div>
       <div class="header-kpis">
         @for (kpi of kpis; track kpi.label) {
@@ -27,7 +27,7 @@ import { SimuladorApiService } from '../../core/services/simulador-api.service';
       </div>
     </header>
 
-    <!-- â”€â”€ ABAS â”€â”€ -->
+    <!-- ABAS -->
     <nav class="nav-abas">
       @for (aba of abas; track aba.id) {
         <button class="aba-btn"
@@ -40,7 +40,7 @@ import { SimuladorApiService } from '../../core/services/simulador-api.service';
       }
     </nav>
 
-    <!-- â”€â”€ CONTEÃšDO â”€â”€ -->
+    <!-- CONTEÚDO -->
     <main class="main-content">
   @if (api.carregando() && sim.cenariosCalculados().length === 0) {
     <div class="estado-api">Carregando dados do simulador...</div>
@@ -51,9 +51,9 @@ import { SimuladorApiService } from '../../core/services/simulador-api.service';
   @case ('meta1') {
     <div class="meta-painel">
       <div class="meta-header meta1">
-        <div class="meta-titulo">Meta 1: Julgar mais Processos do que os DistribuÃ­dos</div>
+        <div class="meta-titulo">Meta 1: Julgar mais Processos do que os Distribuídos</div>
         <div class="meta-formula">
-          Julgados Ã· max(Novos + Dessobrestados âˆ’ Suspensos) Ã— 100
+          Julgados ÷ max(Novos + Dessobrestados − Suspensos) × 100
         </div>
       </div>
       <app-cenarios />
@@ -62,10 +62,10 @@ import { SimuladorApiService } from '../../core/services/simulador-api.service';
   @case ('meta2') {
     <div class="meta-painel">
       <div class="meta-header meta2">
-        <div class="meta-titulo">Meta 2: resultado provisÃ³rio</div>
+        <div class="meta-titulo">Meta 2: resultado provisório</div>
       </div>
       <div class="meta2-aviso">
-        Resultado provisÃ³rio: validaÃ§Ã£o metodolÃ³gica e dados por coorte de processos antigos pendentes.
+        Resultado provisório: validação metodológica e dados por coorte de processos antigos pendentes.
       </div>
       <app-cenarios [meta]="'meta2'" />
     </div>
@@ -177,9 +177,9 @@ export class SimuladorShellComponent implements OnInit {
   anoSim = 2026;
 
   abas = [
-    { id: 'meta1' as const, label: 'ðŸ“‹ Meta 1', desabilitada: false },
-    { id: 'meta2' as const, label: 'ðŸ“‹ Meta 2', desabilitada: false },
-    { id: 'graficos' as const, label: 'GrÃ¡ficos', desabilitada: false },
+    { id: 'meta1' as const, label: '📋 Meta 1', desabilitada: false },
+    { id: 'meta2' as const, label: '📋 Meta 2', desabilitada: false },
+    { id: 'graficos' as const, label: 'Gráficos', desabilitada: false },
     { id: 'otimizador' as const, label: 'Otimizador (pendente)', desabilitada: true },
   ];
 
