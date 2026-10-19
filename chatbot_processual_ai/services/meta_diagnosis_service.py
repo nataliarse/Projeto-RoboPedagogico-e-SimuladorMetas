@@ -41,6 +41,16 @@ def is_meta_question(message: str) -> bool:
     return bool(tokens & {"meta", "metas"})
 
 
+def is_process_meta_impact_question(message: str) -> bool:
+    """Aceita somente pedidos explícitos sobre o impacto de um processo nas metas."""
+    tokens = set(re.findall(r"[a-z0-9]+", _normalize(message)))
+    if not tokens & {"meta", "metas"}:
+        return False
+    process_references = {"processo", "este", "esse", "ele"}
+    impact_terms = {"impacta", "impacto", "pesa", "conta", "pendente", "cumpre"}
+    return bool(tokens & process_references) and bool(tokens & impact_terms)
+
+
 def has_process_number(message: str) -> bool:
     return bool(_CNJ_NUMBER.search(str(message)))
 

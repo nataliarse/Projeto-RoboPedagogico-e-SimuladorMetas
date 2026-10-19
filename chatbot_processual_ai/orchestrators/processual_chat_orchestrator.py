@@ -12,7 +12,7 @@ from services.meta_diagnosis_service import (
     answer_meta_question,
     build_meta_block,
     has_process_number,
-    is_meta_question,
+    is_process_meta_impact_question,
 )
 
 
@@ -37,7 +37,11 @@ def run_processual_chat_step(
     # Pergunta sobre as Metas 1 e 2 a respeito do processo já consultado: a resposta vem das
     # regras determinísticas (autômato + glossário das metas), sem passar pelos agentes.
     active_process = session_state.get("active_process")
-    if is_meta_question(message) and not has_process_number(message) and active_process:
+    if (
+        is_process_meta_impact_question(message)
+        and not has_process_number(message)
+        and active_process
+    ):
         return ProcessualChatStepResult(
             response=_build_processual_chat_response(
                 intent_data={"intent": META_IMPACT_INTENT},

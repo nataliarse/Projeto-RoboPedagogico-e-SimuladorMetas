@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 33 |
+| Validated | 34 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 12 |
+| Todo | 11 |
 | Skip aprovado | 0 |
-| Progresso validado | 73,33% |
+| Progresso validado | 75,56% |
 
 ## Fases
 
@@ -43,9 +43,9 @@
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 6 | VALIDATED |
-| 5 — Integração entre motores | INT-031–036 | 6 | 3 | IN_PROGRESS |
+| 5 — Integração entre motores | INT-031–036 | 6 | 4 | IN_PROGRESS |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **33** | **IN_PROGRESS** |
+| **Total** | | **45** | **34** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -84,7 +84,7 @@
 | INT-031 | VALIDATED | `docs(integracao): definir casos de uso no INT-031` | Matriz separa seis categorias e regras/proibições | Processo, diagnóstico individual e cenário agregado têm destinos distintos |
 | INT-032 | VALIDATED | `refactor(integracao): definir gateway de metas no INT-032` | 2 testes unitários com gateway fake | Placeholder `not_integrated` removido; ausência de motor vira erro transparente |
 | INT-033 | VALIDATED | `feat(integracao): implementar cliente de metas no INT-033` | 4 testes unitários com doubles; timeout e schema inválido | Cliente chama motor local real sem inventar números |
-| INT-034 | TODO | — | — | — |
+| INT-034 | VALIDATED | `fix(integracao): restringir roteamento de metas no INT-034` | 151 testes Python; 3 cenários focados de intenção | Perguntas processuais comuns não são desviadas; impacto exige linguagem explícita |
 | INT-035 | TODO | — | — | — |
 | INT-036 | TODO | — | — | — |
 | INT-037 | TODO | — | — | — |
@@ -484,6 +484,17 @@
 - **Riscos:** o endpoint HTTP do chatbot ainda deve traduzir esses erros para degradação pública segura no INT-036.
 - **Commit:** identificado pelo assunto `feat(integracao): implementar cliente de metas no INT-033`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-034`.
+
+### INT-034 — 2026-10-19
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `1b525fe`.
+- **Arquivos modificados:** classificador de pergunta de metas, orquestrador, testes e este controle.
+- **Resumo técnico:** o atalho determinístico de impacto agora exige menção a meta, referência ao processo e termo explícito de impacto; menções gerais e cenários agregados seguem seus fluxos próprios.
+- **Testes:** suíte Python completa → 151 aprovados; testes focados cobrem impacto explícito, pergunta processual comum e cenário agregado não classificado; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** pergunta sobre movimentação chega ao Agente 1 e nunca chama diagnóstico de metas; pedido “este processo pesa na Meta 1?” usa a rota determinística.
+- **Riscos:** variações linguísticas não mapeadas seguem o fluxo geral em vez de serem presumidas como impacto, comportamento conservador deliberado.
+- **Commit:** identificado pelo assunto `fix(integracao): restringir roteamento de metas no INT-034`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-035`.
 
 ### Modelo para cada execução
 
