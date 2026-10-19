@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 42 |
+| Validated | 43 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 3 |
+| Todo | 2 |
 | Skip aprovado | 0 |
-| Progresso validado | 93,33% |
+| Progresso validado | 95,56% |
 
 ## Fases
 
@@ -44,8 +44,8 @@
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 6 | VALIDATED |
 | 5 — Integração entre motores | INT-031–036 | 6 | 6 | VALIDATED |
-| 6 — Qualidade e entrega | INT-037–045 | 9 | 6 | IN_PROGRESS |
-| **Total** | | **45** | **42** | **IN_PROGRESS** |
+| 6 — Qualidade e entrega | INT-037–045 | 9 | 7 | IN_PROGRESS |
+| **Total** | | **45** | **43** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -93,7 +93,7 @@
 | INT-040 | VALIDATED | `fix(integracao): endurecer fronteiras no INT-040` | Chatbot 157+2 subtestes e simulador 8 aprovados | Limites de entrada/sessão, CORS restrito e riscos classificados |
 | INT-041 | VALIDATED | `feat(integracao): separar healthchecks no INT-041` | Angular 37, build e 3 testes de proxy aprovados | Queda isolada mantém estado do outro backend; alias ambíguo removido |
 | INT-042 | VALIDATED | `docs(integracao): consolidar desenvolvimento no INT-042` | 5 scripts PowerShell analisados; docs sem rotas/módulos legados | Guia cobre instalação, portas, imports, banco e opcionais |
-| INT-043 | TODO | — | — | — |
+| INT-043 | VALIDATED | `chore(integracao): auditar entrega no INT-043` | 0 vulnerabilidades npm; pip check íntegro; 202 testes e 12 subtestes aprovados | 153 arquivos revisados, nenhuma exclusão da integração e nenhum segredo detectado |
 | INT-044 | TODO | — | — | — |
 | INT-045 | TODO | — | — | — |
 
@@ -583,6 +583,17 @@
 - **Riscos:** instalação do Chromium e coleta externa continuam passos opcionais que exigem autorização e rede.
 - **Commit:** identificado pelo assunto `docs(integracao): consolidar desenvolvimento no INT-042`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-043`.
+
+### INT-043 — 2026-10-19
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `b68b162`.
+- **Arquivos modificados:** manifests npm, lockfile, revisão técnica e este controle.
+- **Resumo técnico:** diff completo, artefatos versionados, segredos, dependências e licenças foram revisados; Angular foi atualizado dentro da linha 21.2.x para eliminar alertas conhecidos.
+- **Testes/evidência:** `npm audit` completo e runtime com 0 vulnerabilidades; `pip check` íntegro nos dois ambientes; chatbot 157+2 subtestes, simulador 8+7 subtestes, Angular 37, proxy 3 e build aprovados.
+- **Evidência do aceite:** 153 arquivos alterados desde a base, nenhuma exclusão da integração, nenhum drift do snapshot, nenhum artefato local real versionado e nenhuma assinatura de segredo encontrada.
+- **Riscos:** warning de orçamento CSS permanece não bloqueante; a classificação de licenças é técnica e não substitui revisão jurídica.
+- **Commit:** identificado pelo assunto `chore(integracao): auditar entrega no INT-043`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-044`.
 
 ### Modelo para cada execução
 
