@@ -17,20 +17,14 @@ def explain_meta_simulation(
     _ = pergunta_usuario
 
     status = _clean_text(simulation_response.status).casefold()
-    if status == "not_integrated":
-        return (
-            "O simulador de metas ainda não está disponível nesta conversa. "
-            "Já existe uma definição inicial de entrada e saída, mas a equipe "
-            "precisa validar quais dados o simulador receberá e o que ele devolverá."
-        )
-
     values_text = _simulation_values_text(simulation_response)
+    premises_text = _simulation_premises_text(simulation_response)
     observation_text = _first_safe_observation_text(simulation_response.observacoes)
 
     if values_text:
         response = (
-            "A simulação de metas retornou uma leitura preliminar. "
-            f"{values_text} {NO_OFFICIAL_RULE_NOTICE}"
+            f"Cálculo do motor de metas para {simulation_response.meta_id}, "
+            f"ano {simulation_response.ano}. {values_text} {premises_text}"
         )
     else:
         response = (
@@ -42,6 +36,34 @@ def explain_meta_simulation(
         response = f"{response} Observação: {observation_text}"
 
     return response
+
+
+def _simulation_premises_text(response: MetaSimulationResponse) -> str:
+    indicators = response.indicadores if isinstance(response.indicadores, dict) else {}
+    scenario = indicators.get("cenario")
+    if not isinstance(scenario, dict) or not scenario:
+        return "Premissas: nenhuma alteração de cenário informada."
+
+    alterations = scenario.get("alteracoes", scenario)
+    if not isinstance(alterations, dict) or not alterations:
+        return "Premissas: nenhuma alteração de cenário informada."
+
+    parts: list[str] = []
+    for month in sorted(alterations):
+        values = alterations[month]
+        if not isinstance(values, dict):
+            continue
+        fields = []
+        for name in ("julgados", "dessobrestados", "suspensos"):
+            value = values.get(name)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                fields.append(f"{name} {_format_number(value)}")
+        if fields:
+            parts.append(f"{month}: " + ", ".join(fields))
+
+    if not parts:
+        return "Premissas: nenhuma alteração numérica reconhecida."
+    return "Premissas: " + "; ".join(parts) + "."
 
 
 def explain_process_meta_impact(

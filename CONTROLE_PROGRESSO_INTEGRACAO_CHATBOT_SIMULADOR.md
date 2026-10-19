@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 34 |
+| Validated | 35 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 11 |
+| Todo | 10 |
 | Skip aprovado | 0 |
-| Progresso validado | 75,56% |
+| Progresso validado | 77,78% |
 
 ## Fases
 
@@ -43,9 +43,9 @@
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 6 | VALIDATED |
-| 5 — Integração entre motores | INT-031–036 | 6 | 4 | IN_PROGRESS |
+| 5 — Integração entre motores | INT-031–036 | 6 | 5 | IN_PROGRESS |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **34** | **IN_PROGRESS** |
+| **Total** | | **45** | **35** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -85,7 +85,7 @@
 | INT-032 | VALIDATED | `refactor(integracao): definir gateway de metas no INT-032` | 2 testes unitários com gateway fake | Placeholder `not_integrated` removido; ausência de motor vira erro transparente |
 | INT-033 | VALIDATED | `feat(integracao): implementar cliente de metas no INT-033` | 4 testes unitários com doubles; timeout e schema inválido | Cliente chama motor local real sem inventar números |
 | INT-034 | VALIDATED | `fix(integracao): restringir roteamento de metas no INT-034` | 151 testes Python; 3 cenários focados de intenção | Perguntas processuais comuns não são desviadas; impacto exige linguagem explícita |
-| INT-035 | TODO | — | — | — |
+| INT-035 | VALIDATED | `feat(integracao): rastrear premissas de metas no INT-035` | 153 testes Python; 2 cenários conhecidos de explicação | Resultado, alvo, ano e alterações aparecem sem regra inventada |
 | INT-036 | TODO | — | — | — |
 | INT-037 | TODO | — | — | — |
 | INT-038 | TODO | — | — | — |
@@ -495,6 +495,17 @@
 - **Riscos:** variações linguísticas não mapeadas seguem o fluxo geral em vez de serem presumidas como impacto, comportamento conservador deliberado.
 - **Commit:** identificado pelo assunto `fix(integracao): restringir roteamento de metas no INT-034`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-035`.
+
+### INT-035 — 2026-10-19
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `6c84d9d`.
+- **Arquivos modificados:** explicador de metas, testes de rastreabilidade e este controle.
+- **Resumo técnico:** explicações de sucesso identificam motor, meta, ano, resultado, alvo e alterações mensais reconhecidas; cenário vazio é declarado explicitamente.
+- **Testes:** suíte Python completa → 153 aprovados; casos conhecidos exigem todos os valores fornecidos e rejeitam linguagem preliminar/regra oficial não calculada; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** a explicação contém somente números presentes no resultado e nas premissas do cenário, sem calcular ou inferir nova regra CNJ.
+- **Riscos:** observação textual do motor continua opcional e passa pelo filtro de termos internos já existente.
+- **Commit:** identificado pelo assunto `feat(integracao): rastrear premissas de metas no INT-035`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-036`.
 
 ### Modelo para cada execução
 
