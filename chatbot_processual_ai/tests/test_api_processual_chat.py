@@ -9,6 +9,7 @@ from uuid import UUID
 
 import api
 from schemas.processual_contracts import ProcessualChatResponse, ProcessualChatStepResult
+from services.meta_simulator_adapter import InvalidSimulatorSchemaError, SimulatorUnavailableError
 
 
 class ASGIResponse:
@@ -499,6 +500,30 @@ class ProcessualChatHTTPTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 500)
         self.assertNotIn(technical_marker, response.content.decode("utf-8"))
+
+    def test_meta_simulation_reports_unavailable_without_fake_result(self) -> None:
+        with patch("api.simulate_meta", side_effect=SimulatorUnavailableError("private")):
+            response = asgi_request(
+                "POST", "/api/metas/simular",
+                {"meta_id": "meta1", "ano": 2026, "cenario": {}},
+            )
+        self.assertEqual(response.status_code, 503)
+        payload = response.json()
+        self.assertIn("nenhum resultado foi calculado", payload["detail"])
+        self.assertNotIn("resultado", payload)
+        self.assertNotIn("private", response.content.decode("utf-8"))
+
+    def test_meta_simulation_reports_invalid_engine_schema_without_numbers(self) -> None:
+        with patch("api.simulate_meta", side_effect=InvalidSimulatorSchemaError("109.86")):
+            response = asgi_request(
+                "POST", "/api/metas/simular",
+                {"meta_id": "meta1", "ano": 2026, "cenario": {}},
+            )
+        self.assertEqual(response.status_code, 502)
+        payload = response.json()
+        self.assertIn("nenhum resultado foi calculado", payload["detail"])
+        self.assertNotIn("resultado", payload)
+        self.assertNotIn("109.86", response.content.decode("utf-8"))
 
 
 if __name__ == "__main__":

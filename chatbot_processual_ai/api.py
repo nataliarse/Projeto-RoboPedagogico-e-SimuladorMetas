@@ -4,7 +4,7 @@ from dataclasses import asdict
 from typing import Any, Literal
 from uuid import uuid4
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
 from agents.agent2_context_collection import MAX_CONVERSATION_ENTRIES
@@ -15,7 +15,11 @@ from services.meta_explanation_service import (
     explain_meta_simulation,
     explain_process_meta_impact,
 )
-from services.meta_simulator_adapter import simulate_meta
+from services.meta_simulator_adapter import (
+    InvalidSimulatorSchemaError,
+    SimulatorUnavailableError,
+    simulate_meta,
+)
 from session_state import create_session_state
 
 
@@ -98,7 +102,18 @@ def simular_meta(request: MetaSimulationHTTPRequest) -> dict[str, Any]:
         unidade=request.unidade,
         cenario=request.cenario,
     )
-    simulation_response = simulate_meta(simulation_request)
+    try:
+        simulation_response = simulate_meta(simulation_request)
+    except SimulatorUnavailableError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Motor de metas indisponível; nenhum resultado foi calculado.",
+        ) from exc
+    except InvalidSimulatorSchemaError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="Resposta inválida do motor de metas; nenhum resultado foi calculado.",
+        ) from exc
     explanation = explain_meta_simulation(
         request.pergunta_usuario or "",
         simulation_response,

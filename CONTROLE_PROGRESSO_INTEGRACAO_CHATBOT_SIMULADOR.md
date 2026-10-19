@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 35 |
+| Validated | 36 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 10 |
+| Todo | 9 |
 | Skip aprovado | 0 |
-| Progresso validado | 77,78% |
+| Progresso validado | 80,00% |
 
 ## Fases
 
@@ -43,9 +43,9 @@
 | 2 — Contratos e proxy | INT-012–016 | 5 | 5 | VALIDATED |
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 6 | VALIDATED |
-| 5 — Integração entre motores | INT-031–036 | 6 | 5 | IN_PROGRESS |
+| 5 — Integração entre motores | INT-031–036 | 6 | 6 | VALIDATED |
 | 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **35** | **IN_PROGRESS** |
+| **Total** | | **45** | **36** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -86,7 +86,7 @@
 | INT-033 | VALIDATED | `feat(integracao): implementar cliente de metas no INT-033` | 4 testes unitários com doubles; timeout e schema inválido | Cliente chama motor local real sem inventar números |
 | INT-034 | VALIDATED | `fix(integracao): restringir roteamento de metas no INT-034` | 151 testes Python; 3 cenários focados de intenção | Perguntas processuais comuns não são desviadas; impacto exige linguagem explícita |
 | INT-035 | VALIDATED | `feat(integracao): rastrear premissas de metas no INT-035` | 153 testes Python; 2 cenários conhecidos de explicação | Resultado, alvo, ano e alterações aparecem sem regra inventada |
-| INT-036 | TODO | — | — | — |
+| INT-036 | VALIDATED | `fix(integracao): degradar metas com transparencia no INT-036` | 155 testes Python; 503/502 sem resultado falso | Falha do motor e schema inválido não vazam detalhes nem números |
 | INT-037 | TODO | — | — | — |
 | INT-038 | TODO | — | — | — |
 | INT-039 | TODO | — | — | — |
@@ -506,6 +506,17 @@
 - **Riscos:** observação textual do motor continua opcional e passa pelo filtro de termos internos já existente.
 - **Commit:** identificado pelo assunto `feat(integracao): rastrear premissas de metas no INT-035`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-036`.
+
+### INT-036 — 2026-10-19
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `1fd4023`.
+- **Arquivos modificados:** endpoint de metas, testes HTTP e este controle.
+- **Resumo técnico:** indisponibilidade do motor vira HTTP 503 e contrato inválido vira 502; ambos declaram que nenhum resultado foi calculado e preservam detalhes internos.
+- **Testes:** suíte Python completa → 155 aprovados; 17 testes focados de API, incluindo ausência de campo `resultado`, números e mensagens privadas nas falhas; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** respostas de degradação não afirmam percentuais, metas cumpridas ou qualquer resultado inexistente.
+- **Riscos:** clientes devem tratar 502/503 como falha visível; o frontend já mantém respostas de erro fora do caminho de sucesso.
+- **Commit:** identificado pelo assunto `fix(integracao): degradar metas com transparencia no INT-036`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-037`.
 
 ### Modelo para cada execução
 
