@@ -397,6 +397,27 @@ class ProcessualChatHTTPTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 422)
         orchestrator.assert_not_called()
 
+    def test_processual_chat_limits_message_and_session_id(self) -> None:
+        for payload in (
+            {"mensagem": "x" * 4_001},
+            {"session_id": "s" * 129, "mensagem": "ok"},
+        ):
+            with self.subTest(payload=list(payload)):
+                response = asgi_request("POST", "/api/processos/chat", payload)
+                self.assertEqual(response.status_code, 422)
+
+    def test_session_store_evicts_oldest_entry_at_capacity(self) -> None:
+        original_limit = api.MAX_SESSIONS
+        try:
+            api.MAX_SESSIONS = 2
+            api._get_session_state("oldest")
+            api._get_session_state("newer")
+            api._get_session_state("newest")
+        finally:
+            api.MAX_SESSIONS = original_limit
+        self.assertNotIn("oldest", api._SESSIONS)
+        self.assertEqual(set(api._SESSIONS), {"newer", "newest"})
+
     def test_processual_chat_preserves_valid_message_whitespace(self) -> None:
         controlled_result = step_result(
             ProcessualChatResponse(

@@ -25,11 +25,12 @@ from session_state import create_session_state
 
 app = FastAPI(title="Chatbot Processual AI")
 _SESSIONS: dict[str, dict[str, Any]] = {}
+MAX_SESSIONS = 1_000
 
 
 class ProcessualChatHTTPRequest(BaseModel):
-    session_id: str | None = None
-    mensagem: str
+    session_id: str | None = Field(default=None, max_length=128)
+    mensagem: str = Field(max_length=4_000)
 
     @field_validator("mensagem")
     @classmethod
@@ -156,6 +157,8 @@ def _normalize_session_id(session_id: str | None) -> str:
 
 def _get_session_state(session_id: str) -> dict[str, Any]:
     if session_id not in _SESSIONS:
+        if len(_SESSIONS) >= MAX_SESSIONS:
+            _SESSIONS.pop(next(iter(_SESSIONS)))
         _SESSIONS[session_id] = create_session_state()
     return _SESSIONS[session_id]
 

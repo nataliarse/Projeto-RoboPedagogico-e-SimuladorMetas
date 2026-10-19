@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 39 |
+| Validated | 40 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 6 |
+| Todo | 5 |
 | Skip aprovado | 0 |
-| Progresso validado | 86,67% |
+| Progresso validado | 88,89% |
 
 ## Fases
 
@@ -44,8 +44,8 @@
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 6 | VALIDATED |
 | 5 — Integração entre motores | INT-031–036 | 6 | 6 | VALIDATED |
-| 6 — Qualidade e entrega | INT-037–045 | 9 | 3 | IN_PROGRESS |
-| **Total** | | **45** | **39** | **IN_PROGRESS** |
+| 6 — Qualidade e entrega | INT-037–045 | 9 | 4 | IN_PROGRESS |
+| **Total** | | **45** | **40** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -90,7 +90,7 @@
 | INT-037 | VALIDATED | `test(integracao): executar suites no INT-037` | Chatbot 155, simulador 5, Angular 36 e build aprovados | Relatório registra comandos, cwd, resultados e aviso CSS não bloqueante |
 | INT-038 | VALIDATED | `test(integracao): automatizar contratos no INT-038` | Gate única: Python 21+6 e Angular 29 aprovados | Cobre 422/500, sessão, envelopes e tipos numéricos |
 | INT-039 | VALIDATED | `test(integracao): adicionar smoke local no INT-039` | Três processos, proxy, chat, base e duas rotas aprovados | Offline; processos encerrados e portas liberadas |
-| INT-040 | TODO | — | — | — |
+| INT-040 | VALIDATED | `fix(integracao): endurecer fronteiras no INT-040` | Chatbot 157+2 subtestes e simulador 8 aprovados | Limites de entrada/sessão, CORS restrito e riscos classificados |
 | INT-041 | TODO | — | — | — |
 | INT-042 | TODO | — | — | — |
 | INT-043 | TODO | — | — | — |
@@ -550,6 +550,17 @@
 - **Riscos:** smoke valida shell/HTTP, não pixel/renderização em navegador gráfico; essa limitação é registrada para a demonstração final.
 - **Commit:** identificado pelo assunto `test(integracao): adicionar smoke local no INT-039`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-040`.
+
+### INT-040 — 2026-10-19
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `e964f4c`.
+- **Arquivos modificados:** API/testes do chat, CORS/ambiente do simulador, revisão de segurança e este controle.
+- **Resumo técnico:** entradas e sessões passaram a ter limites; store em memória remove a sessão mais antiga; CORS aceita somente origens configuradas, GET/POST e Content-Type sem credenciais.
+- **Testes:** chatbot 157 aprovados + 2 subtestes; simulador 8 aprovados; limites retornam 422 e eviction é determinística; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** riscos de sessão, CORS/proxy, validação, dados e logs estão classificados, com correções locais e cinco pendências obrigatórias para produção.
+- **Riscos:** autenticação, TTL compartilhado, retenção, homologação CNJ e hardening do reverse proxy continuam fora do MVP e impedem produção.
+- **Commit:** identificado pelo assunto `fix(integracao): endurecer fronteiras no INT-040`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-041`.
 
 ### Modelo para cada execução
 
