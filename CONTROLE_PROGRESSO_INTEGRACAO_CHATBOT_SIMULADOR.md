@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 40 |
+| Validated | 41 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 5 |
+| Todo | 4 |
 | Skip aprovado | 0 |
-| Progresso validado | 88,89% |
+| Progresso validado | 91,11% |
 
 ## Fases
 
@@ -44,8 +44,8 @@
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 6 | VALIDATED |
 | 5 — Integração entre motores | INT-031–036 | 6 | 6 | VALIDATED |
-| 6 — Qualidade e entrega | INT-037–045 | 9 | 4 | IN_PROGRESS |
-| **Total** | | **45** | **40** | **IN_PROGRESS** |
+| 6 — Qualidade e entrega | INT-037–045 | 9 | 5 | IN_PROGRESS |
+| **Total** | | **45** | **41** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -91,7 +91,7 @@
 | INT-038 | VALIDATED | `test(integracao): automatizar contratos no INT-038` | Gate única: Python 21+6 e Angular 29 aprovados | Cobre 422/500, sessão, envelopes e tipos numéricos |
 | INT-039 | VALIDATED | `test(integracao): adicionar smoke local no INT-039` | Três processos, proxy, chat, base e duas rotas aprovados | Offline; processos encerrados e portas liberadas |
 | INT-040 | VALIDATED | `fix(integracao): endurecer fronteiras no INT-040` | Chatbot 157+2 subtestes e simulador 8 aprovados | Limites de entrada/sessão, CORS restrito e riscos classificados |
-| INT-041 | TODO | — | — | — |
+| INT-041 | VALIDATED | `feat(integracao): separar healthchecks no INT-041` | Angular 37, build e 3 testes de proxy aprovados | Queda isolada mantém estado do outro backend; alias ambíguo removido |
 | INT-042 | TODO | — | — | — |
 | INT-043 | TODO | — | — | — |
 | INT-044 | TODO | — | — | — |
@@ -561,6 +561,17 @@
 - **Riscos:** autenticação, TTL compartilhado, retenção, homologação CNJ e hardening do reverse proxy continuam fora do MVP e impedem produção.
 - **Commit:** identificado pelo assunto `fix(integracao): endurecer fronteiras no INT-040`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-041`.
+
+### INT-041 — 2026-10-19
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `be7c9c9`.
+- **Arquivos modificados:** serviço/teste de health, shell Angular, proxy e este controle.
+- **Resumo técnico:** navegação consulta `/api/processos/health` e `/api/simulador/health` independentemente e mostra estado por serviço; alias genérico `/api/health` foi removido do proxy.
+- **Testes:** Angular 9 arquivos/37 testes; build aprovado; `npm run test:proxy` 3 aprovados; cenário unitário derruba chatbot e mantém simulador com 86 registros; `git diff --check` aprovado antes do commit.
+- **Evidência do aceite:** falha de um Observable não cancela nem altera o status do outro, e cada namespace chega a uma porta distinta.
+- **Riscos:** healthchecks indicam disponibilidade, não prontidão de Ollama/Qdrant/PJe, que continuam opcionais e degradáveis.
+- **Commit:** identificado pelo assunto `feat(integracao): separar healthchecks no INT-041`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-042`.
 
 ### Modelo para cada execução
 

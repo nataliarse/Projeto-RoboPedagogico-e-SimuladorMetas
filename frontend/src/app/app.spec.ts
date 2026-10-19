@@ -1,12 +1,23 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { App } from './app';
+import { ApiHealthService } from './core/services/api-health';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ApiHealthService,
+          useValue: {
+            checkProcessual: () => of({ status: 'ok' }),
+            checkSimulator: () => of({ status: 'ok', registros: 86 }),
+          },
+        },
+      ],
     }).compileComponents();
   });
 
@@ -28,7 +39,7 @@ describe('App', () => {
     fixture.detectChanges();
     const links = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('nav a'),
-    ).map(link => ({ text: link.textContent?.trim(), href: link.getAttribute('href') }));
+    ).map(link => ({ text: link.firstChild?.textContent?.trim(), href: link.getAttribute('href') }));
 
     expect(links).toEqual([
       { text: 'Chat processual', href: '/' },

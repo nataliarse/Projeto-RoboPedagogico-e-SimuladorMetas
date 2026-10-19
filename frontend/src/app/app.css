@@ -39,6 +39,18 @@ nav a.active {
   background: #fff;
 }
 
+.status {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 10px;
+  opacity: .8;
+}
+
+.status.offline {
+  color: #ffd3d3;
+  font-weight: 700;
+}
+
 main {
   min-width: 0;
 }
