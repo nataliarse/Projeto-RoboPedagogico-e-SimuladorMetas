@@ -40,69 +40,69 @@ O usuário vê **uma** aplicação, mas os dois serviços podem continuar separa
 
 ## Fase 0 — Segurança, inventário e definição [INT-00]
 
-- [ ] **INT-001** Confirmar branch de integração, `git status`, commit-base, arquivos não rastreados e plano de rollback. Aceite: relatório antes de qualquer edição.
-- [ ] **INT-002** Copiar/descompactar o projeto novo em diretório de quarentena versionável (ex.: `integracao_entrada/TCC-Simulador-CNJ/`), sem sobreposição de nomes. Aceite: diff somente aditivo e inventário de arquivos.
-- [ ] **INT-003** Inventariar aplicações Angular, backends Python, módulos comuns, arquivos de configuração e scripts; detectar duplicatas e código morto sem excluir nada. Aceite: mapa arquivo→função→destino.
-- [ ] **INT-004** Registrar os comandos de execução e os testes existentes de ambos os projetos; rodar baselines locais somente offline. Aceite: resultados, versões e limitações.
-- [ ] **INT-005** Produzir matriz completa de rotas, verbos, schemas, status HTTP, payloads, timeouts e dependências (incluindo `/api/health`). Aceite: tabela revisável.
-- [ ] **INT-006** Decidir a árvore Angular canônica, a estratégia de convivência dos dois FastAPI e a estrutura-alvo do repositório. Aceite: ADR curto, aprovado antes de mover código.
+- [x] **INT-001** Confirmar branch de integração, `git status`, commit-base, arquivos não rastreados e plano de rollback. Aceite: relatório antes de qualquer edição.
+- [x] **INT-002** Copiar/descompactar o projeto novo em diretório de quarentena versionável (ex.: `integracao_entrada/TCC-Simulador-CNJ/`), sem sobreposição de nomes. Aceite: diff somente aditivo e inventário de arquivos.
+- [x] **INT-003** Inventariar aplicações Angular, backends Python, módulos comuns, arquivos de configuração e scripts; detectar duplicatas e código morto sem excluir nada. Aceite: mapa arquivo→função→destino.
+- [x] **INT-004** Registrar os comandos de execução e os testes existentes de ambos os projetos; rodar baselines locais somente offline. Aceite: resultados, versões e limitações.
+- [x] **INT-005** Produzir matriz completa de rotas, verbos, schemas, status HTTP, payloads, timeouts e dependências (incluindo `/api/health`). Aceite: tabela revisável.
+- [x] **INT-006** Decidir a árvore Angular canônica, a estratégia de convivência dos dois FastAPI e a estrutura-alvo do repositório. Aceite: ADR curto, aprovado antes de mover código.
 
 ## Fase 1 — Preparação de repositório e execução [INT-01]
 
-- [ ] **INT-007** Estabelecer estrutura de diretórios definitiva sem apagar o legado; usar movimentações rastreáveis. Aceite: histórico e imports identificáveis.
-- [ ] **INT-008** Consolidar `.gitignore` e arquivos `.env.example` sem segredos reais. Aceite: verificação de arquivos sensíveis.
-- [ ] **INT-009** Documentar versões suportadas de Python, Node/npm e dependências e instruções de instalação reproduzíveis. Aceite: ambiente recriável em máquina limpa.
-- [ ] **INT-010** Criar comandos de inicialização local individuais para Angular, chatbot e simulador, com portas distintas. Aceite: cada um sobe isoladamente.
-- [ ] **INT-011** Estabelecer configuração de URL/portas por ambiente; não embutir endereços institucionais nem credenciais. Aceite: dev funciona por proxy e configuração é explícita.
+- [x] **INT-007** Estabelecer estrutura de diretórios definitiva sem apagar o legado; usar movimentações rastreáveis. Aceite: histórico e imports identificáveis.
+- [x] **INT-008** Consolidar `.gitignore` e arquivos `.env.example` sem segredos reais. Aceite: verificação de arquivos sensíveis.
+- [x] **INT-009** Documentar versões suportadas de Python, Node/npm e dependências e instruções de instalação reproduzíveis. Aceite: ambiente recriável em máquina limpa.
+- [x] **INT-010** Criar comandos de inicialização local individuais para Angular, chatbot e simulador, com portas distintas. Aceite: cada um sobe isoladamente.
+- [x] **INT-011** Estabelecer configuração de URL/portas por ambiente; não embutir endereços institucionais nem credenciais. Aceite: dev funciona por proxy e configuração é explícita.
 
 ## Fase 2 — Contratos HTTP e proxy [INT-02]
 
-- [ ] **INT-012** Formalizar schema tipado request/response do chatbot; incluir `session_id`, `resultado.resposta` e erros. Aceite: teste de contrato correspondente ao backend.
-- [ ] **INT-013** Formalizar e preservar schemas dos endpoints do simulador (`base`, `simular`, `comparar`, `otimizador`). Aceite: fixtures de exemplos válidos e inválidos.
-- [ ] **INT-014** Configurar proxy Angular para rotas de chatbot e simulador, inclusive healthchecks distintos; prevenir colisões. Aceite: chamadas chegam ao destino correto.
-- [ ] **INT-015** Garantir tratamento consistente de 4xx/5xx, indisponibilidade, timeouts e respostas inválidas. Aceite: erros visíveis, sem resposta mock fingindo sucesso.
-- [ ] **INT-016** Definir orçamentos de timeout coerentes sem simplesmente elevar valores; documentar operações potencialmente longas. Aceite: decisão e teste de timeout.
+- [x] **INT-012** Formalizar schema tipado request/response do chatbot; incluir `session_id`, `resultado.resposta` e erros. Aceite: teste de contrato correspondente ao backend.
+- [x] **INT-013** Formalizar e preservar schemas dos endpoints do simulador (`base`, `simular`, `comparar`, `otimizador`). Aceite: fixtures de exemplos válidos e inválidos.
+- [x] **INT-014** Configurar proxy Angular para rotas de chatbot e simulador, inclusive healthchecks distintos; prevenir colisões. Aceite: chamadas chegam ao destino correto.
+- [x] **INT-015** Garantir tratamento consistente de 4xx/5xx, indisponibilidade, timeouts e respostas inválidas. Aceite: erros visíveis, sem resposta mock fingindo sucesso.
+- [x] **INT-016** Definir orçamentos de timeout coerentes sem simplesmente elevar valores; documentar operações potencialmente longas. Aceite: decisão e teste de timeout.
 
 ## Fase 3 — Chat real no Angular [INT-03]
 
-- [ ] **INT-017** Refatorar `core/services/chat.ts` para `POST /api/processos/chat` e request tipada, com opção `session_id`. Aceite: teste HTTP por spy/mock.
-- [ ] **INT-018** Tipar `core/models/chat.model.ts` para payload real, erro estruturado e mensagens; sem `any` desnecessário. Aceite: build TypeScript.
-- [ ] **INT-019** Remover `responderMock()` do caminho de sucesso e renderizar `resultado.resposta`; conservar fallback honesto apenas para falhas. Aceite: teste de sucesso/falha.
-- [ ] **INT-020** Guardar e reenviar `session_id` durante a conversa. Aceite: duas perguntas consecutivas usam a mesma sessão.
-- [ ] **INT-021** Definir comportamento de nova conversa, limpeza e restauração após refresh; histórico local não implica sessão persistida no servidor. Aceite: cenários documentados e testados.
-- [ ] **INT-022** Implementar estado de carregamento, cancelamento/duplicidade, erros de rede e recuperação. Aceite: nenhum envio silenciosamente perdido ou duplicado.
-- [ ] **INT-023** Tratar respostas potencialmente sensíveis com renderização segura; evitar HTML injetável e dados processuais indevidos em logs. Aceite: testes de sanitização e revisão de logs.
-- [ ] **INT-024** Exercitar fluxo chat com backend real **local e fixture offline** (sem consultar PJe). Aceite: pergunta→HTTP→agentes→resposta visível.
+- [x] **INT-017** Refatorar `core/services/chat.ts` para `POST /api/processos/chat` e request tipada, com opção `session_id`. Aceite: teste HTTP por spy/mock.
+- [x] **INT-018** Tipar `core/models/chat.model.ts` para payload real, erro estruturado e mensagens; sem `any` desnecessário. Aceite: build TypeScript.
+- [x] **INT-019** Remover `responderMock()` do caminho de sucesso e renderizar `resultado.resposta`; conservar fallback honesto apenas para falhas. Aceite: teste de sucesso/falha.
+- [x] **INT-020** Guardar e reenviar `session_id` durante a conversa. Aceite: duas perguntas consecutivas usam a mesma sessão.
+- [x] **INT-021** Definir comportamento de nova conversa, limpeza e restauração após refresh; histórico local não implica sessão persistida no servidor. Aceite: cenários documentados e testados.
+- [x] **INT-022** Implementar estado de carregamento, cancelamento/duplicidade, erros de rede e recuperação. Aceite: nenhum envio silenciosamente perdido ou duplicado.
+- [x] **INT-023** Tratar respostas potencialmente sensíveis com renderização segura; evitar HTML injetável e dados processuais indevidos em logs. Aceite: testes de sanitização e revisão de logs.
+- [x] **INT-024** Exercitar fluxo chat com backend real **local e fixture offline** (sem consultar PJe). Aceite: pergunta→HTTP→agentes→resposta visível.
 
 ## Fase 4 — Simulador preservado no frontend único [INT-04]
 
-- [ ] **INT-025** Escolher/transportar componentes de base, cenários, gráficos, tabelas e otimizador, sem perda funcional. Aceite: inventário comparativo antes/depois.
-- [ ] **INT-026** Adaptar serviços Angular do simulador aos endpoints reais sem modificar as fórmulas do backend. Aceite: requests reais e modelos tipados.
-- [ ] **INT-027** Testar carregamento de base, simulação e respostas de erro/vazio. Aceite: testes automatizados e demonstração offline.
-- [ ] **INT-028** Testar `/api/comparar` e `/api/otimizador` de ponta a ponta, caso sejam acionados pela UI escolhida; se não usados, registrar lacuna explicitamente. Aceite: cobertura ou decisão aprovada.
-- [ ] **INT-029** Unificar navegação/layout do Angular para acessar chat e simulador sem alternar aplicativos. Aceite: fluxo navegável e responsivo.
-- [ ] **INT-030** Preservar integridade de resultados numéricos: snapshots com tolerância definida e dados de fixture. Aceite: resultados antes/depois equivalentes.
+- [x] **INT-025** Escolher/transportar componentes de base, cenários, gráficos, tabelas e otimizador, sem perda funcional. Aceite: inventário comparativo antes/depois.
+- [x] **INT-026** Adaptar serviços Angular do simulador aos endpoints reais sem modificar as fórmulas do backend. Aceite: requests reais e modelos tipados.
+- [x] **INT-027** Testar carregamento de base, simulação e respostas de erro/vazio. Aceite: testes automatizados e demonstração offline.
+- [x] **INT-028** Testar `/api/comparar` e `/api/otimizador` de ponta a ponta, caso sejam acionados pela UI escolhida; se não usados, registrar lacuna explicitamente. Aceite: cobertura ou decisão aprovada.
+- [x] **INT-029** Unificar navegação/layout do Angular para acessar chat e simulador sem alternar aplicativos. Aceite: fluxo navegável e responsivo.
+- [x] **INT-030** Preservar integridade de resultados numéricos: snapshots com tolerância definida e dados de fixture. Aceite: resultados antes/depois equivalentes.
 
 ## Fase 5 — Integração entre domínio processual e simulação [INT-05]
 
-- [ ] **INT-031** Definir casos de uso autorizados que requerem o chatbot consultar o simulador. Aceite: especificação separa perguntas processuais de cenários CNJ.
-- [ ] **INT-032** Definir contrato interno de chamada ao serviço real do simulador, sem usar `not_integrated` como se fosse cálculo. Aceite: adapter/interface testável.
-- [ ] **INT-033** Implementar cliente/adapter com timeout, validação de schema e erros sem inventar números. Aceite: testes unitários com doubles.
-- [ ] **INT-034** Integrar orquestração apenas para intenções explicitamente mapeadas. Aceite: perguntas processuais não são desviadas para metas.
-- [ ] **INT-035** Garantir rastreabilidade das premissas e resultados numéricos nas explicações, sem regras CNJ inventadas. Aceite: testes de aceitação com cenários conhecidos.
-- [ ] **INT-036** Validar recusa/degradação transparente quando motor de metas ou dados faltarem. Aceite: resposta não afirma resultado inexistente.
+- [x] **INT-031** Definir casos de uso autorizados que requerem o chatbot consultar o simulador. Aceite: especificação separa perguntas processuais de cenários CNJ.
+- [x] **INT-032** Definir contrato interno de chamada ao serviço real do simulador, sem usar `not_integrated` como se fosse cálculo. Aceite: adapter/interface testável.
+- [x] **INT-033** Implementar cliente/adapter com timeout, validação de schema e erros sem inventar números. Aceite: testes unitários com doubles.
+- [x] **INT-034** Integrar orquestração apenas para intenções explicitamente mapeadas. Aceite: perguntas processuais não são desviadas para metas.
+- [x] **INT-035** Garantir rastreabilidade das premissas e resultados numéricos nas explicações, sem regras CNJ inventadas. Aceite: testes de aceitação com cenários conhecidos.
+- [x] **INT-036** Validar recusa/degradação transparente quando motor de metas ou dados faltarem. Aceite: resposta não afirma resultado inexistente.
 
 ## Fase 6 — Qualidade, segurança e operação [INT-06]
 
-- [ ] **INT-037** Executar suites existentes de Python e Angular e reparar regressões **causadas pela integração**. Aceite: relatório por suite, comando e resultado.
-- [ ] **INT-038** Adicionar testes de contrato entre front e ambos backends, incluindo erros 422/500, sessão e tipos numéricos. Aceite: rodagem automatizada.
-- [ ] **INT-039** Executar smoke test local dos três processos e navegação ponta a ponta somente com dados permitidos. Aceite: roteiro e evidências reproduzíveis.
-- [ ] **INT-040** Revisar proteção de sessões, CORS/proxy, validações, exposição de dados e logs antes de qualquer publicação. Aceite: riscos classificados e correções obrigatórias identificadas.
-- [ ] **INT-041** Adicionar healthchecks diferenciados e mensagens operacionais de indisponibilidade. Aceite: queda isolada de um backend não derruba toda a UI.
-- [ ] **INT-042** Preparar scripts/documentação de desenvolvimento e troubleshooting de portas, imports, banco e serviços opcionais. Aceite: outro dev reproduz o ambiente.
-- [ ] **INT-043** Executar revisão de diff, dependências, licenças e arquivos não versionáveis. Aceite: nenhuma remoção inadvertida ou segredo versionado.
-- [ ] **INT-044** Fazer demonstração final com matriz de evidências e limitações conhecidas. Aceite: chat e simulador navegáveis na mesma UI e teste ponta a ponta aprovado.
-- [ ] **INT-045** Preparar PR da branch de integração com plano de rollback e registro de decisões; **não** efetuar merge automático. Aceite: PR revisável.
+- [x] **INT-037** Executar suites existentes de Python e Angular e reparar regressões **causadas pela integração**. Aceite: relatório por suite, comando e resultado.
+- [x] **INT-038** Adicionar testes de contrato entre front e ambos backends, incluindo erros 422/500, sessão e tipos numéricos. Aceite: rodagem automatizada.
+- [x] **INT-039** Executar smoke test local dos três processos e navegação ponta a ponta somente com dados permitidos. Aceite: roteiro e evidências reproduzíveis.
+- [x] **INT-040** Revisar proteção de sessões, CORS/proxy, validações, exposição de dados e logs antes de qualquer publicação. Aceite: riscos classificados e correções obrigatórias identificadas.
+- [x] **INT-041** Adicionar healthchecks diferenciados e mensagens operacionais de indisponibilidade. Aceite: queda isolada de um backend não derruba toda a UI.
+- [x] **INT-042** Preparar scripts/documentação de desenvolvimento e troubleshooting de portas, imports, banco e serviços opcionais. Aceite: outro dev reproduz o ambiente.
+- [x] **INT-043** Executar revisão de diff, dependências, licenças e arquivos não versionáveis. Aceite: nenhuma remoção inadvertida ou segredo versionado.
+- [x] **INT-044** Fazer demonstração final com matriz de evidências e limitações conhecidas. Aceite: chat e simulador navegáveis na mesma UI e teste ponta a ponta aprovado.
+- [x] **INT-045** Preparar PR da branch de integração com plano de rollback e registro de decisões; **não** efetuar merge automático. Aceite: PR revisável.
 
 ## Regras de decisão e bloqueio
 

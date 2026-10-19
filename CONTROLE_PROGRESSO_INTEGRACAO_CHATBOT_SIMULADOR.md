@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 44 |
+| Validated | 45 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 1 |
+| Todo | 0 |
 | Skip aprovado | 0 |
-| Progresso validado | 97,78% |
+| Progresso validado | 100,00% |
 
 ## Fases
 
@@ -44,8 +44,8 @@
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 6 | VALIDATED |
 | 5 — Integração entre motores | INT-031–036 | 6 | 6 | VALIDATED |
-| 6 — Qualidade e entrega | INT-037–045 | 9 | 8 | IN_PROGRESS |
-| **Total** | | **45** | **44** | **IN_PROGRESS** |
+| 6 — Qualidade e entrega | INT-037–045 | 9 | 9 | VALIDATED |
+| **Total** | | **45** | **45** | **VALIDATED** |
 
 ## Registro item a item
 
@@ -95,7 +95,7 @@
 | INT-042 | VALIDATED | `docs(integracao): consolidar desenvolvimento no INT-042` | 5 scripts PowerShell analisados; docs sem rotas/módulos legados | Guia cobre instalação, portas, imports, banco e opcionais |
 | INT-043 | VALIDATED | `chore(integracao): auditar entrega no INT-043` | 0 vulnerabilidades npm; pip check íntegro; 202 testes e 12 subtestes aprovados | 153 arquivos revisados, nenhuma exclusão da integração e nenhum segredo detectado |
 | INT-044 | VALIDATED | `test(integracao): demonstrar fluxo final no INT-044` | Gate: 23+2, 6 e 29 testes; smoke de três processos aprovado | Chat e simulador navegáveis na mesma UI; limitações registradas |
-| INT-045 | TODO | — | — | — |
+| INT-045 | VALIDATED | `docs(integracao): preparar PR no INT-045` | Pacote de PR, decisões, gates, riscos e rollback revisáveis | Nenhum push, merge, deploy ou chamada institucional executado |
 
 ## Diário de execução (acrescentar entradas, não apagar histórico)
 
@@ -605,6 +605,17 @@
 - **Riscos:** homologação visual, serviços opcionais, autenticação e homologação das regras CNJ permanecem limitações explícitas.
 - **Commit:** identificado pelo assunto `test(integracao): demonstrar fluxo final no INT-044`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-045`.
+
+### INT-045 — 2026-10-19
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `9a1a1c9`.
+- **Arquivos modificados:** descrição local da PR, checklist oficial e este controle.
+- **Resumo técnico:** pacote de revisão consolida escopo, arquitetura híbrida, evidências, limitações, checklist do revisor e rollback antes/depois do merge.
+- **Testes/evidência:** 45/45 itens marcados; branch e base confirmadas; diff resumido; gates finais do INT-044 permanecem aprovadas.
+- **Evidência do aceite:** a branch dispõe de uma descrição completa e reproduzível para abertura da PR, sem merge automático.
+- **Riscos:** a branch não possui upstream; a abertura/publicação remota depende de escolha explícita da branch de destino e autorização separada.
+- **Commit:** identificado pelo assunto `docs(integracao): preparar PR no INT-045`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** nenhum; realizar auditoria final e entregar para revisão humana.
 
 ### Modelo para cada execução
 
