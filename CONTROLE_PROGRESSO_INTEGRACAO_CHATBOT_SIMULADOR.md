@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 36 |
+| Validated | 37 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 9 |
+| Todo | 8 |
 | Skip aprovado | 0 |
-| Progresso validado | 80,00% |
+| Progresso validado | 82,22% |
 
 ## Fases
 
@@ -44,8 +44,8 @@
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 6 | VALIDATED |
 | 5 — Integração entre motores | INT-031–036 | 6 | 6 | VALIDATED |
-| 6 — Qualidade e entrega | INT-037–045 | 9 | 0 | TODO |
-| **Total** | | **45** | **36** | **IN_PROGRESS** |
+| 6 — Qualidade e entrega | INT-037–045 | 9 | 1 | IN_PROGRESS |
+| **Total** | | **45** | **37** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -87,7 +87,7 @@
 | INT-034 | VALIDATED | `fix(integracao): restringir roteamento de metas no INT-034` | 151 testes Python; 3 cenários focados de intenção | Perguntas processuais comuns não são desviadas; impacto exige linguagem explícita |
 | INT-035 | VALIDATED | `feat(integracao): rastrear premissas de metas no INT-035` | 153 testes Python; 2 cenários conhecidos de explicação | Resultado, alvo, ano e alterações aparecem sem regra inventada |
 | INT-036 | VALIDATED | `fix(integracao): degradar metas com transparencia no INT-036` | 155 testes Python; 503/502 sem resultado falso | Falha do motor e schema inválido não vazam detalhes nem números |
-| INT-037 | TODO | — | — | — |
+| INT-037 | VALIDATED | `test(integracao): executar suites no INT-037` | Chatbot 155, simulador 5, Angular 36 e build aprovados | Relatório registra comandos, cwd, resultados e aviso CSS não bloqueante |
 | INT-038 | TODO | — | — | — |
 | INT-039 | TODO | — | — | — |
 | INT-040 | TODO | — | — | — |
@@ -517,6 +517,17 @@
 - **Riscos:** clientes devem tratar 502/503 como falha visível; o frontend já mantém respostas de erro fora do caminho de sucesso.
 - **Commit:** identificado pelo assunto `fix(integracao): degradar metas com transparencia no INT-036`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-037`.
+
+### INT-037 — 2026-10-19
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `c8bfa38`.
+- **Arquivos modificados:** relatório consolidado das suítes e este controle.
+- **Resumo técnico:** foram executadas todas as gates locais dos dois backends e do Angular em seus diretórios reproduzíveis.
+- **Testes:** chatbot 155 aprovados; simulador 5 aprovados; Angular 8 arquivos/36 testes; build aprovado. Tentativa inicial em cwd incorreto foi isolada como erro de invocação, não regressão.
+- **Evidência do aceite:** relatório registra suite, comando, resultado, contexto da falha inicial e warning CSS não bloqueante.
+- **Riscos:** orçamento CSS do chat permanece acima do warning, porém abaixo do limite de erro; será listado entre limitações conhecidas.
+- **Commit:** identificado pelo assunto `test(integracao): executar suites no INT-037`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-038`.
 
 ### Modelo para cada execução
 
