@@ -26,13 +26,13 @@
 | Indicador | Inicial |
 |---|---:|
 | Total de itens | 45 |
-| Validated | 43 |
+| Validated | 44 |
 | In progress | 0 |
 | Blocked | 0 |
 | Failed | 0 |
-| Todo | 2 |
+| Todo | 1 |
 | Skip aprovado | 0 |
-| Progresso validado | 95,56% |
+| Progresso validado | 97,78% |
 
 ## Fases
 
@@ -44,8 +44,8 @@
 | 3 — Chat real | INT-017–024 | 8 | 8 | VALIDATED |
 | 4 — Simulador no frontend | INT-025–030 | 6 | 6 | VALIDATED |
 | 5 — Integração entre motores | INT-031–036 | 6 | 6 | VALIDATED |
-| 6 — Qualidade e entrega | INT-037–045 | 9 | 7 | IN_PROGRESS |
-| **Total** | | **45** | **43** | **IN_PROGRESS** |
+| 6 — Qualidade e entrega | INT-037–045 | 9 | 8 | IN_PROGRESS |
+| **Total** | | **45** | **44** | **IN_PROGRESS** |
 
 ## Registro item a item
 
@@ -94,7 +94,7 @@
 | INT-041 | VALIDATED | `feat(integracao): separar healthchecks no INT-041` | Angular 37, build e 3 testes de proxy aprovados | Queda isolada mantém estado do outro backend; alias ambíguo removido |
 | INT-042 | VALIDATED | `docs(integracao): consolidar desenvolvimento no INT-042` | 5 scripts PowerShell analisados; docs sem rotas/módulos legados | Guia cobre instalação, portas, imports, banco e opcionais |
 | INT-043 | VALIDATED | `chore(integracao): auditar entrega no INT-043` | 0 vulnerabilidades npm; pip check íntegro; 202 testes e 12 subtestes aprovados | 153 arquivos revisados, nenhuma exclusão da integração e nenhum segredo detectado |
-| INT-044 | TODO | — | — | — |
+| INT-044 | VALIDATED | `test(integracao): demonstrar fluxo final no INT-044` | Gate: 23+2, 6 e 29 testes; smoke de três processos aprovado | Chat e simulador navegáveis na mesma UI; limitações registradas |
 | INT-045 | TODO | — | — | — |
 
 ## Diário de execução (acrescentar entradas, não apagar histórico)
@@ -594,6 +594,17 @@
 - **Riscos:** warning de orçamento CSS permanece não bloqueante; a classificação de licenças é técnica e não substitui revisão jurídica.
 - **Commit:** identificado pelo assunto `chore(integracao): auditar entrega no INT-043`; o próprio commit que contém esta entrada é a evidência imutável.
 - **Próximo item:** `INT-044`.
+
+### INT-044 — 2026-10-19
+- **Estado anterior → novo:** `TODO` → `VALIDATED`.
+- **Branch/commit antes:** `feat/integracao_robo_metas` / `60c4a91`.
+- **Arquivos modificados:** matriz da demonstração e este controle.
+- **Resumo técnico:** a demonstração final percorreu frontend único, namespaces independentes, chat offline e base do simulador pelos três processos reais.
+- **Testes/evidência:** gate com chatbot 23+2 subtestes, simulador 6 e Angular 29; smoke com healths, sessão/resposta, 86 registros, Meta 1 `109,86` e rotas `/`/`/simulador`.
+- **Evidência do aceite:** chat e simulador são navegáveis na mesma UI e o teste ponta a ponta local terminou com código zero.
+- **Riscos:** homologação visual, serviços opcionais, autenticação e homologação das regras CNJ permanecem limitações explícitas.
+- **Commit:** identificado pelo assunto `test(integracao): demonstrar fluxo final no INT-044`; o próprio commit que contém esta entrada é a evidência imutável.
+- **Próximo item:** `INT-045`.
 
 ### Modelo para cada execução
 
