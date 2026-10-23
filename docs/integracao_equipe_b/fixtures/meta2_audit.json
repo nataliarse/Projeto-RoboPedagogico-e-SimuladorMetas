@@ -1,0 +1,19 @@
+{
+  "base_2026": {"A": 104.63, "ANT": null},
+  "real_month_change": {
+    "input": {"A": {"2026-01": {"julgados": 10}}},
+    "result": {"A": 104.67, "ANT": null}
+  },
+  "forecast_change": {
+    "input": {"A": {"2026-03": {"julgados": 10}}},
+    "result": {"A": 104.67, "ANT": null}
+  },
+  "sensitive_ant_case": {
+    "input": {"ANT": {"2026-03": {"dessobrestados": -1}}},
+    "final_denominator": 1,
+    "result": 2200.0
+  },
+  "nonpositive_denominator": {"A": null, "ANT": null},
+  "real_window": ["2025-01", "2026-02"],
+  "forecast_window": ["2026-03", "2026-12"]
+}

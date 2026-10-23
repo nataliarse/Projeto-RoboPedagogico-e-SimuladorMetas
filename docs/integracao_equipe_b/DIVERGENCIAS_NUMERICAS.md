@@ -37,4 +37,4 @@ Fixture reproduzível: `docs/integracao_equipe_b/fixtures/meta1_comparison.json`
 
 ## Meta 2
 
-Pendente da EB-007.
+O cálculo A/ANT importado não corresponde à Meta 2 agregada canônica e depende de constantes/séries sem proveniência reproduzível. A base A resulta em `104,63`; ANT em `null`. Alterações pequenas podem levar ANT a `2200,00%` quando o denominador passa de zero para um. GATE-M2 bloqueado; detalhes em `AUDITORIA_META2.md`.
