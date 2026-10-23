@@ -5,11 +5,12 @@ import { CenariosComponent } from '../cenarios/cenarios.component';
 import { GraficosComponent } from '../graficos/graficos.component';
 import { SimuladorApiService } from '../../core/services/simulador-api.service';
 import { QuantoFaltaComponent } from '../quanto-falta/quanto-falta.component';
+import { Meta2Component } from '../meta2/meta2.component';
 
 @Component({
   selector: 'app-simulador-shell',
   standalone: true,
-  imports: [CommonModule, CenariosComponent, GraficosComponent, QuantoFaltaComponent],
+  imports: [CommonModule, CenariosComponent, GraficosComponent, QuantoFaltaComponent, Meta2Component],
   template: `
     <!-- HEADER -->
     <header class="header">
@@ -62,15 +63,7 @@ import { QuantoFaltaComponent } from '../quanto-falta/quanto-falta.component';
   }
   @case ('quanto-falta') { <app-quanto-falta /> }
   @case ('meta2') {
-    <div class="meta-painel">
-      <div class="meta-header meta2">
-        <div class="meta-titulo">Meta 2: resultado provisório</div>
-      </div>
-      <div class="meta2-aviso">
-        Resultado provisório: validação metodológica e dados por coorte de processos antigos pendentes.
-      </div>
-      <app-cenarios [meta]="'meta2'" />
-    </div>
+    <app-meta2 />
   }
   @case ('graficos')   { <app-graficos /> }
 }

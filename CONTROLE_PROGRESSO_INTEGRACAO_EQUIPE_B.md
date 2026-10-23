@@ -1,7 +1,7 @@
 # CONTROLE DE PROGRESSO — Integração Equipe B → base do Robô Pedagógico
 
 **Documento de referência:** `CHECKLIST_INTEGRACAO_EQUIPE_B.md`  
-**Estado global:** `EB-001 A EB-014 CONCLUÍDAS; EB-015 ELEGÍVEL`
+**Estado global:** `EB-001 A EB-015 CONCLUÍDAS; EB-016 ELEGÍVEL`
 **Atualizado em:** `2026-10-23 16:45 -03:00`
 **Responsável executor:** `Codex (execução supervisionável por registros)`  
 **Regra:** este arquivo é o diário de execução. **Não antecipar resultados.**
@@ -19,8 +19,8 @@
 | Serviço canônico de simulação encontrado em | `simulador_metas_cnj/` |
 | Versões efetivas Python / Node / npm | `Python 3.12.10`; Node e npm indisponíveis no PATH |
 | Data/hora de início | `2026-10-23 15:53 -03:00` |
-| Último item terminado | `EB-014 (CONCLUÍDO)` |
-| Próxima tarefa elegível | `EB-015` |
+| Último item terminado | `EB-015 (CONCLUÍDO)` |
+| Próxima tarefa elegível | `EB-016` |
 
 ### Regra de status
 
@@ -36,12 +36,12 @@
 | Métrica | Valor inicial | Atualizar com evidência |
 |---|---|---|
 | Itens planejados | **24** | Conforme IDs EB-001 a EB-024 |
-| Itens concluídos | **14** | EB-001 a EB-014 |
+| Itens concluídos | **15** | EB-001 a EB-015 |
 | Itens parciais | **0** | — |
 | Itens em andamento | **0** | — |
 | Itens bloqueados | **0** | Nenhum bloqueio matemático ativo; limitações ambientais permanecem |
 | Commits de integração | **14** | Antes do commit EB-014; HEAD `db09f15` |
-| Testes novos executados | **77 APROVADOS** | Angular 47, proxy 3 e simulador 27 nesta retomada |
+| Testes novos executados | **79 APROVADOS** | Angular 49, proxy 3 e simulador 27 nesta retomada |
 | Regressões P0 abertas | **Não avaliado** | Número com evidências |
 | Gate Meta 1 | `LIBERADO` | Responsável validou regras/séries da Equipe B como atualização em 23/10/2026 |
 | Gate Meta 2 | `LIBERADO` | Responsável validou regras/séries da Equipe B como atualização em 23/10/2026; riscos seguem documentados |
@@ -66,8 +66,8 @@
 | EB-011 | P1 | API Meta 2 A/ANT | CONCLUÍDO | Serviço isolado e rotas `/api/meta2/base` e `/api/meta2/simular`; 23/23 testes | `061256a` |
 | EB-012 | P0 | Não mutação e erros do simulador | CONCLUÍDO | Testes HTTP sequenciais, reload invariável, 422/500 sanitizado e JSON sem NaN; 27/27 | `069e49f` |
 | EB-013 | P1 | Clientes HTTP tipados | CONCLUÍDO | Tipos, métodos, timeouts e testes 200/422/500/timeout/malformado; suíte Angular 47/47 após ajuste zoneless do teste | `db09f15` + validação no commit EB-014 |
-| EB-014 | P1 | UI quanto-falta | CONCLUÍDO | Aba acessível no simulador, cálculo exclusivo no backend, criação de cenário e testes de UI; Angular 47/47, proxy 3/3, build aprovado | A registrar após commit |
-| EB-015 | P1 | UI Meta 2 | PENDENTE | — | — |
+| EB-014 | P1 | UI quanto-falta | CONCLUÍDO | Aba acessível no simulador, cálculo exclusivo no backend, criação de cenário e testes de UI; Angular 47/47, proxy 3/3, build aprovado | `46a1d82` |
+| EB-015 | P1 | UI Meta 2 | CONCLUÍDO | A/ANT independentes, `null` preservado, histórico/projeção rotulados, comparação responsiva; Angular 49/49 e build aprovado | A registrar após commit |
 | EB-016 | P1 | Gráficos e cenários | PENDENTE | — | — |
 | EB-017 | P2 | Recentes localStorage | PENDENTE | — | — |
 | EB-018 | P0 | Chatbot preservado | PENDENTE | — | — |
@@ -371,9 +371,22 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
   - `python -m unittest discover -s tests -v`: 27 testes do simulador aprovados em 2,122 s.
 - **Fixtures / teste de contrato / amostras numéricas:** fluxo testa primeiro mês projetado, alvo inválido, falha HTTP e criação de cenário com +387 julgamentos em dois meses; cálculo não é reimplementado no navegador.
 - **Git diff --check:** OK; somente avisos esperados de normalização LF/CRLF.
-- **Commit:** a registrar após commit atômico.
+- **Commit:** `46a1d82`.
 - **Pendências ou riscos:** warning de orçamento CSS do chat não foi introduzido pela tarefa; não foi alterado por estar fora do escopo.
 - **Próximo item elegível:** EB-015.
+
+### [2026-10-23 16:47] EB-015 — UI Meta 2 A/ANT
+- **Estado:** CONCLUÍDO
+- **Objetivo:** integrar a simulação Meta 2-A/ANT com distinção clara entre histórico e projeção.
+- **Arquivos lidos:** componente e serviço importados, cliente/modelos canônicos e serviço de domínio Meta 2.
+- **Arquivos alterados (destino; não fonte):** `features/meta2/meta2.component.ts`, spec correspondente, shell do simulador e este controle.
+- **Decisão arquitetural / por quê:** usar exclusivamente `SimuladorApiService`; manter formulários A/ANT independentes e comparação local de respostas completas, sem copiar serviço, roteamento, gráfico ou persistência importados.
+- **Comandos executados:** suíte Angular: 11 arquivos e 49 testes aprovados; build Angular aprovado com warning CSS preexistente; simulador Python 27/27 em 2,010 s.
+- **Fixtures / teste de contrato / amostras numéricas:** A 104,63%; ANT `null` exibido como “—”; teste envia +10 julgados em A e +2 suspensos em ANT sem cruzar estados; linhas reais e previstas aparecem como Histórico/Projeção.
+- **Git diff --check:** a executar antes do commit.
+- **Commit:** a registrar após commit atômico.
+- **Pendências ou riscos:** as projeções permanecem estáticas e explicitamente rotuladas como protótipo; gráfico comparativo pertence à EB-016.
+- **Próximo item elegível:** EB-016.
 
 ## 7. Mudanças de escopo e decisões humanas
 
@@ -389,16 +402,16 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 
 ```text
 BRANCH_ATUAL: feat/integracao-equipe-b
-HEAD_SHA: db09f15 (antes do commit EB-014)
-ULTIMO_ITEM_VALIDADO: EB-014
-PROXIMO_ITEM: EB-015
+HEAD_SHA: 46a1d82 (antes do commit EB-015)
+ULTIMO_ITEM_VALIDADO: EB-015
+PROXIMO_ITEM: EB-016
 GATE_M1: LIBERADO
 GATE_M2: LIBERADO
 GATE_FINAL: PENDENTE
-ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: UI quanto-falta, integração no shell, ajuste de teste zoneless e controle até o commit EB-014
-TESTES_ULTIMA_EXECUCAO: Angular 47/47; proxy 3/3; simulador 27/27; build aprovado com warning CSS preexistente
+ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: UI Meta 2, integração no shell e controle até o commit EB-015
+TESTES_ULTIMA_EXECUCAO: Angular 49/49; simulador 27/27; build aprovado com warning CSS preexistente
 BLOQUEIOS: pytest ainda precisa ser verificado para chatbot/coletor; gates matemáticos liberados
-ACAO_SEGURA_IMEDIATA: executar EB-015
+ACAO_SEGURA_IMEDIATA: executar EB-016
 ```
 
 **Não declarar entrega completa apenas porque o Codex encerrou uma sessão.** A conclusão requer EB-024 e GATE-FINAL aprovados.
