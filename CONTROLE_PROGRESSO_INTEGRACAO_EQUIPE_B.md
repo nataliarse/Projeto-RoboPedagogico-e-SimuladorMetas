@@ -1,7 +1,7 @@
 # CONTROLE DE PROGRESSO — Integração Equipe B → base do Robô Pedagógico
 
 **Documento de referência:** `CHECKLIST_INTEGRACAO_EQUIPE_B.md`  
-**Estado global:** `EB-001 A EB-017 CONCLUÍDAS; EB-018 ELEGÍVEL`
+**Estado global:** `EB-001 A EB-018 CONCLUÍDAS; EB-019 ELEGÍVEL`
 **Atualizado em:** `2026-10-23 16:45 -03:00`
 **Responsável executor:** `Codex (execução supervisionável por registros)`  
 **Regra:** este arquivo é o diário de execução. **Não antecipar resultados.**
@@ -19,8 +19,8 @@
 | Serviço canônico de simulação encontrado em | `simulador_metas_cnj/` |
 | Versões efetivas Python / Node / npm | `Python 3.12.10`; Node e npm indisponíveis no PATH |
 | Data/hora de início | `2026-10-23 15:53 -03:00` |
-| Último item terminado | `EB-017 (CONCLUÍDO)` |
-| Próxima tarefa elegível | `EB-018` |
+| Último item terminado | `EB-018 (CONCLUÍDO)` |
+| Próxima tarefa elegível | `EB-019` |
 
 ### Regra de status
 
@@ -36,7 +36,7 @@
 | Métrica | Valor inicial | Atualizar com evidência |
 |---|---|---|
 | Itens planejados | **24** | Conforme IDs EB-001 a EB-024 |
-| Itens concluídos | **17** | EB-001 a EB-017 |
+| Itens concluídos | **18** | EB-001 a EB-018 |
 | Itens parciais | **0** | — |
 | Itens em andamento | **0** | — |
 | Itens bloqueados | **0** | Nenhum bloqueio matemático ativo; limitações ambientais permanecem |
@@ -69,8 +69,8 @@
 | EB-014 | P1 | UI quanto-falta | CONCLUÍDO | Aba acessível no simulador, cálculo exclusivo no backend, criação de cenário e testes de UI; Angular 47/47, proxy 3/3, build aprovado | `46a1d82` |
 | EB-015 | P1 | UI Meta 2 | CONCLUÍDO | A/ANT independentes, `null` preservado, histórico/projeção rotulados, comparação responsiva; Angular 49/49 e build aprovado | `dc9e300` |
 | EB-016 | P1 | Gráficos e cenários | CONCLUÍDO | Gráfico canônico preservado; identificação, valores da API, nulos, acessibilidade e responsividade cobertos; Angular 51/51 | `b78f4e9` |
-| EB-017 | P2 | Recentes localStorage | CONCLUÍDO | Histórico por meta, deduplicação, limite 3, restauro, limpeza e fallback sem storage; Angular 53/53 | A registrar após commit |
-| EB-018 | P0 | Chatbot preservado | PENDENTE | — | — |
+| EB-017 | P2 | Recentes localStorage | CONCLUÍDO | Histórico por meta, deduplicação, limite 3, restauro, limpeza e fallback sem storage; Angular 53/53 | `626d2cd` |
+| EB-018 | P0 | Chatbot preservado | CONCLUÍDO | Sem mock/rota incompatível; `/api/processos/chat`, sessão, navegação e healthchecks preservados; Angular 53/53 e proxy 3/3 | A registrar após commit |
 | EB-019 | P0 | Contratos e proxy | PENDENTE | — | — |
 | EB-020 | P0 | Smoke integrado offline | PENDENTE | — | — |
 | EB-021 | P0 | Revisão segurança/deps | PENDENTE | — | — |
@@ -414,6 +414,19 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
 - **Pendências ou riscos:** localStorage é opcional; falha de gravação não impede simulação.
 - **Próximo item elegível:** EB-018.
 
+### [2026-10-23 16:50] EB-018 — Preservação do chatbot
+- **Estado:** CONCLUÍDO
+- **Objetivo:** comprovar preservação do Angular canônico e chatbot real.
+- **Arquivos lidos:** cliente/componentes/testes do chat, sessão, rotas, proxy e healthchecks.
+- **Arquivos alterados (destino; não fonte):** somente este controle.
+- **Decisão arquitetural / por quê:** nenhuma alteração no chatbot; manter endpoint e sessão existentes.
+- **Comandos executados:** `rg` confirmou ausência de `responderMock` e `/api/chat`; suíte Angular 53/53 e proxy 3/3 aprovados; pytest chatbot NÃO EXECUTADO (módulo ausente).
+- **Fixtures / teste de contrato / amostras numéricas:** testes Angular cobrem POST `/api/processos/chat`, `session_id`, erro e navegação.
+- **Git diff --check:** OK.
+- **Commit:** a registrar após commit documental.
+- **Pendências ou riscos:** suíte Python do chatbot permanece pendente por ausência do pytest.
+- **Próximo item elegível:** EB-019.
+
 ## 7. Mudanças de escopo e decisões humanas
 
 | Data | Decisão/restrição | Quem autorizou | Impacto nos IDs | Evidência |
@@ -428,16 +441,16 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 
 ```text
 BRANCH_ATUAL: feat/integracao-equipe-b
-HEAD_SHA: b78f4e9 (antes do commit EB-017)
-ULTIMO_ITEM_VALIDADO: EB-017
-PROXIMO_ITEM: EB-018
+HEAD_SHA: 626d2cd (antes do commit EB-018)
+ULTIMO_ITEM_VALIDADO: EB-018
+PROXIMO_ITEM: EB-019
 GATE_M1: LIBERADO
 GATE_M2: LIBERADO
 GATE_FINAL: PENDENTE
-ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: serviço/UI/testes de cenários recentes e controle até o commit EB-017
+ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: checkpoint documental EB-018
 TESTES_ULTIMA_EXECUCAO: Angular 53/53; simulador 27/27; build aprovado com warning CSS preexistente
 BLOQUEIOS: pytest ainda precisa ser verificado para chatbot/coletor; gates matemáticos liberados
-ACAO_SEGURA_IMEDIATA: executar EB-018
+ACAO_SEGURA_IMEDIATA: executar EB-019
 ```
 
 **Não declarar entrega completa apenas porque o Codex encerrou uma sessão.** A conclusão requer EB-024 e GATE-FINAL aprovados.
