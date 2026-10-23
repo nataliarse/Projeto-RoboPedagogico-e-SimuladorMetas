@@ -1,7 +1,7 @@
 # CONTROLE DE PROGRESSO — Integração Equipe B → base do Robô Pedagógico
 
 **Documento de referência:** `CHECKLIST_INTEGRACAO_EQUIPE_B.md`  
-**Estado global:** `EB-001 A EB-012 CONCLUÍDAS; EB-013 ELEGÍVEL`
+**Estado global:** `EB-001 A EB-012 CONCLUÍDAS; EB-013 PARCIAL; EB-014 ELEGÍVEL`
 **Atualizado em:** `2026-10-23 18:10 -03:00`
 **Responsável executor:** `Codex (execução supervisionável por registros)`  
 **Regra:** este arquivo é o diário de execução. **Não antecipar resultados.**
@@ -19,8 +19,8 @@
 | Serviço canônico de simulação encontrado em | `simulador_metas_cnj/` |
 | Versões efetivas Python / Node / npm | `Python 3.12.10`; Node e npm indisponíveis no PATH |
 | Data/hora de início | `2026-10-23 15:53 -03:00` |
-| Último item terminado | `EB-012` |
-| Próxima tarefa elegível | `EB-013` |
+| Último item terminado | `EB-013 (PARCIAL)` |
+| Próxima tarefa elegível | `EB-014` |
 
 ### Regra de status
 
@@ -37,6 +37,7 @@
 |---|---|---|
 | Itens planejados | **24** | Conforme IDs EB-001 a EB-024 |
 | Itens concluídos | **12** | EB-001 a EB-012 |
+| Itens parciais | **1** | EB-013: implementado, testes Angular não executáveis sem Node/npm |
 | Itens em andamento | **0** | Atualizar por tarefa |
 | Itens bloqueados | **0** | Nenhum bloqueio matemático ativo; limitações ambientais permanecem |
 | Commits de integração | **11** | EB-001 a EB-010 e checkpoint: último funcional `ffe364b`; EB-011 pendente |
@@ -63,8 +64,8 @@
 | EB-009 | P1 | Destino backend e dependências | CONCLUÍDO | `simulador_metas_cnj/services/` e `DESTINO_BACKEND.md`; antigos 9/9 | `96fe9cf` |
 | EB-010 | P1 | Endpoint quanto-falta | CONCLUÍDO | Série/regra `susm1` integradas; `/api/meta1/quanto-falta`; snapshots V2; simulador 16/16 | `ffe364b` |
 | EB-011 | P1 | API Meta 2 A/ANT | CONCLUÍDO | Serviço isolado e rotas `/api/meta2/base` e `/api/meta2/simular`; 23/23 testes | `061256a` |
-| EB-012 | P0 | Não mutação e erros do simulador | CONCLUÍDO | Testes HTTP sequenciais, reload invariável, 422/500 sanitizado e JSON sem NaN; 27/27 | A registrar após commit |
-| EB-013 | P1 | Clientes HTTP tipados | PENDENTE | — | — |
+| EB-012 | P0 | Não mutação e erros do simulador | CONCLUÍDO | Testes HTTP sequenciais, reload invariável, 422/500 sanitizado e JSON sem NaN; 27/27 | `069e49f` |
+| EB-013 | P1 | Clientes HTTP tipados | PARCIAL | Tipos, métodos, timeouts e testes 200/422/500/timeout/malformado implementados; npm indisponível | A registrar após commit |
 | EB-014 | P1 | UI quanto-falta | PENDENTE | — | — |
 | EB-015 | P1 | UI Meta 2 | PENDENTE | — | — |
 | EB-016 | P1 | Gráficos e cenários | PENDENTE | — | — |
@@ -344,6 +345,19 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
 - **Pendências ou riscos:** nenhuma regressão Python observada; suíte Angular ainda depende de Node/npm.
 - **Próximo item elegível:** EB-013.
 
+### [2026-10-23 18:35] EB-013 — Clientes Angular tipados
+- **Estado:** PARCIAL
+- **Objetivo:** criar clientes tipados para quanto-falta e Meta 2 sob `/api/simulador/*` com loading, erro, timeout, nulos e validação de payload.
+- **Arquivos lidos:** modelos, serviço, timeouts e testes Angular canônicos.
+- **Arquivos alterados (destino; não fonte):** `simulador.model.ts`, `http-timeouts.ts`, `simulador-api.service.ts`, spec correspondente e este controle.
+- **Decisão arquitetural / por quê:** ampliar o serviço existente e reutilizar tratamento central; nenhum segundo cliente/global state.
+- **Comandos executados:** leitura/revisão estática; `node --version` e `npm --version`: comandos indisponíveis.
+- **Fixtures / teste de contrato / amostras numéricas:** specs escritas para 200, 422, 500, timeout e resposta malformada; NÃO EXECUTADAS por ausência do runtime.
+- **Git diff --check:** a executar antes do commit deste item.
+- **Commit:** a registrar após commit atômico de implementação parcial.
+- **Pendências ou riscos:** TypeScript/build ainda não comprovados; EB-019/022 deverão executar a suíte quando Node/npm estiver disponível.
+- **Próximo item elegível:** EB-014, com mesma limitação ambiental para validação.
+
 ## 7. Mudanças de escopo e decisões humanas
 
 | Data | Decisão/restrição | Quem autorizou | Impacto nos IDs | Evidência |
@@ -358,16 +372,16 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 
 ```text
 BRANCH_ATUAL: feat/integracao-equipe-b
-HEAD_SHA: 061256a (antes do commit EB-012)
+HEAD_SHA: 069e49f (antes do commit EB-013)
 ULTIMO_ITEM_VALIDADO: EB-012
-PROXIMO_ITEM: EB-013
+PROXIMO_ITEM: EB-014 (EB-013 implementada, validação Angular pendente)
 GATE_M1: LIBERADO
 GATE_M2: LIBERADO
 GATE_FINAL: PENDENTE
-ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: teste de isolamento HTTP e controle até o commit EB-012
+ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: clientes/tipos/specs Angular e controle até o commit EB-013
 TESTES_ULTIMA_EXECUCAO: simulador 27/27; chatbot/coletor indisponíveis sem pytest; Angular/proxy/build indisponíveis sem Node/npm
 BLOQUEIOS: Node/npm e pytest ausentes para suítes posteriores; gates matemáticos liberados
-ACAO_SEGURA_IMEDIATA: executar EB-013 e criar clientes Angular tipados
+ACAO_SEGURA_IMEDIATA: executar EB-014; manter registro de testes Angular pendentes
 ```
 
 **Não declarar entrega completa apenas porque o Codex encerrou uma sessão.** A conclusão requer EB-024 e GATE-FINAL aprovados.

@@ -96,6 +96,63 @@ export interface RespostaOtimizador {
   ok: boolean;
 }
 
+export interface QuantoFaltaRequest {
+  meta_alvo: number;
+  mes_inicio?: string;
+  alteracoes?: AlteracoesCenario;
+}
+
+export interface RespostaQuantoFalta {
+  ok: boolean;
+  ja_atingida: boolean;
+  meta_alvo: number;
+  meta_atual: number | null;
+  meta_resultante: number | null;
+  mes_inicio: string;
+  meses: string[];
+  n_meses: number;
+  meses_reais: string[];
+  incremento_mensal: number | null;
+  total_adicional: number | null;
+  julgados_previstos_periodo: number;
+  conta: {
+    denominador: number | null;
+    julgados_acumulados: number;
+    julgados_necessarios: number | null;
+  };
+  mensagem: string;
+}
+
+export type TipoRegistroMeta2 = 'real' | 'previsao';
+export interface RegistroMeta2 {
+  data: string;
+  tipo: TipoRegistroMeta2;
+  julgados: number;
+  suspensos: number;
+  dessobrestados: number;
+  julgados_acum_2026: number | null;
+  dessobrestados_acum_2026: number | null;
+  meta2: number | null;
+}
+export interface ResultadoGrupoMeta2 {
+  grupo: 'A' | 'ANT';
+  ano: number;
+  meta2: number | null;
+  distribuidos: number;
+  descricao: string;
+  formula: string;
+}
+export interface RespostaMeta2 {
+  resultado_2025: Record<'A' | 'ANT', Record<string, number>>;
+  resultado_2026: Record<'A' | 'ANT', ResultadoGrupoMeta2>;
+  serie_A: RegistroMeta2[];
+  serie_ANT: RegistroMeta2[];
+}
+export interface SimularMeta2Request {
+  alteracoes_A: AlteracoesCenario;
+  alteracoes_ANT: AlteracoesCenario;
+}
+
 export interface Cenario {
   id: number;
   nome: string;

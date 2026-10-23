@@ -10,6 +10,10 @@ import {
   RegistroCalculado,
   RespostaBaseApi,
   RespostaOtimizador,
+  QuantoFaltaRequest,
+  RespostaQuantoFalta,
+  RespostaMeta2,
+  SimularMeta2Request,
   RespostaSimulacao,
   SimularRequest,
   TipoDado,
@@ -118,6 +122,59 @@ export class SimuladorApiService {
       }),
       finalize(() => this.carregando.set(false)),
     );
+  }
+
+  quantoFalta(req: QuantoFaltaRequest): Observable<RespostaQuantoFalta> {
+    return this.request(
+      this.http.post<RespostaQuantoFalta>(`${this.API}/meta1/quanto-falta`, req),
+      HTTP_TIMEOUT_MS.simulatorEffort,
+      (response) => this.validarQuantoFalta(response),
+    );
+  }
+
+  carregarMeta2(): Observable<RespostaMeta2> {
+    return this.request(
+      this.http.get<RespostaMeta2>(`${this.API}/meta2/base`),
+      HTTP_TIMEOUT_MS.simulatorMeta2,
+      (response) => this.validarMeta2(response),
+    );
+  }
+
+  simularMeta2(req: SimularMeta2Request): Observable<RespostaMeta2> {
+    return this.request(
+      this.http.post<RespostaMeta2>(`${this.API}/meta2/simular`, req),
+      HTTP_TIMEOUT_MS.simulatorMeta2,
+      (response) => this.validarMeta2(response),
+    );
+  }
+
+  private request<T>(source: Observable<T>, timeoutMs: number, validate: (value: T) => T): Observable<T> {
+    this.carregando.set(true);
+    this.erro.set(null);
+    return source.pipe(
+      timeout(timeoutMs),
+      map(validate),
+      catchError((err) => {
+        this.erro.set(this.msg(err));
+        return throwError(() => err);
+      }),
+      finalize(() => this.carregando.set(false)),
+    );
+  }
+
+  private validarQuantoFalta(response: RespostaQuantoFalta): RespostaQuantoFalta {
+    if (!response || typeof response.ok !== 'boolean' || !Array.isArray(response.meses)) {
+      throw new InvalidSimulatorResponseError();
+    }
+    return response;
+  }
+
+  private validarMeta2(response: RespostaMeta2): RespostaMeta2 {
+    if (!response || !Array.isArray(response.serie_A) || !Array.isArray(response.serie_ANT)
+      || !response.resultado_2026?.A || !response.resultado_2026?.ANT) {
+      throw new InvalidSimulatorResponseError();
+    }
+    return response;
   }
 
   private msg(err: unknown): string {
