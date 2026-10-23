@@ -26,6 +26,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, confloat, conint, validator
 
+from services.meta2_groups import AVAILABLE_MONTHS, simulate as simulate_meta2_groups
+
 # ── Caminhos dos arquivos Excel ──────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.abspath(
@@ -507,6 +509,30 @@ class QuantoFaltaResponse(BaseModel):
     mensagem: str
 
 
+def validar_meses_meta2(alteracoes):
+    if isinstance(alteracoes, dict):
+        for mes in alteracoes:
+            if mes not in AVAILABLE_MONTHS:
+                raise ValueError(f"Mês '{mes}' não está disponível na série da Meta 2.")
+    return alteracoes
+
+
+class SimularMeta2Request(ModeloEntrada):
+    alteracoes_A: Dict[str, AlteracaoMes] = Field(default_factory=dict)
+    alteracoes_ANT: Dict[str, AlteracaoMes] = Field(default_factory=dict)
+
+    _validar_meses = validator(
+        "alteracoes_A", "alteracoes_ANT", pre=True, allow_reuse=True
+    )(validar_meses_meta2)
+
+
+class Meta2GroupsResponse(BaseModel):
+    resultado_2025: Dict[str, Dict[str, Any]]
+    resultado_2026: Dict[str, Dict[str, Any]]
+    serie_A: List[Dict[str, Any]]
+    serie_ANT: List[Dict[str, Any]]
+
+
 class CenarioItem(ModeloEntrada):
     nome:       str
     alteracoes: Dict[str, AlteracaoMes] = Field(default_factory=dict)
@@ -632,6 +658,24 @@ def quanto_falta(req: QuantoFaltaRequest):
         for mes, alt in req.alteracoes.items()
     }
     return quanto_falta_meta1(BASE_GLOBAL, req.meta_alvo, mes_inicio, alteracoes)
+
+
+@app.get("/api/meta2/base", response_model=Meta2GroupsResponse)
+def get_meta2_groups_base():
+    return simulate_meta2_groups()
+
+
+@app.post("/api/meta2/simular", response_model=Meta2GroupsResponse)
+def simulate_meta2_groups_endpoint(req: SimularMeta2Request):
+    changes_a = {
+        month: {key: value for key, value in change.dict().items() if value != 0}
+        for month, change in req.alteracoes_A.items()
+    }
+    changes_ant = {
+        month: {key: value for key, value in change.dict().items() if value != 0}
+        for month, change in req.alteracoes_ANT.items()
+    }
+    return simulate_meta2_groups(changes_a, changes_ant)
 
 
 @app.post("/api/comparar", response_model=CompararResponse)
