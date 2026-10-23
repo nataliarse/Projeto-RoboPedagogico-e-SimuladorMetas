@@ -1,8 +1,8 @@
 # CONTROLE DE PROGRESSO — Integração Equipe B → base do Robô Pedagógico
 
 **Documento de referência:** `CHECKLIST_INTEGRACAO_EQUIPE_B.md`  
-**Estado global:** `EB-001 A EB-005 CONCLUÍDAS; EB-006 ELEGÍVEL`
-**Atualizado em:** `2026-10-23 16:30 -03:00`
+**Estado global:** `EB-001 A EB-006 CONCLUÍDAS; GATE-M1 BLOQUEADO; EB-007 ELEGÍVEL`
+**Atualizado em:** `2026-10-23 16:40 -03:00`
 **Responsável executor:** `Codex (execução supervisionável por registros)`  
 **Regra:** este arquivo é o diário de execução. **Não antecipar resultados.**
 
@@ -19,8 +19,8 @@
 | Serviço canônico de simulação encontrado em | `simulador_metas_cnj/` |
 | Versões efetivas Python / Node / npm | `Python 3.12.10`; Node e npm indisponíveis no PATH |
 | Data/hora de início | `2026-10-23 15:53 -03:00` |
-| Último item terminado | `EB-005` |
-| Próxima tarefa elegível | `EB-006` |
+| Último item terminado | `EB-006` |
+| Próxima tarefa elegível | `EB-007` |
 
 ### Regra de status
 
@@ -36,13 +36,13 @@
 | Métrica | Valor inicial | Atualizar com evidência |
 |---|---|---|
 | Itens planejados | **24** | Conforme IDs EB-001 a EB-024 |
-| Itens concluídos | **5** | EB-001 a EB-005 |
+| Itens concluídos | **6** | EB-001 a EB-006 |
 | Itens em andamento | **0** | Atualizar por tarefa |
 | Itens bloqueados | **0** | Nenhum bloqueio ativo |
-| Commits de integração | **4** | EB-001 `c9e814b`; EB-002 `6393ea2`; EB-003 `0fb538a`; EB-004 `c0a6cde`; EB-005 pendente |
+| Commits de integração | **5** | EB-001 `c9e814b`; EB-002 `6393ea2`; EB-003 `0fb538a`; EB-004 `c0a6cde`; EB-005 `70a2a1b`; EB-006 pendente |
 | Testes novos executados | **8 APROVADOS** | Simulador; demais suítes não executadas por ausência de pytest/Node/npm |
 | Regressões P0 abertas | **Não avaliado** | Número com evidências |
-| Gate Meta 1 | `PENDENTE` | `LIBERADO` / `BLOQUEADO`, justificativa |
+| Gate Meta 1 | `BLOQUEADO` | Regra `susm1`, denominador, dados e resultado 2026 divergem da base canônica |
 | Gate Meta 2 | `PENDENTE` | `LIBERADO` / `BLOQUEADO`, justificativa |
 | Gate final | `PENDENTE` | `LIBERADO` / `BLOQUEADO`, justificativa |
 
@@ -56,8 +56,8 @@
 | EB-002 | P0 | Auditoria de entrada e segredos | CONCLUÍDO | `docs/integracao_equipe_b/INVENTARIO_ENTRADA.md`: 111 arquivos, 6.417.329 bytes, duplicatas, binários, builds, lockfiles e matriz de ação | `6393ea2` |
 | EB-003 | P0 | Testes e contratos atuais | CONCLUÍDO | `docs/integracao_equipe_b/BASELINE_ATUAL.md`; simulador 8/8; rotas/proxy documentados; limitações de pytest e Node/npm registradas | `0fb538a` |
 | EB-004 | P0 | ADR de arquitetura | CONCLUÍDO | `docs/integracao_equipe_b/ADR-001_PORTABILIDADE.md` | `c0a6cde` |
-| EB-005 | P0 | Matriz HTTP e proxy | CONCLUÍDO | `docs/integracao_equipe_b/CONTRATOS_HTTP.md` | A registrar após commit |
-| EB-006 | P0 | Comparação matemática Meta 1 | PENDENTE | — | — |
+| EB-005 | P0 | Matriz HTTP e proxy | CONCLUÍDO | `docs/integracao_equipe_b/CONTRATOS_HTTP.md` | `70a2a1b` |
+| EB-006 | P0 | Comparação matemática Meta 1 | CONCLUÍDO | `DIVERGENCIAS_NUMERICAS.md` e fixture `meta1_comparison.json`; GATE-M1 bloqueado | A registrar após commit |
 | EB-007 | P0 | Auditoria matemática e dados Meta 2 | PENDENTE | — | — |
 | EB-008 | P0 | Snapshots numéricos antes | PENDENTE | — | — |
 | EB-009 | P1 | Destino backend e dependências | PENDENTE | — | — |
@@ -81,10 +81,10 @@
 
 ### GATE-M1 — Fórmula e semântica da Meta 1
 
-**Status:** `PENDENTE`  
+**Status:** `BLOQUEADO`
 **Evidência necessária:** comparação de séries, denominadores, regras de edição (especialmente `suspensos`/`susm1`), data de corte, arredondamento e testes com cenários determinísticos.  
-**Diferenças encontradas:** `NÃO AVALIADO`  
-**Decisão:** `NÃO TOMADA`  
+**Diferenças encontradas:** base usa estoque `suspensos_acum` com piso que impede redução; Equipe B usa incrementos positivos `susm1_acum`; séries e acumulados também divergem; Meta 1 dez/2026 é 109,86 vs 96,47.
+**Decisão:** não alterar regra/dados canônicos nem publicar quanto-falta importado como oficial sem validação humana.
 **Funcionalidades afetadas:** endpoint e tela quanto-falta, além de qualquer ajuste na regra da Meta 1.
 
 ### GATE-M2 — Metodologia e dados da Meta 2 A/ANT
@@ -209,7 +209,7 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
   - busca por ambientes locais: nenhum `pyvenv.cfg`/`python.exe` no workspace.
   - `rg` de rotas e leitura do proxy: contratos canônicos registrados no baseline.
 - **Fixtures / teste de contrato / amostras numéricas:** snapshots numéricos existentes do simulador passaram; nenhuma fixture foi modificada.
-- **Git diff --check:** a executar antes do commit deste item.
+- **Git diff --check:** OK após remoção de whitespace apontado na revisão pré-commit.
 - **Commit:** a registrar após commit atômico.
 - **Pendências ou riscos:** cobertura integral não é comprovável no ambiente atual; a EB-022 deverá repetir todas as tentativas e manter o gate final honesto.
 - **Próximo item elegível:** EB-004.
@@ -240,6 +240,19 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
 - **Pendências ou riscos:** schemas finais de quanto-falta e Meta 2 dependem das auditorias EB-006/EB-007.
 - **Próximo item elegível:** EB-006.
 
+### [2026-10-23 16:40] EB-006 — Comparação matemática da Meta 1
+- **Estado:** CONCLUÍDO
+- **Objetivo:** comparar fórmulas, dados, acumulados, datas, tipos, arredondamento e casos não calculáveis.
+- **Arquivos lidos:** `main.py` canônico/importado, planilhas por carregamento normal e snapshot numérico canônico.
+- **Arquivos alterados (destino; não fonte):** `DIVERGENCIAS_NUMERICAS.md`, `fixtures/meta1_comparison.json` e este controle.
+- **Decisão arquitetural / por quê:** preservar integralmente a Meta 1 canônica; bloquear a promoção da regra importada devido a divergência material não autorizada.
+- **Comandos executados:** execução isolada das duas implementações com quatro casos escalares e base de dezembro/2026.
+- **Fixtures / teste de contrato / amostras numéricas:** caso divergente 83,3333 vs 111,1111; zero/nulo → `null` em ambas; base final 109,86 vs 96,47; fixture versionada com tolerância 0,01.
+- **Git diff --check:** a executar antes do commit deste item.
+- **Commit:** a registrar após commit atômico.
+- **Pendências ou riscos:** GATE-M1 requer decisão humana sobre metodologia e proveniência de dados; endpoint/UI não podem ser apresentados como oficiais.
+- **Próximo item elegível:** EB-007.
+
 ## 7. Mudanças de escopo e decisões humanas
 
 | Data | Decisão/restrição | Quem autorizou | Impacto nos IDs | Evidência |
@@ -254,16 +267,16 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 
 ```text
 BRANCH_ATUAL: feat/integracao-equipe-b
-HEAD_SHA: c0a6cde (antes do commit EB-005)
-ULTIMO_ITEM_VALIDADO: EB-005
-PROXIMO_ITEM: EB-006
-GATE_M1: PENDENTE
+HEAD_SHA: 70a2a1b (antes do commit EB-006)
+ULTIMO_ITEM_VALIDADO: EB-006
+PROXIMO_ITEM: EB-007
+GATE_M1: BLOQUEADO
 GATE_M2: PENDENTE
 GATE_FINAL: PENDENTE
-ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: CONTRATOS_HTTP.md e controle (EB-005 até o commit)
+ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: DIVERGENCIAS_NUMERICAS.md, fixture Meta 1 e controle (EB-006 até o commit)
 TESTES_ULTIMA_EXECUCAO: simulador 8/8; chatbot/coletor indisponíveis sem pytest; Angular/proxy/build indisponíveis sem Node/npm
 BLOQUEIOS: nenhum bloqueio ativo
-ACAO_SEGURA_IMEDIATA: executar EB-006 e comparar numericamente a Meta 1
+ACAO_SEGURA_IMEDIATA: executar EB-007 e auditar Meta 2 sem alterar fórmulas
 ```
 
 **Não declarar entrega completa apenas porque o Codex encerrou uma sessão.** A conclusão requer EB-024 e GATE-FINAL aprovados.
