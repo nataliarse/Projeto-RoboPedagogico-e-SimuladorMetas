@@ -1,6 +1,6 @@
 # Divergências numéricas
 
-## Meta 1 — GATE-M1 bloqueado
+## Meta 1 — GATE-M1 liberado por validação humana
 
 A implementação canônica e a entrega da Equipe B não são matematicamente equivalentes. Nenhuma fórmula ou série foi alterada.
 
@@ -31,10 +31,10 @@ Os acumulados de novos, julgados e dessobrestados também divergem, portanto nã
 
 ### Decisão
 
-GATE-M1 fica `BLOQUEADO`. Não é autorizado substituir a regra canônica por `susm1`, trocar as planilhas nem expor o quanto-falta da Equipe B como oficial. O endpoint/UI pode ser tecnicamente preparado somente se usar a regra canônica preservada ou permanecer indisponível, com o bloqueio explícito.
+Em 23/10/2026, o responsável confirmou que as regras e séries da Equipe B constituem atualização autorizada e aprovou sua integração. O GATE-M1 foi liberado; a referência histórica anterior permanece preservada nas fixtures pré-integração.
 
 Fixture reproduzível: `docs/integracao_equipe_b/fixtures/meta1_comparison.json`.
 
 ## Meta 2
 
-O cálculo A/ANT importado não corresponde à Meta 2 agregada canônica e depende de constantes/séries sem proveniência reproduzível. A base A resulta em `104,63`; ANT em `null`. Alterações pequenas podem levar ANT a `2200,00%` quando o denominador passa de zero para um. GATE-M2 bloqueado; detalhes em `AUDITORIA_META2.md`.
+O cálculo A/ANT importado não corresponde à Meta 2 agregada anterior. A base A resulta em `104,63`; ANT em `null`, e alterações pequenas podem levar ANT a `2200,00%` quando o denominador passa de zero para um. Esses riscos permanecem documentados, mas o responsável validou as regras e séries como atualização da Equipe B em 23/10/2026 e autorizou a integração. GATE-M2 liberado por decisão humana; detalhes em `AUDITORIA_META2.md`.

@@ -2,7 +2,7 @@
 
 ## Conclusão
 
-O GATE-M2 está `BLOQUEADO`. O código é determinístico e distingue `real` de `previsao`, mas a entrega não contém evidência verificável da origem das séries, dos parâmetros fixos, da projeção ARIMA nem da correspondência das coortes A/ANT com dados processuais oficiais. A própria documentação importada classifica a Meta 2 como provisória.
+O código é determinístico e distingue `real` de `previsao`. Em 23/10/2026, o responsável validou as regras e séries como atualização da Equipe B e autorizou sua integração, liberando o GATE-M2. As limitações de proveniência e sensibilidade abaixo continuam obrigatoriamente documentadas e devem aparecer na UI como natureza histórica/projetada.
 
 ## Fórmulas implementadas
 

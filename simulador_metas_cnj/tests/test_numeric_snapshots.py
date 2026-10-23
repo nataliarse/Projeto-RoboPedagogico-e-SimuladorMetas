@@ -6,7 +6,9 @@ import main
 
 
 SNAPSHOT = json.loads(
-    (Path(__file__).parent / "fixtures" / "numeric_snapshot.json").read_text(encoding="utf-8")
+    (Path(__file__).parent / "fixtures" / "numeric_snapshot_equipe_b.json").read_text(
+        encoding="utf-8"
+    )
 )
 
 

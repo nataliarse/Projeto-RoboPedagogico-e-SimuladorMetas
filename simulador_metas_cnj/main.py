@@ -15,6 +15,7 @@ from __future__ import annotations
 import os
 import re
 import unicodedata
+import math
 from datetime import datetime
 from functools import reduce
 from typing import Any, Dict, List, Literal, Optional
@@ -23,7 +24,7 @@ import numpy as np
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, conint, validator
+from pydantic import BaseModel, Field, confloat, conint, validator
 
 # ── Caminhos dos arquivos Excel ──────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -35,6 +36,7 @@ ARQ_NOVOS          = os.path.join(DATA_DIR, "casos_novos.xlsx")
 ARQ_JULGADOS       = os.path.join(DATA_DIR, "julgados.xlsx")
 ARQ_DESSOBRESTADOS = os.path.join(DATA_DIR, "dessobrestados.xlsx")
 ARQ_SUSPENSOS      = os.path.join(DATA_DIR, "suspensos.xlsx")
+ARQ_META1_EQUIPE_B = os.path.join(DATA_DIR, "dados_simulador_meta1_equipe_b.xlsx")
 
 # ── Configurações ────────────────────────────────────────────────────────────
 META_ALVO          = 100.0
@@ -42,6 +44,11 @@ ANO_SIMULACAO      = 2026
 DATA_CORTE_REAL    = pd.Timestamp("2026-02-01")
 DATA_FINAL         = pd.Timestamp("2027-02-01")
 VARIAVEIS_EDITAVEIS = ["julgados", "dessobrestados", "suspensos"]
+COLUNA_EDITADA = {
+    "julgados": "julgados",
+    "dessobrestados": "dessobrestados",
+    "suspensos": "susm1",
+}
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -81,6 +88,39 @@ def converter_data(data) -> pd.Timestamp:
     mes_txt = data[:3]
     ano     = int(data[3:])
     return pd.Timestamp(ano, meses_ingles[mes_txt], 1)
+
+
+def calcular_susm1(suspensos: pd.Series) -> pd.Series:
+    """Incrementos positivos mensais do estoque de suspensos."""
+    return suspensos.diff().clip(lower=0).fillna(0)
+
+
+def carregar_base_meta1(caminho: str, corte=DATA_CORTE_REAL) -> pd.DataFrame:
+    """Carrega a série integrada e validada pela equipe responsável."""
+    df = ler_arquivo(caminho)
+    df["data"] = df["data_oficial"].apply(converter_data)
+    df["novos"] = df["distribuidos"]
+    df = df.sort_values("data").reset_index(drop=True)
+    df["susm1"] = calcular_susm1(df["suspensos"])
+
+    tipo = np.where(df["data"] <= corte, "real", "previsao_sas")
+    for col in ("novos", "julgados", "dessobrestados", "suspensos"):
+        df[f"{col}_tipo"] = tipo
+
+    base = df[df["data"] <= DATA_FINAL].copy()
+    for col in ("novos", "julgados", "dessobrestados", "suspensos"):
+        if col not in base.columns:
+            raise ValueError(f"Coluna '{col}' não encontrada.")
+        if base[col].isna().any():
+            raise ValueError(f"Coluna '{col}' possui valores nulos.")
+    base["baixados"] = np.nan
+    base["ano"] = base["data"].dt.year
+    base["mes"] = base["data"].dt.month
+    return base[[
+        "data", "ano", "mes", "novos", "julgados", "dessobrestados",
+        "suspensos", "susm1", "baixados", "novos_tipo", "julgados_tipo",
+        "dessobrestados_tipo", "suspensos_tipo",
+    ]]
 
 
 def carregar_base_forecast(caminho, variavel, col_data="data_oficial", col_valor=None):
@@ -129,30 +169,24 @@ def consolidar_bases(*bases) -> pd.DataFrame:
 
 
 # ── Carrega uma vez ao iniciar ───────────────────────────────────────────────
-_novos          = carregar_base_forecast(ARQ_NOVOS, "novos", col_data="data_oficial")
-_julgados       = carregar_julgados(ARQ_JULGADOS)
-_dessobrestados = carregar_base_forecast(
-    ARQ_DESSOBRESTADOS, "dessobrestados",
-    col_data="data_referencia", col_valor="qtd_eventos_dessobrestamento",
-)
-_suspensos      = carregar_base_forecast(
-    ARQ_SUSPENSOS, "suspensos",
-    col_data="data_referencia", col_valor="suspensos",
-)
-BASE_GLOBAL: pd.DataFrame = consolidar_bases(_novos, None, _julgados, _dessobrestados, _suspensos)
+BASE_GLOBAL: pd.DataFrame = carregar_base_meta1(ARQ_META1_EQUIPE_B)
 
 
 # ════════════════════════════════════════════════════════════════════════════
 # FÓRMULAS CNJ (idênticas ao script original)
 # ════════════════════════════════════════════════════════════════════════════
 
-def calcular_meta1(novos, julgados, dessobrestados, suspensos, piso=None):
-    denominador = novos + dessobrestados - suspensos
-    if denominador is None or pd.isna(denominador) or denominador == 0:
+def denominador_meta1(novos, dessobrestados, susm1):
+    denominador = novos + dessobrestados - susm1
+    if denominador is None or pd.isna(denominador) or denominador <= 0:
         return np.nan
-    if piso is None:
-        piso = max(novos + dessobrestados, 1)
-    denominador = max(denominador, piso)
+    return denominador
+
+
+def calcular_meta1(novos, julgados, dessobrestados, susm1):
+    denominador = denominador_meta1(novos, dessobrestados, susm1)
+    if pd.isna(denominador):
+        return np.nan
     if julgados is None or pd.isna(julgados):
         return np.nan
     return (julgados / denominador) * 100
@@ -176,6 +210,7 @@ def calcular_acumulados(df: pd.DataFrame) -> pd.DataFrame:
     r["julgados_acum"]       = r.groupby("ano")["julgados"].cumsum()
     r["dessobrestados_acum"] = r.groupby("ano")["dessobrestados"].cumsum()
     r["suspensos_acum"]      = r.groupby("ano")["suspensos"].cumsum()
+    r["susm1_acum"]          = r.groupby("ano")["susm1"].cumsum()
     return r
 
 
@@ -184,7 +219,7 @@ def calcular_metas(df: pd.DataFrame) -> pd.DataFrame:
     r["meta1"] = r.apply(
         lambda l: calcular_meta1(
             l["novos_acum"], l["julgados_acum"],
-            l["dessobrestados_acum"], l["suspensos_acum"],
+            l["dessobrestados_acum"], l["susm1_acum"],
         ), axis=1,
     ).round(2)
     r["meta2_denominador"] = r["distribuidos_acum"] - r["suspensos"]
@@ -210,8 +245,117 @@ def simular_cenario(df: pd.DataFrame, alteracoes: dict) -> pd.DataFrame:
         for var, inc in variaveis.items():
             if var not in VARIAVEIS_EDITAVEIS:
                 continue
-            sim.loc[mascara, var] = (sim.loc[mascara, var] + inc).clip(lower=0)
+            coluna = COLUNA_EDITADA[var]
+            sim.loc[mascara, coluna] = (sim.loc[mascara, coluna] + inc).clip(lower=0)
     return calcular_metas(sim)
+
+
+def meses_do_ano(df: pd.DataFrame, ano: int = ANO_SIMULACAO) -> List[str]:
+    return list(df[df["ano"] == ano]["data"].dt.strftime("%Y-%m"))
+
+
+def meses_projetados(df: pd.DataFrame, ano: int = ANO_SIMULACAO) -> List[str]:
+    linhas = df[(df["ano"] == ano) & (df["data"] > DATA_CORTE_REAL)]
+    return list(linhas["data"].dt.strftime("%Y-%m"))
+
+
+def _com_julgados_extra(alteracoes: dict, meses: List[str], extra: int) -> dict:
+    resultado = {mes: dict(valores) for mes, valores in alteracoes.items()}
+    for mes in meses:
+        resultado.setdefault(mes, {})
+        resultado[mes]["julgados"] = resultado[mes].get("julgados", 0) + extra
+    return resultado
+
+
+def quanto_falta_meta1(
+    df: pd.DataFrame,
+    meta_alvo: float,
+    mes_inicio: str,
+    alteracoes: dict,
+    ano: int = ANO_SIMULACAO,
+) -> dict:
+    partida = simular_cenario(df, alteracoes)
+    linhas_ano = partida[partida["ano"] == ano]
+    dezembro = linhas_ano.iloc[-1]
+    meses = [mes for mes in meses_do_ano(df, ano) if mes >= mes_inicio]
+    meses_reais = [mes for mes in meses if mes not in meses_projetados(df, ano)]
+
+    meta_atual = None if pd.isna(dezembro["meta1"]) else float(dezembro["meta1"])
+    denominador = denominador_meta1(
+        dezembro["novos_acum"],
+        dezembro["dessobrestados_acum"],
+        dezembro["susm1_acum"],
+    )
+    julgados_acumulados = float(dezembro["julgados_acum"])
+    julgados_periodo = float(
+        linhas_ano[linhas_ano["data"].dt.strftime("%Y-%m").isin(meses)]["julgados"].sum()
+    )
+    resposta = {
+        "meta_alvo": meta_alvo,
+        "meta_atual": meta_atual,
+        "mes_inicio": mes_inicio,
+        "meses": meses,
+        "n_meses": len(meses),
+        "meses_reais": meses_reais,
+        "julgados_previstos_periodo": round(julgados_periodo),
+        "conta": {
+            "denominador": None if pd.isna(denominador) else round(float(denominador)),
+            "julgados_acumulados": round(julgados_acumulados),
+            "julgados_necessarios": None
+            if pd.isna(denominador)
+            else math.ceil(meta_alvo / 100 * float(denominador)),
+        },
+    }
+    if meta_atual is None or pd.isna(denominador) or not meses:
+        return {
+            **resposta,
+            "ok": False,
+            "ja_atingida": False,
+            "incremento_mensal": None,
+            "total_adicional": None,
+            "meta_resultante": None,
+            "mensagem": "Não é possível calcular a Meta 1 para o cenário informado.",
+        }
+    if meta_atual >= meta_alvo:
+        return {
+            **resposta,
+            "ok": True,
+            "ja_atingida": True,
+            "incremento_mensal": 0,
+            "total_adicional": 0,
+            "meta_resultante": meta_atual,
+            "mensagem": f"A meta de {meta_alvo:g}% já é atingida ({meta_atual:.2f}%).",
+        }
+
+    faltam = meta_alvo / 100 * float(denominador) - julgados_acumulados
+    incremento = max(math.ceil(faltam / len(meses)), 0)
+    for _ in range(1000):
+        simulado = simular_cenario(
+            df, _com_julgados_extra(alteracoes, meses, incremento)
+        )
+        meta_resultante = simulado[simulado["ano"] == ano].iloc[-1]["meta1"]
+        if not pd.isna(meta_resultante) and meta_resultante >= meta_alvo:
+            break
+        incremento += 1
+    else:
+        return {
+            **resposta,
+            "ok": False,
+            "ja_atingida": False,
+            "incremento_mensal": None,
+            "total_adicional": None,
+            "meta_resultante": None,
+            "mensagem": "Não foi possível confirmar o resultado pela simulação.",
+        }
+    return {
+        **resposta,
+        "ok": True,
+        "ja_atingida": False,
+        "incremento_mensal": incremento,
+        "total_adicional": incremento * len(meses),
+        "meta_resultante": float(meta_resultante),
+        "mensagem": f"São necessários +{incremento} julgamentos por mês em {len(meses)} meses.",
+    }
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -332,6 +476,37 @@ class SimularRequest(ModeloEntrada):
     _validar_meses = validator("alteracoes", pre=True, allow_reuse=True)(validar_meses_disponiveis)
 
 
+class QuantoFaltaRequest(ModeloEntrada):
+    meta_alvo: confloat(gt=0, le=200) = 100.0
+    mes_inicio: Optional[str] = None
+    alteracoes: Dict[str, AlteracaoMes] = Field(default_factory=dict)
+
+    _validar_meses = validator("alteracoes", pre=True, allow_reuse=True)(validar_meses_disponiveis)
+
+
+class QuantoFaltaContaResponse(BaseModel):
+    denominador: Optional[float]
+    julgados_acumulados: float
+    julgados_necessarios: Optional[float]
+
+
+class QuantoFaltaResponse(BaseModel):
+    ok: bool
+    ja_atingida: bool
+    meta_alvo: float
+    meta_atual: Optional[float]
+    meta_resultante: Optional[float]
+    mes_inicio: str
+    meses: List[str]
+    n_meses: int
+    meses_reais: List[str]
+    incremento_mensal: Optional[int]
+    total_adicional: Optional[int]
+    julgados_previstos_periodo: float
+    conta: QuantoFaltaContaResponse
+    mensagem: str
+
+
 class CenarioItem(ModeloEntrada):
     nome:       str
     alteracoes: Dict[str, AlteracaoMes] = Field(default_factory=dict)
@@ -440,6 +615,23 @@ def simular(req: SimularRequest):
         "meta1_final": _meta_final_ano(resultado, "meta1"),
         "meta2_final": _meta_final_ano(resultado, "meta2"),
     }
+
+
+@app.post("/api/meta1/quanto-falta", response_model=QuantoFaltaResponse)
+def quanto_falta(req: QuantoFaltaRequest):
+    meses = meses_do_ano(BASE_GLOBAL)
+    projetados = meses_projetados(BASE_GLOBAL)
+    mes_inicio = req.mes_inicio or (projetados[0] if projetados else None)
+    if mes_inicio not in meses:
+        raise HTTPException(
+            400,
+            f"Mês inicial deve ser um mês de {ANO_SIMULACAO}: {', '.join(meses)}.",
+        )
+    alteracoes = {
+        mes: {chave: valor for chave, valor in alt.dict().items() if valor != 0}
+        for mes, alt in req.alteracoes.items()
+    }
+    return quanto_falta_meta1(BASE_GLOBAL, req.meta_alvo, mes_inicio, alteracoes)
 
 
 @app.post("/api/comparar", response_model=CompararResponse)
