@@ -1,7 +1,7 @@
 # CONTROLE DE PROGRESSO — Integração Equipe B → base do Robô Pedagógico
 
 **Documento de referência:** `CHECKLIST_INTEGRACAO_EQUIPE_B.md`  
-**Estado global:** `EB-001 A EB-011 CONCLUÍDAS; EB-012 ELEGÍVEL`
+**Estado global:** `EB-001 A EB-012 CONCLUÍDAS; EB-013 ELEGÍVEL`
 **Atualizado em:** `2026-10-23 18:10 -03:00`
 **Responsável executor:** `Codex (execução supervisionável por registros)`  
 **Regra:** este arquivo é o diário de execução. **Não antecipar resultados.**
@@ -19,8 +19,8 @@
 | Serviço canônico de simulação encontrado em | `simulador_metas_cnj/` |
 | Versões efetivas Python / Node / npm | `Python 3.12.10`; Node e npm indisponíveis no PATH |
 | Data/hora de início | `2026-10-23 15:53 -03:00` |
-| Último item terminado | `EB-011` |
-| Próxima tarefa elegível | `EB-012` |
+| Último item terminado | `EB-012` |
+| Próxima tarefa elegível | `EB-013` |
 
 ### Regra de status
 
@@ -36,11 +36,11 @@
 | Métrica | Valor inicial | Atualizar com evidência |
 |---|---|---|
 | Itens planejados | **24** | Conforme IDs EB-001 a EB-024 |
-| Itens concluídos | **11** | EB-001 a EB-011 |
+| Itens concluídos | **12** | EB-001 a EB-012 |
 | Itens em andamento | **0** | Atualizar por tarefa |
 | Itens bloqueados | **0** | Nenhum bloqueio matemático ativo; limitações ambientais permanecem |
 | Commits de integração | **11** | EB-001 a EB-010 e checkpoint: último funcional `ffe364b`; EB-011 pendente |
-| Testes novos executados | **23 APROVADOS** | Simulador atualizado; demais suítes indisponíveis no ambiente atual |
+| Testes novos executados | **27 APROVADOS** | Simulador atualizado; demais suítes indisponíveis no ambiente atual |
 | Regressões P0 abertas | **Não avaliado** | Número com evidências |
 | Gate Meta 1 | `LIBERADO` | Responsável validou regras/séries da Equipe B como atualização em 23/10/2026 |
 | Gate Meta 2 | `LIBERADO` | Responsável validou regras/séries da Equipe B como atualização em 23/10/2026; riscos seguem documentados |
@@ -62,8 +62,8 @@
 | EB-008 | P0 | Snapshots numéricos antes | CONCLUÍDO | Fixture/teste adicional em `simulador_metas_cnj/tests`; 9/9 aprovados; baseline global não muta | `ea3e660` |
 | EB-009 | P1 | Destino backend e dependências | CONCLUÍDO | `simulador_metas_cnj/services/` e `DESTINO_BACKEND.md`; antigos 9/9 | `96fe9cf` |
 | EB-010 | P1 | Endpoint quanto-falta | CONCLUÍDO | Série/regra `susm1` integradas; `/api/meta1/quanto-falta`; snapshots V2; simulador 16/16 | `ffe364b` |
-| EB-011 | P1 | API Meta 2 A/ANT | CONCLUÍDO | Serviço isolado e rotas `/api/meta2/base` e `/api/meta2/simular`; 23/23 testes | A registrar após commit |
-| EB-012 | P0 | Não mutação e erros do simulador | PENDENTE | — | — |
+| EB-011 | P1 | API Meta 2 A/ANT | CONCLUÍDO | Serviço isolado e rotas `/api/meta2/base` e `/api/meta2/simular`; 23/23 testes | `061256a` |
+| EB-012 | P0 | Não mutação e erros do simulador | CONCLUÍDO | Testes HTTP sequenciais, reload invariável, 422/500 sanitizado e JSON sem NaN; 27/27 | A registrar após commit |
 | EB-013 | P1 | Clientes HTTP tipados | PENDENTE | — | — |
 | EB-014 | P1 | UI quanto-falta | PENDENTE | — | — |
 | EB-015 | P1 | UI Meta 2 | PENDENTE | — | — |
@@ -331,6 +331,19 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
 - **Pendências ou riscos:** percentuais extremos de ANT permanecem possíveis e devem ser exibidos com a natureza projetada/experimental documentada.
 - **Próximo item elegível:** EB-012.
 
+### [2026-10-23 18:20] EB-012 — Isolamento de estado e erros HTTP
+- **Estado:** CONCLUÍDO
+- **Objetivo:** provar isolamento entre requests, invariância da base e erros/JSON honestos.
+- **Arquivos lidos:** handlers FastAPI, helper ASGI e testes de contrato existentes.
+- **Arquivos alterados (destino; não fonte):** `tests/test_state_isolation.py` e este controle.
+- **Decisão arquitetural / por quê:** testar pela fronteira ASGI real, sem servidor/rede, incluindo dois cenários sequenciais e reload.
+- **Comandos executados:** `python -m unittest discover -s tests -v`: 27 testes aprovados em 2,186 s.
+- **Fixtures / teste de contrato / amostras numéricas:** base Meta 2 idêntica antes/depois; 422 estruturado; falha inesperada 500 sem detalhe privado; `json.dumps(..., allow_nan=False)` aprovado nas rotas novas/antigas.
+- **Git diff --check:** a executar antes do commit deste item.
+- **Commit:** a registrar após commit atômico.
+- **Pendências ou riscos:** nenhuma regressão Python observada; suíte Angular ainda depende de Node/npm.
+- **Próximo item elegível:** EB-013.
+
 ## 7. Mudanças de escopo e decisões humanas
 
 | Data | Decisão/restrição | Quem autorizou | Impacto nos IDs | Evidência |
@@ -345,16 +358,16 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 
 ```text
 BRANCH_ATUAL: feat/integracao-equipe-b
-HEAD_SHA: ffe364b (antes do commit EB-011)
-ULTIMO_ITEM_VALIDADO: EB-011
-PROXIMO_ITEM: EB-012
+HEAD_SHA: 061256a (antes do commit EB-012)
+ULTIMO_ITEM_VALIDADO: EB-012
+PROXIMO_ITEM: EB-013
 GATE_M1: LIBERADO
 GATE_M2: LIBERADO
 GATE_FINAL: PENDENTE
-ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: implementação/testes Meta 2 e controle até o commit EB-011
-TESTES_ULTIMA_EXECUCAO: simulador 23/23; chatbot/coletor indisponíveis sem pytest; Angular/proxy/build indisponíveis sem Node/npm
+ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: teste de isolamento HTTP e controle até o commit EB-012
+TESTES_ULTIMA_EXECUCAO: simulador 27/27; chatbot/coletor indisponíveis sem pytest; Angular/proxy/build indisponíveis sem Node/npm
 BLOQUEIOS: Node/npm e pytest ausentes para suítes posteriores; gates matemáticos liberados
-ACAO_SEGURA_IMEDIATA: executar EB-012 e ampliar testes HTTP/não mutação
+ACAO_SEGURA_IMEDIATA: executar EB-013 e criar clientes Angular tipados
 ```
 
 **Não declarar entrega completa apenas porque o Codex encerrou uma sessão.** A conclusão requer EB-024 e GATE-FINAL aprovados.
