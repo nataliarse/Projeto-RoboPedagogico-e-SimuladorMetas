@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AlteracoesCenario, RegistroMeta2, RespostaMeta2 } from '../../core/models/simulador.model';
 import { SimuladorApiService } from '../../core/services/simulador-api.service';
 import { SimuladorService } from '../../core/services/simulador.service';
+import { CenariosRecentesService } from '../../core/services/cenarios-recentes.service';
 
 type Grupo = 'A' | 'ANT';
 interface CenarioMeta2 { nome: string; grupo: Grupo; resposta: RespostaMeta2; }
@@ -44,6 +45,9 @@ interface CenarioMeta2 { nome: string; grupo: Grupo; resposta: RespostaMeta2; }
             <button type="button" (click)="simular()" [disabled]="!nomeCenario.trim() || api.carregando()">Simular {{ grupoSelecionado }}</button>
           </div>
           <p class="explanation">Os valores são incrementos sobre a base. A e ANT mantêm formulários independentes; campos vazios preservam a projeção.</p>
+          @if (recentes.meta2().length) { <p class="explanation">Recentes:
+            @for (item of recentes.meta2(); track item.criadoEm) { <button type="button" (click)="restaurar(item)">{{ item.nome }}</button> }
+            <button type="button" (click)="recentes.limparMeta2()">Limpar</button></p> }
           <div class="table-wrap"><table>
             <thead><tr><th>Mês</th><th>Natureza</th><th>Julgados ±</th><th>Suspensos ±</th><th>Dessobrestados ±</th></tr></thead>
             <tbody>@for (registro of serieBase(); track registro.data) {
@@ -79,6 +83,7 @@ interface CenarioMeta2 { nome: string; grupo: Grupo; resposta: RespostaMeta2; }
 export class Meta2Component implements OnInit {
   readonly api = inject(SimuladorApiService);
   private readonly sim = inject(SimuladorService);
+  readonly recentes = inject(CenariosRecentesService);
   readonly grupos: Grupo[] = ['A', 'ANT'];
   readonly base = signal<RespostaMeta2 | null>(null);
   readonly cenarios = signal<CenarioMeta2[]>([]);
@@ -98,8 +103,13 @@ export class Meta2Component implements OnInit {
     const nome = this.nomeCenario.trim(); if (!nome) return;
     this.api.simularMeta2({ alteracoes_A: this.limpar(this.alteracoes.A), alteracoes_ANT: this.limpar(this.alteracoes.ANT) }).subscribe({ next: resposta => {
       this.cenarios.update(lista => [...lista, { nome, grupo: this.grupoSelecionado, resposta }]);
+      this.recentes.salvarMeta2(nome, this.grupoSelecionado, this.alteracoes[this.grupoSelecionado]);
       this.selecionado.set(this.cenarios().length - 1); this.nomeCenario = '';
     }});
+  }
+  restaurar(item: import('../../core/services/cenarios-recentes.service').CenarioRecente): void {
+    this.grupoSelecionado = item.grupo ?? 'A'; this.nomeCenario = item.nome;
+    this.alteracoes[this.grupoSelecionado] = Object.fromEntries(Object.entries(item.alteracoes).map(([mes,v]) => [mes,{...v}]));
   }
   serieBase(): RegistroMeta2[] { return this.serie(this.base(), this.grupoSelecionado); }
   serieAtual(): RegistroMeta2[] { return this.serie(this.resultadoAtual(), this.grupoSelecionado); }

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { SimuladorService } from '../../core/services/simulador.service';
 import { SimuladorApiService } from '../../core/services/simulador-api.service';
 import { AlteracoesCenario, ANO_SIM } from '../../core/models/simulador.model';
+import { CenarioRecente, CenariosRecentesService } from '../../core/services/cenarios-recentes.service';
 
 @Component({
   selector: 'app-cenarios',
@@ -35,6 +36,10 @@ import { AlteracoesCenario, ANO_SIM } from '../../core/models/simulador.model';
         <p class="hint">
           Defina valores mensais. Casos novos são <strong>fixos</strong> e não podem ser alterados.
         </p>
+        @if (recentes.meta1().length) { <p class="hint">Recentes:
+          @for (item of recentes.meta1(); track item.criadoEm) { <button class="btn-recente" type="button" (click)="carregarRecente(item)">{{ item.nome }}</button> }
+          <button class="btn-recente" type="button" (click)="recentes.limparMeta1()">Limpar</button>
+        </p> }
 
         <div class="table-scroll">
           <table class="tabela">
@@ -120,6 +125,7 @@ import { AlteracoesCenario, ANO_SIM } from '../../core/models/simulador.model';
     .btn-primary { padding: 9px 24px; background: #1B4F8A; color: #fff; border: none;
       border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-recente { margin-left:6px; border:1px solid #D1D5DB; background:#fff; border-radius:5px; padding:3px 7px; cursor:pointer; }
     .erro-api { background: #FEE2E2; color: #B91C1C; border: 1px solid #B91C1C;
       border-radius: 6px; padding: 8px 12px; font-size: 13px; margin-bottom: 12px; }
     .table-scroll { overflow-x: auto; }
@@ -150,6 +156,7 @@ export class CenariosComponent {
 
   sim = inject(SimuladorService);
   api = inject(SimuladorApiService);
+  recentes = inject(CenariosRecentesService);
 
   nomeCenario = '';
   anoSim      = ANO_SIM;
@@ -217,12 +224,18 @@ export class CenariosComponent {
     this.api.simular(alteracoesEnviadas).subscribe({
       next: res => {
         this.sim.adicionarCenario(nome, alteracoesEnviadas, res);
+        this.recentes.salvarMeta1(nome, alteracoesEnviadas);
         this.nomeCenario = '';
         this.inc = {};
         this.entradasInvalidas.clear();
       },
       error: () => {}
     });
+  }
+
+  carregarRecente(item: CenarioRecente): void {
+    this.nomeCenario = item.nome;
+    this.inc = Object.fromEntries(Object.entries(item.alteracoes).map(([mes, valores]) => [mes, { ...valores }]));
   }
 
   mesLabel(d: string): string { return this.sim.mesLabel(d); }
