@@ -1,7 +1,7 @@
 # CONTROLE DE PROGRESSO — Integração Equipe B → base do Robô Pedagógico
 
 **Documento de referência:** `CHECKLIST_INTEGRACAO_EQUIPE_B.md`  
-**Estado global:** `EB-001 A EB-015 CONCLUÍDAS; EB-016 ELEGÍVEL`
+**Estado global:** `EB-001 A EB-016 CONCLUÍDAS; EB-017 ELEGÍVEL`
 **Atualizado em:** `2026-10-23 16:45 -03:00`
 **Responsável executor:** `Codex (execução supervisionável por registros)`  
 **Regra:** este arquivo é o diário de execução. **Não antecipar resultados.**
@@ -19,8 +19,8 @@
 | Serviço canônico de simulação encontrado em | `simulador_metas_cnj/` |
 | Versões efetivas Python / Node / npm | `Python 3.12.10`; Node e npm indisponíveis no PATH |
 | Data/hora de início | `2026-10-23 15:53 -03:00` |
-| Último item terminado | `EB-015 (CONCLUÍDO)` |
-| Próxima tarefa elegível | `EB-016` |
+| Último item terminado | `EB-016 (CONCLUÍDO)` |
+| Próxima tarefa elegível | `EB-017` |
 
 ### Regra de status
 
@@ -36,12 +36,12 @@
 | Métrica | Valor inicial | Atualizar com evidência |
 |---|---|---|
 | Itens planejados | **24** | Conforme IDs EB-001 a EB-024 |
-| Itens concluídos | **15** | EB-001 a EB-015 |
+| Itens concluídos | **16** | EB-001 a EB-016 |
 | Itens parciais | **0** | — |
 | Itens em andamento | **0** | — |
 | Itens bloqueados | **0** | Nenhum bloqueio matemático ativo; limitações ambientais permanecem |
 | Commits de integração | **14** | Antes do commit EB-014; HEAD `db09f15` |
-| Testes novos executados | **79 APROVADOS** | Angular 49, proxy 3 e simulador 27 nesta retomada |
+| Testes novos executados | **81 APROVADOS** | Angular 51, proxy 3 e simulador 27 nesta retomada |
 | Regressões P0 abertas | **Não avaliado** | Número com evidências |
 | Gate Meta 1 | `LIBERADO` | Responsável validou regras/séries da Equipe B como atualização em 23/10/2026 |
 | Gate Meta 2 | `LIBERADO` | Responsável validou regras/séries da Equipe B como atualização em 23/10/2026; riscos seguem documentados |
@@ -67,8 +67,8 @@
 | EB-012 | P0 | Não mutação e erros do simulador | CONCLUÍDO | Testes HTTP sequenciais, reload invariável, 422/500 sanitizado e JSON sem NaN; 27/27 | `069e49f` |
 | EB-013 | P1 | Clientes HTTP tipados | CONCLUÍDO | Tipos, métodos, timeouts e testes 200/422/500/timeout/malformado; suíte Angular 47/47 após ajuste zoneless do teste | `db09f15` + validação no commit EB-014 |
 | EB-014 | P1 | UI quanto-falta | CONCLUÍDO | Aba acessível no simulador, cálculo exclusivo no backend, criação de cenário e testes de UI; Angular 47/47, proxy 3/3, build aprovado | `46a1d82` |
-| EB-015 | P1 | UI Meta 2 | CONCLUÍDO | A/ANT independentes, `null` preservado, histórico/projeção rotulados, comparação responsiva; Angular 49/49 e build aprovado | A registrar após commit |
-| EB-016 | P1 | Gráficos e cenários | PENDENTE | — | — |
+| EB-015 | P1 | UI Meta 2 | CONCLUÍDO | A/ANT independentes, `null` preservado, histórico/projeção rotulados, comparação responsiva; Angular 49/49 e build aprovado | `dc9e300` |
+| EB-016 | P1 | Gráficos e cenários | CONCLUÍDO | Gráfico canônico preservado; identificação, valores da API, nulos, acessibilidade e responsividade cobertos; Angular 51/51 | A registrar após commit |
 | EB-017 | P2 | Recentes localStorage | PENDENTE | — | — |
 | EB-018 | P0 | Chatbot preservado | PENDENTE | — | — |
 | EB-019 | P0 | Contratos e proxy | PENDENTE | — | — |
@@ -388,6 +388,19 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
 - **Pendências ou riscos:** as projeções permanecem estáticas e explicitamente rotuladas como protótipo; gráfico comparativo pertence à EB-016.
 - **Próximo item elegível:** EB-016.
 
+### [2026-10-23 16:48] EB-016 — Gráficos e cenários
+- **Estado:** CONCLUÍDO
+- **Objetivo:** validar e aprimorar a comparação gráfica sem substituir o componente canônico.
+- **Arquivos lidos:** gráfico/cenários canônicos e gráfico SVG importado.
+- **Arquivos alterados (destino; não fonte):** `graficos.component.ts`, spec correspondente e este controle.
+- **Decisão arquitetural / por quê:** preservar o gráfico canônico já integrado e seu fallback; adicionar semântica acessível e testes que provam identificação dos cenários e uso dos valores retornados pela API, sem duplicar fórmulas.
+- **Comandos executados:** suíte Angular: 12 arquivos e 51 testes aprovados.
+- **Fixtures / teste de contrato / amostras numéricas:** Base 96,47%, cenário 100,01% e `null` cobertos; barras limitadas e fallback textual preservado.
+- **Git diff --check:** a executar antes do commit.
+- **Commit:** a registrar após commit atômico.
+- **Pendências ou riscos:** renderização Chart.js mantém fallback quando o script não está disponível; nenhuma dependência foi adicionada.
+- **Próximo item elegível:** EB-017.
+
 ## 7. Mudanças de escopo e decisões humanas
 
 | Data | Decisão/restrição | Quem autorizou | Impacto nos IDs | Evidência |
@@ -402,16 +415,16 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 
 ```text
 BRANCH_ATUAL: feat/integracao-equipe-b
-HEAD_SHA: 46a1d82 (antes do commit EB-015)
-ULTIMO_ITEM_VALIDADO: EB-015
-PROXIMO_ITEM: EB-016
+HEAD_SHA: dc9e300 (antes do commit EB-016)
+ULTIMO_ITEM_VALIDADO: EB-016
+PROXIMO_ITEM: EB-017
 GATE_M1: LIBERADO
 GATE_M2: LIBERADO
 GATE_FINAL: PENDENTE
-ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: UI Meta 2, integração no shell e controle até o commit EB-015
-TESTES_ULTIMA_EXECUCAO: Angular 49/49; simulador 27/27; build aprovado com warning CSS preexistente
+ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: acessibilidade/testes do gráfico e controle até o commit EB-016
+TESTES_ULTIMA_EXECUCAO: Angular 51/51; simulador 27/27; build aprovado com warning CSS preexistente
 BLOQUEIOS: pytest ainda precisa ser verificado para chatbot/coletor; gates matemáticos liberados
-ACAO_SEGURA_IMEDIATA: executar EB-016
+ACAO_SEGURA_IMEDIATA: executar EB-017
 ```
 
 **Não declarar entrega completa apenas porque o Codex encerrou uma sessão.** A conclusão requer EB-024 e GATE-FINAL aprovados.

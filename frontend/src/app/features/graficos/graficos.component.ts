@@ -20,8 +20,8 @@ import { ANO_SIM } from '../../core/models/simulador.model';
             </span>
           }
         </div>
-        <div class="canvas-wrap">
-          <canvas #linhaCanvas></canvas>
+        <div class="canvas-wrap" role="img" aria-label="Evolução mensal da Meta 1 por cenário">
+          <canvas #linhaCanvas aria-hidden="true"></canvas>
           @if (graficoIndisponivel()) {
             <div class="grafico-indisponivel">Gráfico indisponível. Consulte os resultados por cenário abaixo.</div>
           }
@@ -31,9 +31,9 @@ import { ANO_SIM } from '../../core/models/simulador.model';
       <!-- Gráfico de barras -->
       <div class="card">
         <div class="card-title">Meta 1 final por cenário</div>
-        <div class="barras-wrap">
+        <div class="barras-wrap" aria-label="Comparação da Meta 1 final por cenário">
           @for (b of sim.dadosBarras(); track b.nome) {
-            <div class="barra-row">
+            <div class="barra-row" [attr.aria-label]="b.nome + ': ' + (b.meta1 == null ? 'não calculável' : b.meta1.toFixed(2) + '%')">
               <span class="barra-label">{{ b.nome }}</span>
               <div class="barra-track">
                 <div class="barra-fill"
