@@ -1,8 +1,8 @@
 # CONTROLE DE PROGRESSO — Integração Equipe B → base do Robô Pedagógico
 
 **Documento de referência:** `CHECKLIST_INTEGRACAO_EQUIPE_B.md`  
-**Estado global:** `EB-001 A EB-003 CONCLUÍDAS; EB-004 ELEGÍVEL`
-**Atualizado em:** `2026-10-23 16:20 -03:00`
+**Estado global:** `EB-001 A EB-004 CONCLUÍDAS; EB-005 ELEGÍVEL`
+**Atualizado em:** `2026-10-23 16:25 -03:00`
 **Responsável executor:** `Codex (execução supervisionável por registros)`  
 **Regra:** este arquivo é o diário de execução. **Não antecipar resultados.**
 
@@ -19,8 +19,8 @@
 | Serviço canônico de simulação encontrado em | `simulador_metas_cnj/` |
 | Versões efetivas Python / Node / npm | `Python 3.12.10`; Node e npm indisponíveis no PATH |
 | Data/hora de início | `2026-10-23 15:53 -03:00` |
-| Último item terminado | `EB-003` |
-| Próxima tarefa elegível | `EB-004` |
+| Último item terminado | `EB-004` |
+| Próxima tarefa elegível | `EB-005` |
 
 ### Regra de status
 
@@ -36,10 +36,10 @@
 | Métrica | Valor inicial | Atualizar com evidência |
 |---|---|---|
 | Itens planejados | **24** | Conforme IDs EB-001 a EB-024 |
-| Itens concluídos | **3** | EB-001 a EB-003 |
+| Itens concluídos | **4** | EB-001 a EB-004 |
 | Itens em andamento | **0** | Atualizar por tarefa |
 | Itens bloqueados | **0** | Nenhum bloqueio ativo |
-| Commits de integração | **2** | `c9e814b` (EB-001), `6393ea2` (EB-002); EB-003 pendente de commit |
+| Commits de integração | **3** | EB-001 `c9e814b`; EB-002 `6393ea2`; EB-003 `0fb538a`; EB-004 pendente |
 | Testes novos executados | **8 APROVADOS** | Simulador; demais suítes não executadas por ausência de pytest/Node/npm |
 | Regressões P0 abertas | **Não avaliado** | Número com evidências |
 | Gate Meta 1 | `PENDENTE` | `LIBERADO` / `BLOQUEADO`, justificativa |
@@ -54,8 +54,8 @@
 |---|---|---|---|---|---|
 | EB-001 | P0 | Branch, baseline e rollback | CONCLUÍDO | Retomada: base limpa em `8b1a12e`; fonte ignorada em `integracao_entrada/TCC-Simulador-CNJ/`; destinos confirmados; branch `feat/integracao-equipe-b` criada | `c9e814b` |
 | EB-002 | P0 | Auditoria de entrada e segredos | CONCLUÍDO | `docs/integracao_equipe_b/INVENTARIO_ENTRADA.md`: 111 arquivos, 6.417.329 bytes, duplicatas, binários, builds, lockfiles e matriz de ação | `6393ea2` |
-| EB-003 | P0 | Testes e contratos atuais | CONCLUÍDO | `docs/integracao_equipe_b/BASELINE_ATUAL.md`; simulador 8/8; rotas/proxy documentados; limitações de pytest e Node/npm registradas | A registrar após commit |
-| EB-004 | P0 | ADR de arquitetura | PENDENTE | — | — |
+| EB-003 | P0 | Testes e contratos atuais | CONCLUÍDO | `docs/integracao_equipe_b/BASELINE_ATUAL.md`; simulador 8/8; rotas/proxy documentados; limitações de pytest e Node/npm registradas | `0fb538a` |
+| EB-004 | P0 | ADR de arquitetura | CONCLUÍDO | `docs/integracao_equipe_b/ADR-001_PORTABILIDADE.md` | A registrar após commit |
 | EB-005 | P0 | Matriz HTTP e proxy | PENDENTE | — | — |
 | EB-006 | P0 | Comparação matemática Meta 1 | PENDENTE | — | — |
 | EB-007 | P0 | Auditoria matemática e dados Meta 2 | PENDENTE | — | — |
@@ -214,6 +214,19 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
 - **Pendências ou riscos:** cobertura integral não é comprovável no ambiente atual; a EB-022 deverá repetir todas as tentativas e manter o gate final honesto.
 - **Próximo item elegível:** EB-004.
 
+### [2026-10-23 16:25] EB-004 — ADR de portabilidade
+- **Estado:** CONCLUÍDO
+- **Objetivo:** decidir o destino arquitetural das funcionalidades novas com base nos componentes reais.
+- **Arquivos lidos:** `docs/ARCHITECTURE.md`, `docs/development.md`, ADR/matrizes anteriores, requirements dos backends, proxy e estrutura do simulador.
+- **Arquivos alterados (destino; não fonte):** `docs/integracao_equipe_b/ADR-001_PORTABILIDADE.md` e este controle.
+- **Decisão arquitetural / por quê:** Angular canônico mantido; FastAPI separados; novos cálculos no simulador existente; namespace externo `/api/simulador/*`; chatbot e dados/fórmulas protegidos.
+- **Comandos executados:** `rg --files`, leitura de imports/requirements e busca de referências arquiteturais.
+- **Fixtures / teste de contrato / amostras numéricas:** NÃO APLICÁVEL; decisão documental, sem alteração funcional.
+- **Git diff --check:** a executar antes do commit deste item.
+- **Commit:** a registrar após commit atômico.
+- **Pendências ou riscos:** gates matemáticos e indisponibilidade parcial do ambiente de testes permanecem explícitos.
+- **Próximo item elegível:** EB-005.
+
 ## 7. Mudanças de escopo e decisões humanas
 
 | Data | Decisão/restrição | Quem autorizou | Impacto nos IDs | Evidência |
@@ -228,16 +241,16 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 
 ```text
 BRANCH_ATUAL: feat/integracao-equipe-b
-HEAD_SHA: 6393ea2 (antes do commit EB-003)
-ULTIMO_ITEM_VALIDADO: EB-003
-PROXIMO_ITEM: EB-004
+HEAD_SHA: 0fb538a (antes do commit EB-004)
+ULTIMO_ITEM_VALIDADO: EB-004
+PROXIMO_ITEM: EB-005
 GATE_M1: PENDENTE
 GATE_M2: PENDENTE
 GATE_FINAL: PENDENTE
-ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: docs/integracao_equipe_b/BASELINE_ATUAL.md e CONTROLE_PROGRESSO_INTEGRACAO_EQUIPE_B.md (EB-003 até o commit)
+ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: ADR-001_PORTABILIDADE.md e controle (EB-004 até o commit)
 TESTES_ULTIMA_EXECUCAO: simulador 8/8; chatbot/coletor indisponíveis sem pytest; Angular/proxy/build indisponíveis sem Node/npm
 BLOQUEIOS: nenhum bloqueio ativo
-ACAO_SEGURA_IMEDIATA: executar EB-004 e registrar a decisão arquitetural
+ACAO_SEGURA_IMEDIATA: executar EB-005 e consolidar a matriz HTTP
 ```
 
 **Não declarar entrega completa apenas porque o Codex encerrou uma sessão.** A conclusão requer EB-024 e GATE-FINAL aprovados.
