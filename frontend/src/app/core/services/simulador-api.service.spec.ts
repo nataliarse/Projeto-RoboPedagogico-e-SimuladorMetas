@@ -1,6 +1,6 @@
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 
 import { RespostaBaseApi, RespostaSimulacao } from '../models/simulador.model';
 import { InvalidSimulatorResponseError, SimuladorApiService } from './simulador-api.service';
@@ -159,12 +159,17 @@ describe('SimuladorApiService', () => {
     expect(error).toBeInstanceOf(InvalidSimulatorResponseError);
   });
 
-  it('encerra loading e propaga timeout', fakeAsync(() => {
-    let error: unknown;
-    service.quantoFalta({ meta_alvo: 100 }).subscribe({ error: cause => error = cause });
-    http.expectOne('/api/simulador/meta1/quanto-falta');
-    tick(20_001);
-    expect(error).toBeDefined();
-    expect(service.carregando()).toBe(false);
-  }));
+  it('encerra loading e propaga timeout', () => {
+    vi.useFakeTimers();
+    try {
+      let error: unknown;
+      service.quantoFalta({ meta_alvo: 100 }).subscribe({ error: cause => error = cause });
+      http.expectOne('/api/simulador/meta1/quanto-falta');
+      vi.advanceTimersByTime(20_001);
+      expect(error).toBeDefined();
+      expect(service.carregando()).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

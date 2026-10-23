@@ -24,7 +24,7 @@ export class SimuladorService {
   ]);
   private cargaBaseIniciada = false;
 
-  abaSelecionada = signal<'meta1' | 'meta2' | 'graficos' | 'otimizador'>('meta1');
+  abaSelecionada = signal<'meta1' | 'quanto-falta' | 'meta2' | 'graficos' | 'otimizador'>('meta1');
 
   // â”€â”€ Base consolidada (montada uma vez) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   readonly baseGlobal: RegistroBase[];

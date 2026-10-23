@@ -4,11 +4,12 @@ import { SimuladorService } from '../../core/services/simulador.service';
 import { CenariosComponent } from '../cenarios/cenarios.component';
 import { GraficosComponent } from '../graficos/graficos.component';
 import { SimuladorApiService } from '../../core/services/simulador-api.service';
+import { QuantoFaltaComponent } from '../quanto-falta/quanto-falta.component';
 
 @Component({
   selector: 'app-simulador-shell',
   standalone: true,
-  imports: [CommonModule, CenariosComponent, GraficosComponent],
+  imports: [CommonModule, CenariosComponent, GraficosComponent, QuantoFaltaComponent],
   template: `
     <!-- HEADER -->
     <header class="header">
@@ -59,6 +60,7 @@ import { SimuladorApiService } from '../../core/services/simulador-api.service';
       <app-cenarios />
     </div>
   }
+  @case ('quanto-falta') { <app-quanto-falta /> }
   @case ('meta2') {
     <div class="meta-painel">
       <div class="meta-header meta2">
@@ -178,6 +180,7 @@ export class SimuladorShellComponent implements OnInit {
 
   abas = [
     { id: 'meta1' as const, label: '📋 Meta 1', desabilitada: false },
+    { id: 'quanto-falta' as const, label: '🎯 Quanto falta', desabilitada: false },
     { id: 'meta2' as const, label: '📋 Meta 2', desabilitada: false },
     { id: 'graficos' as const, label: 'Gráficos', desabilitada: false },
     { id: 'otimizador' as const, label: 'Otimizador (pendente)', desabilitada: true },
