@@ -1,8 +1,8 @@
 # CONTROLE DE PROGRESSO — Integração Equipe B → base do Robô Pedagógico
 
 **Documento de referência:** `CHECKLIST_INTEGRACAO_EQUIPE_B.md`  
-**Estado global:** `EB-001 CONCLUÍDA; EB-002 ELEGÍVEL`
-**Atualizado em:** `2026-10-23 16:12 -03:00`
+**Estado global:** `EB-001 E EB-002 CONCLUÍDAS; EB-003 ELEGÍVEL`
+**Atualizado em:** `2026-10-23 16:15 -03:00`
 **Responsável executor:** `Codex (execução supervisionável por registros)`  
 **Regra:** este arquivo é o diário de execução. **Não antecipar resultados.**
 
@@ -19,8 +19,8 @@
 | Serviço canônico de simulação encontrado em | `simulador_metas_cnj/` |
 | Versões efetivas Python / Node / npm | `Python 3.12.10`; Node e npm indisponíveis no PATH |
 | Data/hora de início | `2026-10-23 15:53 -03:00` |
-| Último item terminado | `EB-001` |
-| Próxima tarefa elegível | `EB-002` |
+| Último item terminado | `EB-002` |
+| Próxima tarefa elegível | `EB-003` |
 
 ### Regra de status
 
@@ -36,10 +36,10 @@
 | Métrica | Valor inicial | Atualizar com evidência |
 |---|---|---|
 | Itens planejados | **24** | Conforme IDs EB-001 a EB-024 |
-| Itens concluídos | **1** | EB-001 |
+| Itens concluídos | **2** | EB-001 e EB-002 |
 | Itens em andamento | **0** | Atualizar por tarefa |
 | Itens bloqueados | **0** | Nenhum bloqueio ativo |
-| Commits de integração | **0** | SHAs no histórico abaixo |
+| Commits de integração | **1** | `c9e814b` (EB-001); EB-002 pendente de commit |
 | Testes novos executados | **NÃO EXECUTADOS** | Números/versões reais do trabalho atual |
 | Regressões P0 abertas | **Não avaliado** | Número com evidências |
 | Gate Meta 1 | `PENDENTE` | `LIBERADO` / `BLOQUEADO`, justificativa |
@@ -52,8 +52,8 @@
 
 | Item | Prioridade | Resumo | Estado | Evidência / artefato | Commit |
 |---|---|---|---|---|---|
-| EB-001 | P0 | Branch, baseline e rollback | CONCLUÍDO | Retomada: base limpa em `8b1a12e`; fonte ignorada em `integracao_entrada/TCC-Simulador-CNJ/`; destinos confirmados; branch `feat/integracao-equipe-b` criada | A registrar após commit |
-| EB-002 | P0 | Auditoria de entrada e segredos | PENDENTE | — | — |
+| EB-001 | P0 | Branch, baseline e rollback | CONCLUÍDO | Retomada: base limpa em `8b1a12e`; fonte ignorada em `integracao_entrada/TCC-Simulador-CNJ/`; destinos confirmados; branch `feat/integracao-equipe-b` criada | `c9e814b` |
+| EB-002 | P0 | Auditoria de entrada e segredos | CONCLUÍDO | `docs/integracao_equipe_b/INVENTARIO_ENTRADA.md`: 111 arquivos, 6.417.329 bytes, duplicatas, binários, builds, lockfiles e matriz de ação | A registrar após commit |
 | EB-003 | P0 | Testes e contratos atuais | PENDENTE | — | — |
 | EB-004 | P0 | ADR de arquitetura | PENDENTE | — | — |
 | EB-005 | P0 | Matriz HTTP e proxy | PENDENTE | — | — |
@@ -177,6 +177,24 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
 - **Pendências ou riscos:** a fonte contém planilhas/binários e duas árvores Angular; serão auditados na EB-002. Nenhum arquivo da fonte será versionado.
 - **Próximo item elegível:** EB-002.
 
+### [2026-10-23 16:15] EB-002 — Auditoria da entrada e segredos
+- **Estado:** CONCLUÍDO
+- **Objetivo:** inventariar a entrega importada, classificar o uso de cada grupo e verificar duplicatas, artefatos, dados e indicadores de segredo.
+- **Arquivos lidos:** todos os caminhos da fonte por metadados/hash; símbolos/rotas de `backend/*.py`; dependências; serviços/componentes Angular; documentos da entrega; metadados de todas as planilhas.
+- **Arquivos alterados (destino; não fonte):** `docs/integracao_equipe_b/INVENTARIO_ENTRADA.md` e este controle.
+- **Decisão arquitetural / por quê:** portar apenas funcionalidades selecionadas; usar Python/Angular importados como referência; excluir chat mock, aplicação duplicada, configurações globais, builds, bytecode e dados sem proveniência.
+- **Comandos executados:**
+  - listagem/tamanhos/extensões: 111 arquivos, 6.417.329 bytes.
+  - `Get-FileHash -Algorithm SHA256`: oito grupos de duplicatas documentados.
+  - `rg -l` para padrões de segredo e inspeção de nomes sensíveis: nenhum candidato encontrado; conteúdo potencialmente sensível não foi impresso.
+  - `rg` de símbolos, rotas, URLs, `responderMock`, `localStorage` e Chart: responsabilidades e exclusões confirmadas.
+  - `openpyxl.load_workbook(..., read_only=True)`: nove planilhas inspecionadas somente por metadados/headers.
+- **Fixtures / teste de contrato / amostras numéricas:** NÃO APLICÁVEL; auditoria estrutural, sem execução de regra matemática.
+- **Git diff --check:** OK após remoção de linha em branco excedente apontada na revisão pré-commit.
+- **Commit:** a registrar após commit atômico.
+- **Pendências ou riscos:** proveniência das planilhas e séries/projeções da Meta 2 será tratada na EB-007; fórmulas não foram validadas nesta tarefa.
+- **Próximo item elegível:** EB-003.
+
 ## 7. Mudanças de escopo e decisões humanas
 
 | Data | Decisão/restrição | Quem autorizou | Impacto nos IDs | Evidência |
@@ -191,16 +209,16 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 
 ```text
 BRANCH_ATUAL: feat/integracao-equipe-b
-HEAD_SHA: 8b1a12e39a9618f770916bf94587669c4b827817 (antes do commit EB-001)
-ULTIMO_ITEM_VALIDADO: EB-001
-PROXIMO_ITEM: EB-002
+HEAD_SHA: c9e814bc9ba11a165a870b2ff683b84e9bd0cc4a (antes do commit EB-002)
+ULTIMO_ITEM_VALIDADO: EB-002
+PROXIMO_ITEM: EB-003
 GATE_M1: PENDENTE
 GATE_M2: PENDENTE
 GATE_FINAL: PENDENTE
-ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: CONTROLE_PROGRESSO_INTEGRACAO_EQUIPE_B.md (registro EB-001 até o commit)
+ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: docs/integracao_equipe_b/INVENTARIO_ENTRADA.md e CONTROLE_PROGRESSO_INTEGRACAO_EQUIPE_B.md (EB-002 até o commit)
 TESTES_ULTIMA_EXECUCAO: NÃO EXECUTADOS
 BLOQUEIOS: nenhum bloqueio ativo
-ACAO_SEGURA_IMEDIATA: executar EB-002, auditando a fonte sem modificá-la
+ACAO_SEGURA_IMEDIATA: executar EB-003 e estabelecer baseline funcional real
 ```
 
 **Não declarar entrega completa apenas porque o Codex encerrou uma sessão.** A conclusão requer EB-024 e GATE-FINAL aprovados.
