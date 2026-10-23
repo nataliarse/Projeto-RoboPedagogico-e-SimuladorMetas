@@ -1,8 +1,8 @@
 # CONTROLE DE PROGRESSO — Integração Equipe B → base do Robô Pedagógico
 
 **Documento de referência:** `CHECKLIST_INTEGRACAO_EQUIPE_B.md`  
-**Estado global:** `EB-001 A EB-008 CONCLUÍDAS; GATES M1/M2 BLOQUEADOS; EB-009 ELEGÍVEL`
-**Atualizado em:** `2026-10-23 17:00 -03:00`
+**Estado global:** `EB-001 A EB-009 CONCLUÍDAS; GATES M1/M2 BLOQUEADOS; EB-010 ELEGÍVEL COM RESTRIÇÃO`
+**Atualizado em:** `2026-10-23 17:10 -03:00`
 **Responsável executor:** `Codex (execução supervisionável por registros)`  
 **Regra:** este arquivo é o diário de execução. **Não antecipar resultados.**
 
@@ -19,8 +19,8 @@
 | Serviço canônico de simulação encontrado em | `simulador_metas_cnj/` |
 | Versões efetivas Python / Node / npm | `Python 3.12.10`; Node e npm indisponíveis no PATH |
 | Data/hora de início | `2026-10-23 15:53 -03:00` |
-| Último item terminado | `EB-008` |
-| Próxima tarefa elegível | `EB-009` |
+| Último item terminado | `EB-009` |
+| Próxima tarefa elegível | `EB-010` (preparação interna; rota pública proibida pelo GATE-M1) |
 
 ### Regra de status
 
@@ -36,10 +36,10 @@
 | Métrica | Valor inicial | Atualizar com evidência |
 |---|---|---|
 | Itens planejados | **24** | Conforme IDs EB-001 a EB-024 |
-| Itens concluídos | **8** | EB-001 a EB-008 |
+| Itens concluídos | **9** | EB-001 a EB-009 |
 | Itens em andamento | **0** | Atualizar por tarefa |
 | Itens bloqueados | **0** | Nenhum bloqueio ativo |
-| Commits de integração | **7** | EB-001 `c9e814b`; EB-002 `6393ea2`; EB-003 `0fb538a`; EB-004 `c0a6cde`; EB-005 `70a2a1b`; EB-006 `b679b5b`; EB-007 `1ecb0c4`; EB-008 pendente |
+| Commits de integração | **8** | Até EB-008: `c9e814b`, `6393ea2`, `0fb538a`, `c0a6cde`, `70a2a1b`, `b679b5b`, `1ecb0c4`, `ea3e660`; EB-009 pendente |
 | Testes novos executados | **9 APROVADOS** | Simulador, incluindo novo teste de snapshot/não mutação; demais suítes indisponíveis |
 | Regressões P0 abertas | **Não avaliado** | Número com evidências |
 | Gate Meta 1 | `BLOQUEADO` | Regra `susm1`, denominador, dados e resultado 2026 divergem da base canônica |
@@ -59,8 +59,8 @@
 | EB-005 | P0 | Matriz HTTP e proxy | CONCLUÍDO | `docs/integracao_equipe_b/CONTRATOS_HTTP.md` | `70a2a1b` |
 | EB-006 | P0 | Comparação matemática Meta 1 | CONCLUÍDO | `DIVERGENCIAS_NUMERICAS.md` e fixture `meta1_comparison.json`; GATE-M1 bloqueado | `b679b5b` |
 | EB-007 | P0 | Auditoria matemática e dados Meta 2 | CONCLUÍDO | `AUDITORIA_META2.md`, fixture `meta2_audit.json`; GATE-M2 bloqueado | `1ecb0c4` |
-| EB-008 | P0 | Snapshots numéricos antes | CONCLUÍDO | Fixture/teste adicional em `simulador_metas_cnj/tests`; 9/9 aprovados; baseline global não muta | A registrar após commit |
-| EB-009 | P1 | Destino backend e dependências | PENDENTE | — | — |
+| EB-008 | P0 | Snapshots numéricos antes | CONCLUÍDO | Fixture/teste adicional em `simulador_metas_cnj/tests`; 9/9 aprovados; baseline global não muta | `ea3e660` |
+| EB-009 | P1 | Destino backend e dependências | CONCLUÍDO | `simulador_metas_cnj/services/` e `DESTINO_BACKEND.md`; antigos 9/9 | A registrar após commit |
 | EB-010 | P1 | Endpoint quanto-falta | PENDENTE | — | — |
 | EB-011 | P1 | API Meta 2 A/ANT | PENDENTE | — | — |
 | EB-012 | P0 | Não mutação e erros do simulador | PENDENTE | — | — |
@@ -279,6 +279,19 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
 - **Pendências ou riscos:** snapshots A/ANT permanecem documentais e bloqueados pelo GATE-M2; não foram incorporados ao runtime.
 - **Próximo item elegível:** EB-009.
 
+### [2026-10-23 17:10] EB-009 — Destino backend e dependências
+- **Estado:** CONCLUÍDO
+- **Objetivo:** definir o módulo de destino no simulador existente e preservar isolamento de dependências/contratos.
+- **Arquivos lidos:** estrutura, requirements e `main.py` dos backends; ADR e gates.
+- **Arquivos alterados (destino; não fonte):** `simulador_metas_cnj/services/__init__.py`, `services/README.md`, `DESTINO_BACKEND.md` e este controle.
+- **Decisão arquitetural / por quê:** serviços de domínio internos, sem FastAPI/Pydantic/rede, adaptados por `main.py`; nenhum terceiro serviço ou dependência nova.
+- **Comandos executados:** `python -m unittest discover -s tests -v`: 9 testes aprovados (executar após criação dos módulos e antes do commit).
+- **Fixtures / teste de contrato / amostras numéricas:** endpoints/snapshots antigos permanecem cobertos; nenhuma fórmula mudou.
+- **Git diff --check:** a executar antes do commit deste item.
+- **Commit:** a registrar após commit atômico.
+- **Pendências ou riscos:** GATE-M1/M2 impedem ativação pública; EB-010/011 só podem preparar implementação isolada.
+- **Próximo item elegível:** EB-010, limitado a preparação interna não exposta.
+
 ## 7. Mudanças de escopo e decisões humanas
 
 | Data | Decisão/restrição | Quem autorizou | Impacto nos IDs | Evidência |
@@ -293,16 +306,16 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 
 ```text
 BRANCH_ATUAL: feat/integracao-equipe-b
-HEAD_SHA: 1ecb0c4 (antes do commit EB-008)
-ULTIMO_ITEM_VALIDADO: EB-008
-PROXIMO_ITEM: EB-009
+HEAD_SHA: ea3e660 (antes do commit EB-009)
+ULTIMO_ITEM_VALIDADO: EB-009
+PROXIMO_ITEM: EB-010 (preparação interna; sem rota pública)
 GATE_M1: BLOQUEADO
 GATE_M2: BLOQUEADO
 GATE_FINAL: PENDENTE
-ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: fixture/teste pré-integração e controle (EB-008 até o commit)
+ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: services/, DESTINO_BACKEND.md e controle (EB-009 até o commit)
 TESTES_ULTIMA_EXECUCAO: simulador 9/9; chatbot/coletor indisponíveis sem pytest; Angular/proxy/build indisponíveis sem Node/npm
 BLOQUEIOS: nenhum bloqueio ativo
-ACAO_SEGURA_IMEDIATA: executar EB-009 e confirmar destino modular do backend
+ACAO_SEGURA_IMEDIATA: preparar EB-010 sem ativar endpoint enquanto GATE-M1 estiver bloqueado
 ```
 
 **Não declarar entrega completa apenas porque o Codex encerrou uma sessão.** A conclusão requer EB-024 e GATE-FINAL aprovados.
