@@ -1,8 +1,8 @@
 # CONTROLE DE PROGRESSO — Integração Equipe B → base do Robô Pedagógico
 
 **Documento de referência:** `CHECKLIST_INTEGRACAO_EQUIPE_B.md`  
-**Estado global:** `EB-001 A EB-009 CONCLUÍDAS; GATES M1/M2 BLOQUEADOS; EB-010 ELEGÍVEL COM RESTRIÇÃO`
-**Atualizado em:** `2026-10-23 17:10 -03:00`
+**Estado global:** `BLOQUEADO NA EB-010; EB-001 A EB-009 CONCLUÍDAS`
+**Atualizado em:** `2026-10-23 17:15 -03:00`
 **Responsável executor:** `Codex (execução supervisionável por registros)`  
 **Regra:** este arquivo é o diário de execução. **Não antecipar resultados.**
 
@@ -20,7 +20,7 @@
 | Versões efetivas Python / Node / npm | `Python 3.12.10`; Node e npm indisponíveis no PATH |
 | Data/hora de início | `2026-10-23 15:53 -03:00` |
 | Último item terminado | `EB-009` |
-| Próxima tarefa elegível | `EB-010` (preparação interna; rota pública proibida pelo GATE-M1) |
+| Próxima tarefa elegível | `NENHUMA`; EB-010 depende da liberação humana do GATE-M1 |
 
 ### Regra de status
 
@@ -38,8 +38,8 @@
 | Itens planejados | **24** | Conforme IDs EB-001 a EB-024 |
 | Itens concluídos | **9** | EB-001 a EB-009 |
 | Itens em andamento | **0** | Atualizar por tarefa |
-| Itens bloqueados | **0** | Nenhum bloqueio ativo |
-| Commits de integração | **8** | Até EB-008: `c9e814b`, `6393ea2`, `0fb538a`, `c0a6cde`, `70a2a1b`, `b679b5b`, `1ecb0c4`, `ea3e660`; EB-009 pendente |
+| Itens bloqueados | **1** | EB-010; GATE-M1 bloqueado por divergência matemática |
+| Commits de integração | **9** | EB-001 a EB-009: `c9e814b`, `6393ea2`, `0fb538a`, `c0a6cde`, `70a2a1b`, `b679b5b`, `1ecb0c4`, `ea3e660`, `96fe9cf` |
 | Testes novos executados | **9 APROVADOS** | Simulador, incluindo novo teste de snapshot/não mutação; demais suítes indisponíveis |
 | Regressões P0 abertas | **Não avaliado** | Número com evidências |
 | Gate Meta 1 | `BLOQUEADO` | Regra `susm1`, denominador, dados e resultado 2026 divergem da base canônica |
@@ -60,8 +60,8 @@
 | EB-006 | P0 | Comparação matemática Meta 1 | CONCLUÍDO | `DIVERGENCIAS_NUMERICAS.md` e fixture `meta1_comparison.json`; GATE-M1 bloqueado | `b679b5b` |
 | EB-007 | P0 | Auditoria matemática e dados Meta 2 | CONCLUÍDO | `AUDITORIA_META2.md`, fixture `meta2_audit.json`; GATE-M2 bloqueado | `1ecb0c4` |
 | EB-008 | P0 | Snapshots numéricos antes | CONCLUÍDO | Fixture/teste adicional em `simulador_metas_cnj/tests`; 9/9 aprovados; baseline global não muta | `ea3e660` |
-| EB-009 | P1 | Destino backend e dependências | CONCLUÍDO | `simulador_metas_cnj/services/` e `DESTINO_BACKEND.md`; antigos 9/9 | A registrar após commit |
-| EB-010 | P1 | Endpoint quanto-falta | PENDENTE | — | — |
+| EB-009 | P1 | Destino backend e dependências | CONCLUÍDO | `simulador_metas_cnj/services/` e `DESTINO_BACKEND.md`; antigos 9/9 | `96fe9cf` |
+| EB-010 | P1 | Endpoint quanto-falta | BLOQUEADO | Critério exige GATE-M1 liberado; regra importada diverge da canônica (109,86 vs 96,47 e denominador incompatível) | SEM COMMIT FUNCIONAL |
 | EB-011 | P1 | API Meta 2 A/ANT | PENDENTE | — | — |
 | EB-012 | P0 | Não mutação e erros do simulador | PENDENTE | — | — |
 | EB-013 | P1 | Clientes HTTP tipados | PENDENTE | — | — |
@@ -292,6 +292,19 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
 - **Pendências ou riscos:** GATE-M1/M2 impedem ativação pública; EB-010/011 só podem preparar implementação isolada.
 - **Próximo item elegível:** EB-010, limitado a preparação interna não exposta.
 
+### [2026-10-23 17:15] EB-010 — Endpoint quanto-falta
+- **Estado:** BLOQUEADO
+- **Objetivo:** portar e ativar o endpoint de esforço mensal com testes de limites e coerência.
+- **Arquivos lidos:** critério da EB-010, `DIVERGENCIAS_NUMERICAS.md`, fixture Meta 1, ADR e destino backend.
+- **Arquivos alterados (destino; não fonte):** somente este checkpoint no controle.
+- **Decisão arquitetural / por quê:** não implementar uma rota pública nem escolher silenciosamente entre a regra `susm1` importada e a regra canônica. O critério de aceite condiciona ativação ao GATE-M1, que está objetivamente bloqueado.
+- **Comandos executados:** revisão dos resultados reproduzíveis da EB-006 e estado do gate; nenhuma fórmula executada novamente.
+- **Fixtures / teste de contrato / amostras numéricas:** `meta1_comparison.json` demonstra a divergência; nenhum teste foi removido ou falsamente marcado como aprovado.
+- **Git diff --check:** a executar antes do commit de checkpoint.
+- **Commit:** checkpoint documental a registrar; nenhum commit funcional da EB-010.
+- **Pendências ou riscos:** responsável metodológico deve escolher/validar regra, série e semântica de suspensões. Até lá, endpoint e UI quanto-falta permanecem ausentes.
+- **Próximo item elegível:** NENHUM. EB-011 também depende do GATE-M2 bloqueado; EB-012 e fases seguintes dependem dos backends novos, e os testes obrigatórios de frontend estão indisponíveis sem Node/npm.
+
 ## 7. Mudanças de escopo e decisões humanas
 
 | Data | Decisão/restrição | Quem autorizou | Impacto nos IDs | Evidência |
@@ -306,16 +319,16 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 
 ```text
 BRANCH_ATUAL: feat/integracao-equipe-b
-HEAD_SHA: ea3e660 (antes do commit EB-009)
+HEAD_SHA: 96fe9cf (antes do checkpoint EB-010)
 ULTIMO_ITEM_VALIDADO: EB-009
-PROXIMO_ITEM: EB-010 (preparação interna; sem rota pública)
+PROXIMO_ITEM: NENHUM ATÉ LIBERAÇÃO DO GATE-M1/M2 E AMBIENTE DE TESTES
 GATE_M1: BLOQUEADO
 GATE_M2: BLOQUEADO
 GATE_FINAL: PENDENTE
-ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: services/, DESTINO_BACKEND.md e controle (EB-009 até o commit)
+ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: controle (checkpoint de bloqueio EB-010 até o commit)
 TESTES_ULTIMA_EXECUCAO: simulador 9/9; chatbot/coletor indisponíveis sem pytest; Angular/proxy/build indisponíveis sem Node/npm
-BLOQUEIOS: nenhum bloqueio ativo
-ACAO_SEGURA_IMEDIATA: preparar EB-010 sem ativar endpoint enquanto GATE-M1 estiver bloqueado
+BLOQUEIOS: EB-010/GATE-M1; EB-011/GATE-M2; Node/npm e pytest ausentes para gates posteriores
+ACAO_SEGURA_IMEDIATA: responsável metodológico decidir as regras M1/M2 e disponibilizar ambiente de testes compatível; depois retomar EB-010
 ```
 
 **Não declarar entrega completa apenas porque o Codex encerrou uma sessão.** A conclusão requer EB-024 e GATE-FINAL aprovados.
