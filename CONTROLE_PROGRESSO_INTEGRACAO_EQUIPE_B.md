@@ -1,8 +1,8 @@
 # CONTROLE DE PROGRESSO — Integração Equipe B → base do Robô Pedagógico
 
 **Documento de referência:** `CHECKLIST_INTEGRACAO_EQUIPE_B.md`  
-**Estado global:** `EB-001 A EB-007 CONCLUÍDAS; GATES M1/M2 BLOQUEADOS; EB-008 ELEGÍVEL`
-**Atualizado em:** `2026-10-23 16:50 -03:00`
+**Estado global:** `EB-001 A EB-008 CONCLUÍDAS; GATES M1/M2 BLOQUEADOS; EB-009 ELEGÍVEL`
+**Atualizado em:** `2026-10-23 17:00 -03:00`
 **Responsável executor:** `Codex (execução supervisionável por registros)`  
 **Regra:** este arquivo é o diário de execução. **Não antecipar resultados.**
 
@@ -19,8 +19,8 @@
 | Serviço canônico de simulação encontrado em | `simulador_metas_cnj/` |
 | Versões efetivas Python / Node / npm | `Python 3.12.10`; Node e npm indisponíveis no PATH |
 | Data/hora de início | `2026-10-23 15:53 -03:00` |
-| Último item terminado | `EB-007` |
-| Próxima tarefa elegível | `EB-008` |
+| Último item terminado | `EB-008` |
+| Próxima tarefa elegível | `EB-009` |
 
 ### Regra de status
 
@@ -36,11 +36,11 @@
 | Métrica | Valor inicial | Atualizar com evidência |
 |---|---|---|
 | Itens planejados | **24** | Conforme IDs EB-001 a EB-024 |
-| Itens concluídos | **7** | EB-001 a EB-007 |
+| Itens concluídos | **8** | EB-001 a EB-008 |
 | Itens em andamento | **0** | Atualizar por tarefa |
 | Itens bloqueados | **0** | Nenhum bloqueio ativo |
-| Commits de integração | **6** | EB-001 `c9e814b`; EB-002 `6393ea2`; EB-003 `0fb538a`; EB-004 `c0a6cde`; EB-005 `70a2a1b`; EB-006 `b679b5b`; EB-007 pendente |
-| Testes novos executados | **8 APROVADOS** | Simulador; demais suítes não executadas por ausência de pytest/Node/npm |
+| Commits de integração | **7** | EB-001 `c9e814b`; EB-002 `6393ea2`; EB-003 `0fb538a`; EB-004 `c0a6cde`; EB-005 `70a2a1b`; EB-006 `b679b5b`; EB-007 `1ecb0c4`; EB-008 pendente |
+| Testes novos executados | **9 APROVADOS** | Simulador, incluindo novo teste de snapshot/não mutação; demais suítes indisponíveis |
 | Regressões P0 abertas | **Não avaliado** | Número com evidências |
 | Gate Meta 1 | `BLOQUEADO` | Regra `susm1`, denominador, dados e resultado 2026 divergem da base canônica |
 | Gate Meta 2 | `BLOQUEADO` | Séries, D, coortes, ARIMA e RESULTADO_2025 sem proveniência reproduzível; ANT instável |
@@ -58,8 +58,8 @@
 | EB-004 | P0 | ADR de arquitetura | CONCLUÍDO | `docs/integracao_equipe_b/ADR-001_PORTABILIDADE.md` | `c0a6cde` |
 | EB-005 | P0 | Matriz HTTP e proxy | CONCLUÍDO | `docs/integracao_equipe_b/CONTRATOS_HTTP.md` | `70a2a1b` |
 | EB-006 | P0 | Comparação matemática Meta 1 | CONCLUÍDO | `DIVERGENCIAS_NUMERICAS.md` e fixture `meta1_comparison.json`; GATE-M1 bloqueado | `b679b5b` |
-| EB-007 | P0 | Auditoria matemática e dados Meta 2 | CONCLUÍDO | `AUDITORIA_META2.md`, fixture `meta2_audit.json`; GATE-M2 bloqueado | A registrar após commit |
-| EB-008 | P0 | Snapshots numéricos antes | PENDENTE | — | — |
+| EB-007 | P0 | Auditoria matemática e dados Meta 2 | CONCLUÍDO | `AUDITORIA_META2.md`, fixture `meta2_audit.json`; GATE-M2 bloqueado | `1ecb0c4` |
+| EB-008 | P0 | Snapshots numéricos antes | CONCLUÍDO | Fixture/teste adicional em `simulador_metas_cnj/tests`; 9/9 aprovados; baseline global não muta | A registrar após commit |
 | EB-009 | P1 | Destino backend e dependências | PENDENTE | — | — |
 | EB-010 | P1 | Endpoint quanto-falta | PENDENTE | — | — |
 | EB-011 | P1 | API Meta 2 A/ANT | PENDENTE | — | — |
@@ -266,6 +266,19 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
 - **Pendências ou riscos:** validação humana obrigatória de coortes, D, séries, ARIMA, resultado 2025, temporalidade e limites.
 - **Próximo item elegível:** EB-008.
 
+### [2026-10-23 17:00] EB-008 — Snapshot numérico pré-integração
+- **Estado:** CONCLUÍDO
+- **Objetivo:** congelar cenários canônicos antes de integrar e provar não mutação da base global.
+- **Arquivos lidos:** snapshot/testes existentes e resultados do motor canônico.
+- **Arquivos alterados (destino; não fonte):** `simulador_metas_cnj/tests/fixtures/equipe_b_preintegration_snapshot.json`, `test_equipe_b_preintegration_baseline.py` e este controle.
+- **Decisão arquitetural / por quê:** adicionar fixture separada sem modificar o snapshot protegido existente; tolerância de 0,01 para metas e igualdade exata da base global.
+- **Comandos executados:** cálculo offline de três cenários; `python -m unittest discover -s tests -v`: 9 testes aprovados em 0,099 s.
+- **Fixtures / teste de contrato / amostras numéricas:** base 109,86/161,71; +100 julgados out/2026 → 109,92/161,80; +100 suspensos → 109,86/161,71; `BASE_GLOBAL` invariável após cada cenário.
+- **Git diff --check:** a executar antes do commit deste item.
+- **Commit:** a registrar após commit atômico.
+- **Pendências ou riscos:** snapshots A/ANT permanecem documentais e bloqueados pelo GATE-M2; não foram incorporados ao runtime.
+- **Próximo item elegível:** EB-009.
+
 ## 7. Mudanças de escopo e decisões humanas
 
 | Data | Decisão/restrição | Quem autorizou | Impacto nos IDs | Evidência |
@@ -280,16 +293,16 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 
 ```text
 BRANCH_ATUAL: feat/integracao-equipe-b
-HEAD_SHA: b679b5b (antes do commit EB-007)
-ULTIMO_ITEM_VALIDADO: EB-007
-PROXIMO_ITEM: EB-008
+HEAD_SHA: 1ecb0c4 (antes do commit EB-008)
+ULTIMO_ITEM_VALIDADO: EB-008
+PROXIMO_ITEM: EB-009
 GATE_M1: BLOQUEADO
 GATE_M2: BLOQUEADO
 GATE_FINAL: PENDENTE
-ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: auditoria/fixture Meta 2, divergências e controle (EB-007 até o commit)
-TESTES_ULTIMA_EXECUCAO: simulador 8/8; chatbot/coletor indisponíveis sem pytest; Angular/proxy/build indisponíveis sem Node/npm
+ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: fixture/teste pré-integração e controle (EB-008 até o commit)
+TESTES_ULTIMA_EXECUCAO: simulador 9/9; chatbot/coletor indisponíveis sem pytest; Angular/proxy/build indisponíveis sem Node/npm
 BLOQUEIOS: nenhum bloqueio ativo
-ACAO_SEGURA_IMEDIATA: executar EB-008 e consolidar snapshots protegidos
+ACAO_SEGURA_IMEDIATA: executar EB-009 e confirmar destino modular do backend
 ```
 
 **Não declarar entrega completa apenas porque o Codex encerrou uma sessão.** A conclusão requer EB-024 e GATE-FINAL aprovados.
