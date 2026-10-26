@@ -1,7 +1,7 @@
 # CONTROLE DE PROGRESSO — Integração Equipe B → base do Robô Pedagógico
 
 **Documento de referência:** `CHECKLIST_INTEGRACAO_EQUIPE_B.md`  
-**Estado global:** `EB-001 A EB-019 E EB-021 CONCLUÍDAS; EB-020 PARCIAL; EB-022 BLOQUEADA; EB-023 ELEGÍVEL`
+**Estado global:** `EB-001 A EB-019, EB-021 E EB-023 CONCLUÍDAS; EB-020 PARCIAL; EB-022 BLOQUEADA; EB-024 ELEGÍVEL`
 **Atualizado em:** `2026-10-26 -03:00`
 **Responsável executor:** `Codex (execução supervisionável por registros)`  
 **Regra:** este arquivo é o diário de execução. **Não antecipar resultados.**
@@ -19,8 +19,8 @@
 | Serviço canônico de simulação encontrado em | `simulador_metas_cnj/` |
 | Versões efetivas Python / Node / npm | `Python 3.12.10`; Node e npm indisponíveis no PATH |
 | Data/hora de início | `2026-10-23 15:53 -03:00` |
-| Último item terminado | `EB-022 (BLOQUEADO)` |
-| Próxima tarefa elegível | `EB-023` |
+| Último item terminado | `EB-023 (CONCLUÍDO)` |
+| Próxima tarefa elegível | `EB-024` |
 
 ### Regra de status
 
@@ -36,7 +36,7 @@
 | Métrica | Valor inicial | Atualizar com evidência |
 |---|---|---|
 | Itens planejados | **24** | Conforme IDs EB-001 a EB-024 |
-| Itens concluídos | **20** | EB-001 a EB-019 e EB-021 |
+| Itens concluídos | **21** | EB-001 a EB-019, EB-021 e EB-023 |
 | Itens parciais | **1** | EB-020: simulador aprovado; chatbot não executável por Pydantic 1 no ambiente |
 | Itens em andamento | **0** | — |
 | Itens bloqueados | **1** | EB-022: suítes chatbot/coletor indisponíveis no ambiente |
@@ -74,8 +74,8 @@
 | EB-019 | P0 | Contratos e proxy | CONCLUÍDO | Angular 53/53; proxy 3/3 com rotas antigas/novas; simulador 27/27 | `93d4ecc` |
 | EB-020 | P0 | Smoke integrado offline | PARCIAL | Smoke ASGI simulador aprovado; chatbot bloqueado no ambiente por Pydantic 1 incompatível com requisito Pydantic 2 | `a3108c4` |
 | EB-021 | P0 | Revisão segurança/deps | CONCLUÍDO | Sem segredos/builds/deps novos; planilha validada é o único binário novo esperado | `43e71c4` |
-| EB-022 | P0 | Regressão completa + build | BLOQUEADO | Simulador 28/28, Angular 53/53, proxy 3/3 e build OK; chatbot/coletor não executados por ambiente | A registrar após commit |
-| EB-023 | P1 | Guia de execução | PENDENTE | — | — |
+| EB-022 | P0 | Regressão completa + build | BLOQUEADO | Simulador 28/28, Angular 53/53, proxy 3/3 e build OK; chatbot/coletor não executados por ambiente | `4c1a354` |
+| EB-023 | P1 | Guia de execução | CONCLUÍDO | `GUIA_EXECUCAO_LOCAL.md`: ambientes separados, portas, rotas, testes e limites | A registrar após commit |
 | EB-024 | P0 | Relatório final e decisão | PENDENTE | — | — |
 
 ## 4. Estado dos gates de decisão
@@ -98,7 +98,7 @@
 
 ### GATE-FINAL — Não regressão, rastreabilidade e segurança
 
-**Status:** `BLOQUEADO`  
+**Status:** `BLOQUEADO`
 **Evidência necessária:** chatbot preservado, `/api/processos/chat` funcional, endpoints simulador sem regressão, testes novos, proxy correto, build Angular, riscos registrados, commits e execução exclusivamente local.  
 **Decisão:** não liberar enquanto chatbot/coletor não forem executados em ambiente compatível; não há regressão observada nas suítes executadas.
 
@@ -479,6 +479,19 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
 - **Pendências ou riscos:** GATE-FINAL bloqueado até executar as duas suítes Python em ambientes isolados compatíveis.
 - **Próximo item elegível:** EB-023 e EB-024; EB-020/022 permanecem não concluídas.
 
+### [2026-10-26] EB-023 — Guia de execução local
+- **Estado:** CONCLUÍDO
+- **Objetivo:** documentar execução reproduzível e limites do protótipo.
+- **Arquivos lidos:** README, guia de desenvolvimento, requirements, proxy e scripts locais.
+- **Arquivos alterados (destino; não fonte):** `docs/integracao_equipe_b/GUIA_EXECUCAO_LOCAL.md` e este controle.
+- **Decisão arquitetural / por quê:** destacar ambientes Python separados para impedir conflito Pydantic 1/2; documentar somente rotas/portas comprovadas.
+- **Comandos executados:** revisão estática dos manifests e documentos canônicos.
+- **Fixtures / teste de contrato / amostras numéricas:** não aplicável; guia referencia as validações offline oficiais.
+- **Git diff --check:** a executar antes do commit.
+- **Commit:** a registrar após commit atômico.
+- **Pendências ou riscos:** guia não afirma homologação CNJ, produção ou funcionamento institucional.
+- **Próximo item elegível:** EB-024.
+
 ## 7. Mudanças de escopo e decisões humanas
 
 | Data | Decisão/restrição | Quem autorizou | Impacto nos IDs | Evidência |
@@ -495,14 +508,14 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 BRANCH_ATUAL: feat/integracao-equipe-b
 HEAD_SHA: 43e71c4 (antes do commit EB-022)
 ULTIMO_ITEM_VALIDADO: EB-021
-PROXIMO_ITEM: EB-023
+PROXIMO_ITEM: EB-024
 GATE_M1: LIBERADO
 GATE_M2: LIBERADO
 GATE_FINAL: BLOQUEADO
-ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: checkpoint documental EB-022
+ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: guia local, correção de whitespace e checkpoint EB-023
 TESTES_ULTIMA_EXECUCAO: simulador 28/28; Angular 53/53; proxy 3/3; build aprovado; chatbot/coletor não executados
 BLOQUEIOS: pytest ausente; chatbot requer Pydantic 2, ambiente global tem Pydantic 1; gates matemáticos liberados
-ACAO_SEGURA_IMEDIATA: executar EB-023/024; manter EB-020 parcial e EB-022 bloqueada
+ACAO_SEGURA_IMEDIATA: executar EB-024; manter EB-020 parcial e EB-022 bloqueada
 ```
 
 **Não declarar entrega completa apenas porque o Codex encerrou uma sessão.** A conclusão requer EB-024 e GATE-FINAL aprovados.
