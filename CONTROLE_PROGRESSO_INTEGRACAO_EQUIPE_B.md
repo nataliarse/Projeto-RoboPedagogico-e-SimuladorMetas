@@ -1,7 +1,7 @@
 # CONTROLE DE PROGRESSO — Integração Equipe B → base do Robô Pedagógico
 
 **Documento de referência:** `CHECKLIST_INTEGRACAO_EQUIPE_B.md`  
-**Estado global:** `EB-001 A EB-019 CONCLUÍDAS; EB-020 PARCIAL; EB-021 ELEGÍVEL`
+**Estado global:** `EB-001 A EB-019 E EB-021 CONCLUÍDAS; EB-020 PARCIAL; EB-022 ELEGÍVEL`
 **Atualizado em:** `2026-10-26 -03:00`
 **Responsável executor:** `Codex (execução supervisionável por registros)`  
 **Regra:** este arquivo é o diário de execução. **Não antecipar resultados.**
@@ -19,8 +19,8 @@
 | Serviço canônico de simulação encontrado em | `simulador_metas_cnj/` |
 | Versões efetivas Python / Node / npm | `Python 3.12.10`; Node e npm indisponíveis no PATH |
 | Data/hora de início | `2026-10-23 15:53 -03:00` |
-| Último item terminado | `EB-020 (PARCIAL)` |
-| Próxima tarefa elegível | `EB-021` |
+| Último item terminado | `EB-021 (CONCLUÍDO)` |
+| Próxima tarefa elegível | `EB-022` |
 
 ### Regra de status
 
@@ -36,7 +36,7 @@
 | Métrica | Valor inicial | Atualizar com evidência |
 |---|---|---|
 | Itens planejados | **24** | Conforme IDs EB-001 a EB-024 |
-| Itens concluídos | **19** | EB-001 a EB-019 |
+| Itens concluídos | **20** | EB-001 a EB-019 e EB-021 |
 | Itens parciais | **1** | EB-020: simulador aprovado; chatbot não executável por Pydantic 1 no ambiente |
 | Itens em andamento | **0** | — |
 | Itens bloqueados | **0** | Nenhum bloqueio matemático ativo; limitações ambientais permanecem |
@@ -72,8 +72,8 @@
 | EB-017 | P2 | Recentes localStorage | CONCLUÍDO | Histórico por meta, deduplicação, limite 3, restauro, limpeza e fallback sem storage; Angular 53/53 | `626d2cd` |
 | EB-018 | P0 | Chatbot preservado | CONCLUÍDO | Sem mock/rota incompatível; `/api/processos/chat`, sessão, navegação e healthchecks preservados; Angular 53/53 e proxy 3/3 | `ad26d9d` |
 | EB-019 | P0 | Contratos e proxy | CONCLUÍDO | Angular 53/53; proxy 3/3 com rotas antigas/novas; simulador 27/27 | `93d4ecc` |
-| EB-020 | P0 | Smoke integrado offline | PARCIAL | Smoke ASGI simulador aprovado; chatbot bloqueado no ambiente por Pydantic 1 incompatível com requisito Pydantic 2 | A registrar após commit |
-| EB-021 | P0 | Revisão segurança/deps | PENDENTE | — | — |
+| EB-020 | P0 | Smoke integrado offline | PARCIAL | Smoke ASGI simulador aprovado; chatbot bloqueado no ambiente por Pydantic 1 incompatível com requisito Pydantic 2 | `a3108c4` |
+| EB-021 | P0 | Revisão segurança/deps | CONCLUÍDO | Sem segredos/builds/deps novos; planilha validada é o único binário novo esperado | A registrar após commit |
 | EB-022 | P0 | Regressão completa + build | PENDENTE | — | — |
 | EB-023 | P1 | Guia de execução | PENDENTE | — | — |
 | EB-024 | P0 | Relatório final e decisão | PENDENTE | — | — |
@@ -453,6 +453,19 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
 - **Pendências ou riscos:** smoke backend do chatbot requer ambiente isolado compatível; os testes Angular preservam processo fictício e sessão, mas não substituem esta validação Python.
 - **Próximo item elegível:** EB-021; EB-020 permanece parcial para o GATE-FINAL.
 
+### [2026-10-26] EB-021 — Segurança, dependências e artefatos
+- **Estado:** CONCLUÍDO
+- **Objetivo:** revisar proteção de dados, segredos, dependências e artefatos gerados.
+- **Arquivos lidos:** lista completa do diff desde `8b1a12e`, arquivos rastreados, manifests e inventário anterior.
+- **Arquivos alterados (destino; não fonte):** somente este controle.
+- **Decisão arquitetural / por quê:** manter dependências inalteradas e a planilha validada como único binário funcional esperado; não executar audit fix.
+- **Comandos executados:** `git status`, `git diff --name-status/numstat`, `git ls-files` para env/chaves/builds, diff de manifests e busca por nomes sensíveis.
+- **Fixtures / teste de contrato / amostras numéricas:** nenhum `.env` real, chave, `node_modules` ou `dist` rastreado; `.env.example` preexistentes; nenhum manifesto/lockfile alterado.
+- **Git diff --check:** a executar antes do commit.
+- **Commit:** a registrar após commit documental.
+- **Pendências ou riscos:** `dados_simulador_meta1_equipe_b.xlsx` é binário esperado e auditado nas EB-002/006/010; permanece necessário ao cálculo validado.
+- **Próximo item elegível:** EB-022.
+
 ## 7. Mudanças de escopo e decisões humanas
 
 | Data | Decisão/restrição | Quem autorizou | Impacto nos IDs | Evidência |
@@ -467,16 +480,16 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 
 ```text
 BRANCH_ATUAL: feat/integracao-equipe-b
-HEAD_SHA: 93d4ecc (antes do commit EB-020)
-ULTIMO_ITEM_VALIDADO: EB-019
-PROXIMO_ITEM: EB-021
+HEAD_SHA: a3108c4 (antes do commit EB-021)
+ULTIMO_ITEM_VALIDADO: EB-021
+PROXIMO_ITEM: EB-022
 GATE_M1: LIBERADO
 GATE_M2: LIBERADO
 GATE_FINAL: PENDENTE
-ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: smoke do simulador e checkpoint EB-020
+ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: checkpoint documental EB-021
 TESTES_ULTIMA_EXECUCAO: Angular 53/53; simulador 27/27; build aprovado com warning CSS preexistente
 BLOQUEIOS: pytest ausente; chatbot requer Pydantic 2, ambiente global tem Pydantic 1; gates matemáticos liberados
-ACAO_SEGURA_IMEDIATA: executar EB-021 e manter EB-020 parcial
+ACAO_SEGURA_IMEDIATA: executar EB-022 e manter EB-020 parcial
 ```
 
 **Não declarar entrega completa apenas porque o Codex encerrou uma sessão.** A conclusão requer EB-024 e GATE-FINAL aprovados.
