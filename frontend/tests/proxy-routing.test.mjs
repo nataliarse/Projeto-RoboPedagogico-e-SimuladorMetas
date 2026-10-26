@@ -30,8 +30,11 @@ test('chat e metas integradas chegam ao backend processual', () => {
   );
 });
 
-test('todas as rotas do simulador chegam ao backend na porta 8001', () => {
-  for (const endpoint of ['base', 'simular', 'comparar', 'otimizador']) {
+test('rotas antigas e novas do simulador chegam ao backend na porta 8001', () => {
+  for (const endpoint of [
+    'base', 'simular', 'comparar', 'otimizador',
+    'meta1/quanto-falta', 'meta2/base', 'meta2/simular',
+  ]) {
     assert.equal(
       resolveProxy(`/api/simulador/${endpoint}`),
       `http://127.0.0.1:8001/api/${endpoint}`,

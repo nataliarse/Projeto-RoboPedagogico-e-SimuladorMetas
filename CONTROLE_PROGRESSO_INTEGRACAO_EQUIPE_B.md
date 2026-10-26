@@ -1,8 +1,8 @@
 # CONTROLE DE PROGRESSO — Integração Equipe B → base do Robô Pedagógico
 
 **Documento de referência:** `CHECKLIST_INTEGRACAO_EQUIPE_B.md`  
-**Estado global:** `EB-001 A EB-018 CONCLUÍDAS; EB-019 ELEGÍVEL`
-**Atualizado em:** `2026-10-23 16:45 -03:00`
+**Estado global:** `EB-001 A EB-019 CONCLUÍDAS; EB-020 ELEGÍVEL`
+**Atualizado em:** `2026-10-26 -03:00`
 **Responsável executor:** `Codex (execução supervisionável por registros)`  
 **Regra:** este arquivo é o diário de execução. **Não antecipar resultados.**
 
@@ -19,8 +19,8 @@
 | Serviço canônico de simulação encontrado em | `simulador_metas_cnj/` |
 | Versões efetivas Python / Node / npm | `Python 3.12.10`; Node e npm indisponíveis no PATH |
 | Data/hora de início | `2026-10-23 15:53 -03:00` |
-| Último item terminado | `EB-018 (CONCLUÍDO)` |
-| Próxima tarefa elegível | `EB-019` |
+| Último item terminado | `EB-019 (CONCLUÍDO)` |
+| Próxima tarefa elegível | `EB-020` |
 
 ### Regra de status
 
@@ -36,11 +36,11 @@
 | Métrica | Valor inicial | Atualizar com evidência |
 |---|---|---|
 | Itens planejados | **24** | Conforme IDs EB-001 a EB-024 |
-| Itens concluídos | **18** | EB-001 a EB-018 |
+| Itens concluídos | **19** | EB-001 a EB-019 |
 | Itens parciais | **0** | — |
 | Itens em andamento | **0** | — |
 | Itens bloqueados | **0** | Nenhum bloqueio matemático ativo; limitações ambientais permanecem |
-| Commits de integração | **14** | Antes do commit EB-014; HEAD `db09f15` |
+| Commits de integração | **19** | HEAD `ad26d9d` antes da EB-019 |
 | Testes novos executados | **83 APROVADOS** | Angular 53, proxy 3 e simulador 27 nesta retomada |
 | Regressões P0 abertas | **Não avaliado** | Número com evidências |
 | Gate Meta 1 | `LIBERADO` | Responsável validou regras/séries da Equipe B como atualização em 23/10/2026 |
@@ -70,8 +70,8 @@
 | EB-015 | P1 | UI Meta 2 | CONCLUÍDO | A/ANT independentes, `null` preservado, histórico/projeção rotulados, comparação responsiva; Angular 49/49 e build aprovado | `dc9e300` |
 | EB-016 | P1 | Gráficos e cenários | CONCLUÍDO | Gráfico canônico preservado; identificação, valores da API, nulos, acessibilidade e responsividade cobertos; Angular 51/51 | `b78f4e9` |
 | EB-017 | P2 | Recentes localStorage | CONCLUÍDO | Histórico por meta, deduplicação, limite 3, restauro, limpeza e fallback sem storage; Angular 53/53 | `626d2cd` |
-| EB-018 | P0 | Chatbot preservado | CONCLUÍDO | Sem mock/rota incompatível; `/api/processos/chat`, sessão, navegação e healthchecks preservados; Angular 53/53 e proxy 3/3 | A registrar após commit |
-| EB-019 | P0 | Contratos e proxy | PENDENTE | — | — |
+| EB-018 | P0 | Chatbot preservado | CONCLUÍDO | Sem mock/rota incompatível; `/api/processos/chat`, sessão, navegação e healthchecks preservados; Angular 53/53 e proxy 3/3 | `ad26d9d` |
+| EB-019 | P0 | Contratos e proxy | CONCLUÍDO | Angular 53/53; proxy 3/3 com rotas antigas/novas; simulador 27/27 | A registrar após commit |
 | EB-020 | P0 | Smoke integrado offline | PENDENTE | — | — |
 | EB-021 | P0 | Revisão segurança/deps | PENDENTE | — | — |
 | EB-022 | P0 | Regressão completa + build | PENDENTE | — | — |
@@ -427,6 +427,19 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
 - **Pendências ou riscos:** suíte Python do chatbot permanece pendente por ausência do pytest.
 - **Próximo item elegível:** EB-019.
 
+### [2026-10-26] EB-019 — Contratos frontend, simulador e proxy
+- **Estado:** CONCLUÍDO
+- **Objetivo:** validar contratos antigos e novos através das fronteiras Angular, proxy e FastAPI.
+- **Arquivos lidos:** configuração/testes do proxy, clientes Angular e testes HTTP do simulador.
+- **Arquivos alterados (destino; não fonte):** `frontend/tests/proxy-routing.test.mjs` e este controle.
+- **Decisão arquitetural / por quê:** ampliar a matriz existente do proxy, sem alterar sua configuração, para provar o rewrite das três rotas novas.
+- **Comandos executados:** Angular 13 arquivos/53 testes aprovados; proxy 3/3; simulador discovery 27/27. Uma tentativa Python por módulos falhou apenas porque `test_state_isolation` usa import compatível com discovery; o comando oficial passou integralmente.
+- **Fixtures / teste de contrato / amostras numéricas:** `/api/simulador/meta1/quanto-falta`, `/meta2/base` e `/meta2/simular` reescritas para `127.0.0.1:8001/api/*`; 422/500/timeout/malformado cobertos no Angular/Python.
+- **Git diff --check:** a executar antes do commit.
+- **Commit:** a registrar após commit atômico.
+- **Pendências ou riscos:** nenhuma regressão de contrato observada.
+- **Próximo item elegível:** EB-020.
+
 ## 7. Mudanças de escopo e decisões humanas
 
 | Data | Decisão/restrição | Quem autorizou | Impacto nos IDs | Evidência |
@@ -441,16 +454,16 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 
 ```text
 BRANCH_ATUAL: feat/integracao-equipe-b
-HEAD_SHA: 626d2cd (antes do commit EB-018)
-ULTIMO_ITEM_VALIDADO: EB-018
-PROXIMO_ITEM: EB-019
+HEAD_SHA: ad26d9d (antes do commit EB-019)
+ULTIMO_ITEM_VALIDADO: EB-019
+PROXIMO_ITEM: EB-020
 GATE_M1: LIBERADO
 GATE_M2: LIBERADO
 GATE_FINAL: PENDENTE
-ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: checkpoint documental EB-018
+ARQUIVOS_COM_MUDANCAS_NAO_COMMITADAS: teste de proxy e checkpoint EB-019
 TESTES_ULTIMA_EXECUCAO: Angular 53/53; simulador 27/27; build aprovado com warning CSS preexistente
 BLOQUEIOS: pytest ainda precisa ser verificado para chatbot/coletor; gates matemáticos liberados
-ACAO_SEGURA_IMEDIATA: executar EB-019
+ACAO_SEGURA_IMEDIATA: executar EB-020
 ```
 
 **Não declarar entrega completa apenas porque o Codex encerrou uma sessão.** A conclusão requer EB-024 e GATE-FINAL aprovados.
