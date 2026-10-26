@@ -40,7 +40,7 @@
 | Itens parciais | **2** | EB-020 e EB-024, dependentes do GATE-FINAL |
 | Itens em andamento | **0** | — |
 | Itens bloqueados | **1** | EB-022: suítes chatbot/coletor indisponíveis no ambiente |
-| Commits de integração | **24** | Até EB-023; commit EB-024 a registrar |
+| Commits de integração | **25** | Até o commit funcional/documental da EB-024 |
 | Testes novos executados | **83 APROVADOS** | Angular 53, proxy 3 e simulador 27 nesta retomada |
 | Regressões P0 abertas | **2 suítes não executadas** | Chatbot e coletor; nenhuma falha nas suítes executadas |
 | Gate Meta 1 | `LIBERADO` | Responsável validou regras/séries da Equipe B como atualização em 23/10/2026 |
@@ -76,7 +76,7 @@
 | EB-021 | P0 | Revisão segurança/deps | CONCLUÍDO | Sem segredos/builds/deps novos; planilha validada é o único binário novo esperado | `43e71c4` |
 | EB-022 | P0 | Regressão completa + build | BLOQUEADO | Simulador 28/28, Angular 53/53, proxy 3/3 e build OK; chatbot/coletor não executados por ambiente | `4c1a354` |
 | EB-023 | P1 | Guia de execução | CONCLUÍDO | `GUIA_EXECUCAO_LOCAL.md`: ambientes separados, portas, rotas, testes e limites | `14067ef` |
-| EB-024 | P0 | Relatório final e decisão | PARCIAL | `RELATORIO_FINAL.md`; entrega classificada PARCIAL e gate bloqueado sem alegações não comprovadas | A registrar após commit |
+| EB-024 | P0 | Relatório final e decisão | PARCIAL | `RELATORIO_FINAL.md`; entrega classificada PARCIAL e gate bloqueado sem alegações não comprovadas | `5354624` |
 
 ## 4. Estado dos gates de decisão
 
@@ -501,7 +501,7 @@ _Nenhuma tarefa executada. Ao começar, registrar EB-001 abaixo desta linha._
 - **Comandos executados:** `git log/rev-list/diff/status`; consolidação das evidências EB-001 a EB-023.
 - **Fixtures / teste de contrato / amostras numéricas:** relatório referencia 28 testes simulador, 53 Angular, 3 proxy e build; chatbot/coletor explicitamente não executados.
 - **Git diff --check:** a executar antes do commit final.
-- **Commit:** a registrar após commit atômico.
+- **Commit:** `5354624` (relatório; reconciliação posterior apenas documental).
 - **Pendências ou riscos:** executar chatbot/coletor em ambientes isolados compatíveis e então retomar EB-020/022/024 para eventual liberação do gate.
 - **Próximo item elegível:** nenhum no ambiente atual.
 
@@ -519,7 +519,7 @@ Atualizar ao encerrar cada sessão, inclusive em falhas:
 
 ```text
 BRANCH_ATUAL: feat/integracao-equipe-b
-HEAD_SHA: 14067ef (antes do commit EB-024)
+HEAD_SHA: 5354624 (relatório EB-024; antes da reconciliação documental)
 ULTIMO_ITEM_VALIDADO: EB-023
 PROXIMO_ITEM: NENHUM NO AMBIENTE ATUAL
 GATE_M1: LIBERADO

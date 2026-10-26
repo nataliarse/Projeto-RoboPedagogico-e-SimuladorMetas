@@ -1,8 +1,8 @@
 # Relatório final — integração da Equipe B
 
-**Data:** 26/10/2026  
-**Branch:** `feat/integracao-equipe-b`  
-**Base:** `8b1a12e`  
+**Data:** 26/10/2026
+**Branch:** `feat/integracao-equipe-b`
+**Base:** `8b1a12e`
 **Estado da entrega:** **PARCIAL — GATE-FINAL BLOQUEADO**
 
 ## Resultado executivo
