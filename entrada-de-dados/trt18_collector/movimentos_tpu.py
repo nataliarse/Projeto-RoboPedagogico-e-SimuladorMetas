@@ -164,8 +164,10 @@ def classificar_movimento(titulo: str) -> tuple[Categoria | None, str]:
     # 3. baixa definitiva
     if "arquivados os autos definitivamente" in t or "arquivamento definitivo" in t:
         return Categoria.BAIXA, "arquivamento definitivo"
+    # o trânsito em julgado encerra o mérito, mas não é baixa (Situações 2, 10, 23 e 41 do
+    # Datamart): o processo segue pendente na execução até a baixa ou o arquivamento definitivo
     if "transitado em julgado" in t or "transito em julgado" in t:
-        return Categoria.BAIXA, "trânsito em julgado"
+        return None, "trânsito em julgado (não é baixa: o processo segue para a execução)"
     if "baixa definitiva" in t or t.startswith("baixado"):
         return Categoria.BAIXA, "baixa definitiva"
 
