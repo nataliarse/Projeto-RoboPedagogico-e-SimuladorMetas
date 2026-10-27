@@ -46,9 +46,16 @@ def is_process_meta_impact_question(message: str) -> bool:
     tokens = set(re.findall(r"[a-z0-9]+", _normalize(message)))
     if not tokens & {"meta", "metas"}:
         return False
-    process_references = {"processo", "este", "esse", "ele"}
-    impact_terms = {"impacta", "impacto", "pesa", "conta", "pendente", "cumpre"}
-    return bool(tokens & process_references) and bool(tokens & impact_terms)
+    process_references = {"processo", "este", "esse", "ele", "movimento", "movimentos", "movimentacao"}
+    impact_terms = {
+        "impacta", "impactam", "impactando", "impactar", "impacto",
+        "pesa", "pesando", "conta", "pendente", "cumpre",
+    }
+    # pedidos para sair da meta já pressupõem o processo ativo ("o que fazer para deixar de constar?")
+    exit_terms = {"consta", "constar", "constando", "sair", "tirar", "retirar"}
+    return (bool(tokens & process_references) and bool(tokens & impact_terms)) or bool(
+        tokens & exit_terms
+    )
 
 
 def has_process_number(message: str) -> bool:

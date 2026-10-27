@@ -13,6 +13,14 @@ class MetaIntentRoutingTestCase(unittest.TestCase):
         self.assertFalse(is_process_meta_impact_question("Qual a última movimentação do processo?"))
         self.assertFalse(is_process_meta_impact_question("Explique a Meta 1"))
         self.assertFalse(is_process_meta_impact_question("Simule um cenário da Meta 1"))
+        self.assertFalse(is_process_meta_impact_question("O que conta como julgado na Meta 1?"))
+
+    def test_server_questions_about_leaving_the_goal_match(self):
+        self.assertTrue(is_process_meta_impact_question(
+            "Qual movimento está impactando na meta 1 ou 2 do CNJ?"))
+        self.assertTrue(is_process_meta_impact_question(
+            "O que preciso fazer para parar de constar na meta?"))
+        self.assertTrue(is_process_meta_impact_question("Como tirar o processo da Meta 2?"))
 
     def test_ordinary_process_question_is_not_diverted_to_meta_diagnosis(self):
         state = create_session_state()
