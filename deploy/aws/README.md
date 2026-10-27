@@ -9,6 +9,7 @@ sistema volta sozinho quando a instância é ligada.
 | `instalar_robo.sh` | Ambiente Python, coletor (Chromium do Playwright com tela virtual), backend como serviço e nginx servindo a interface na porta 7860 |
 | `instalar_ollama.sh` | Ollama, modelos `llama3.2:1b`, `llama3.2:3b` e `nomic-embed-text`, e 2 GB de swap |
 | `instalar_qdrant.sh` | Qdrant como serviço e indexação do Glossário das Metas (RAG das normas) |
+| `instalar_simulador.sh` | Simulador de Metas como serviço (Python 3.12 via uv, ambiente próprio) e nginx com as rotas da integração |
 
 ## Como o código chega à instância
 
@@ -19,6 +20,7 @@ scripts esperam esta estrutura em `/home/ubuntu/robo`:
 robo/
 ├── chatbot_processual_ai/   # backend
 ├── entrada-de-dados/        # package trt18_collector
+├── simulador_metas_cnj/     # backend do simulador
 └── web/                     # interface compilada (conteúdo de frontend/dist/.../browser)
 ```
 
@@ -27,8 +29,12 @@ A interface é compilada antes do envio, com `npm run build` na pasta `frontend`
 ## Arquitetura na instância
 
 - **nginx (porta 7860):** serve a interface e encaminha `/api/` para o backend.
-- **backend (127.0.0.1:8000):** serviço `robo-backend`, executado com `xvfb-run`, porque o
+- **chatbot (127.0.0.1:8000):** serviço `robo-backend`, executado com `xvfb-run`, porque o
   coletor abre o navegador com janela e o servidor não tem tela.
+- **simulador (127.0.0.1:8001):** serviço `robo-simulador`. O nginx repete o proxy do Angular:
+  `/api/processos/*` e `/api/metas/*` vão ao chatbot, e `/api/simulador/*` vai ao simulador sem o
+  prefixo. O simulador fixa Pydantic 1 e pandas 3, por isso tem ambiente próprio, com Python 3.12
+  instalado pelo uv (o Ubuntu 22.04 traz o 3.10).
 - **Ollama (127.0.0.1:11434)** e **Qdrant (127.0.0.1:6333):** acessíveis só de dentro da
   instância.
 
