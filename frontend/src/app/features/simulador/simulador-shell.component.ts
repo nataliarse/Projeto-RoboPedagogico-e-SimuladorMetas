@@ -11,8 +11,8 @@ import { CenarioCalculado, RespostaMeta2 } from '../../core/models/simulador.mod
 export function montarKpisCabecalho(base: CenarioCalculado | undefined, meta2: RespostaMeta2 | null) {
   return [
     { label: 'Meta 1 Base', valor: base?.meta1Final ?? null },
-    { label: 'Meta 2 A', valor: meta2?.resultado_2026.A.meta2 ?? null },
-    { label: 'Meta 2 ANT', valor: meta2?.resultado_2026.ANT.meta2 ?? null },
+    { label: 'Meta 2 A (CNJ v3 demo.)', valor: meta2?.resultado_2026.A.meta2 ?? null },
+    { label: 'Meta 2 ANT (CNJ v3 demo.)', valor: meta2?.resultado_2026.ANT.meta2 ?? null },
   ];
 }
 

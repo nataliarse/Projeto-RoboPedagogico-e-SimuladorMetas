@@ -63,6 +63,7 @@ describe('GraficosComponent', () => {
     expect(text).toContain('Esforço outubro');
     expect(text).toContain('96.47%');
     expect(text).toContain('100.01%');
+    expect(text).toContain('Evolução acumulada da meta 1 em 2026');
   });
 
   it('mantém barras limitadas e representa nulo sem inventar zero', () => {

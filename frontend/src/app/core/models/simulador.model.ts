@@ -138,9 +138,11 @@ export interface RegistroMeta2 {
   suspensos_calculo?: number | null;
   dessobrestados_calculo?: number | null;
   denominador?: number | null;
+  denominador_original?: number | null;
   status_validacao?: StatusValidacaoMeta2;
   mensagem_validacao?: string;
   meta2: number | null;
+  meta2_original?: number | null;
 }
 export interface ProvenienciaMeta2 {
   fonte: string;
@@ -164,6 +166,7 @@ export interface ResultadoGrupoMeta2 {
 export interface RespostaMeta2 {
   resultado_2025: Record<'A' | 'ANT', Record<string, number>>;
   resultado_2026: Record<'A' | 'ANT', ResultadoGrupoMeta2>;
+  reproducao_original_2026: Record<'A' | 'ANT', ResultadoGrupoMeta2>;
   serie_A: RegistroMeta2[];
   serie_ANT: RegistroMeta2[];
 }

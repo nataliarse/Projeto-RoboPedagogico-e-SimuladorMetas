@@ -1,4 +1,6 @@
+import json
 import unittest
+from pathlib import Path
 
 from pydantic import ValidationError
 
@@ -6,17 +8,43 @@ import main
 from services import meta2_groups
 
 
+SERIES_FIXTURE = json.loads(
+    (
+        Path(__file__).parents[2]
+        / "docs"
+        / "integracao_equipe_b"
+        / "fixtures"
+        / "meta2_original_series.json"
+    ).read_text(encoding="utf-8")
+)
+
+
 class Meta2GroupsTestCase(unittest.TestCase):
-    def test_base_preserves_a_and_marks_ant_as_pending_validation(self):
+    def test_base_separates_official_v3_from_original_non_homologated_result(self):
         result = main.get_meta2_groups_base()
-        self.assertEqual(result["resultado_2026"]["A"]["meta2"], 104.63)
-        self.assertIsNone(result["resultado_2026"]["ANT"]["meta2"])
+        self.assertEqual(result["resultado_2026"]["A"]["meta2"], 105.32)
+        self.assertEqual(result["resultado_2026"]["ANT"]["meta2"], 111.11)
+        self.assertEqual(result["reproducao_original_2026"]["A"]["meta2"], 104.63)
+        self.assertEqual(result["reproducao_original_2026"]["ANT"]["meta2"], 110.0)
         self.assertFalse(result["resultado_2026"]["A"]["homologado"])
         self.assertEqual(result["resultado_2026"]["A"]["status_validacao"], "demonstrativo")
         self.assertFalse(result["resultado_2026"]["ANT"]["homologado"])
-        self.assertEqual(result["resultado_2026"]["ANT"]["status_validacao"], "pendente_validacao")
+        self.assertEqual(result["resultado_2026"]["ANT"]["status_validacao"], "demonstrativo")
+        self.assertFalse(result["reproducao_original_2026"]["ANT"]["homologado"])
         self.assertEqual(result["serie_A"][12]["tipo"], "real")
         self.assertEqual(result["serie_A"][14]["tipo"], "previsao")
+
+    def test_all_original_historical_and_forecast_values_match_audited_fixture(self):
+        for group in ("A", "ANT"):
+            self.assertEqual(
+                meta2_groups.DATASET_METADATA[group]["proveniencia"]["versao"],
+                f"sha256:{SERIES_FIXTURE['evidencia']['zip_processual_sha256']}",
+            )
+            self.assertEqual(meta2_groups.HISTORY[group]["months"], SERIES_FIXTURE["meses_historicos"])
+            self.assertEqual(meta2_groups.FORECAST[group]["months"], SERIES_FIXTURE["meses_projetados"])
+            for field in ("julgados", "suspensos", "dessobrestados"):
+                self.assertEqual(meta2_groups.HISTORY[group][field], SERIES_FIXTURE[group]["historico"][field])
+                self.assertEqual(meta2_groups.FORECAST[group][field], SERIES_FIXTURE[group]["projecao"][field])
 
     def test_historical_110_case_is_reproducible_but_not_the_2026_rule(self):
         historical = meta2_groups.calculate_ant_percentage(22, 72, 28, 24, 100)
@@ -24,6 +52,24 @@ class Meta2GroupsTestCase(unittest.TestCase):
 
         self.assertEqual(round(historical, 2), 110.0)
         self.assertEqual(round(official_2026, 2), 111.11)
+
+    def test_ant_24_reopened_is_6_observed_plus_18_forecast_not_december_flow(self):
+        result = main.get_meta2_groups_base()
+        december = result["serie_ANT"][-1]
+        self.assertEqual(sum(meta2_groups.HISTORY["ANT"]["dessobrestados"][-2:]), 6)
+        self.assertEqual(sum(meta2_groups.FORECAST["ANT"]["dessobrestados"]), 18)
+        self.assertEqual(december["dessobrestados"], 2)
+        self.assertEqual(december["dessobrestados_acum_2026"], 24)
+
+    def test_meta_a_v3_denominator_deducts_reopened_while_original_does_not(self):
+        december = main.get_meta2_groups_base()["serie_A"][-1]
+        self.assertEqual(december["julgados_calculo"], 26907)
+        self.assertEqual(december["suspensos_calculo"], 190)
+        self.assertEqual(december["dessobrestados_calculo"], 180)
+        self.assertEqual(december["denominador"], 27178)
+        self.assertEqual(december["denominador_original"], 27358)
+        self.assertEqual(december["meta2"], 105.32)
+        self.assertEqual(december["meta2_original"], 104.63)
 
     def test_zero_denominator_returns_none(self):
         self.assertIsNone(meta2_groups.calculate_meta_ant_2026(22, 72, 28, 44))
@@ -104,9 +150,10 @@ class Meta2GroupsTestCase(unittest.TestCase):
                 "alteracoes_ANT": {"2026-03": {"dessobrestados": -1}},
             })
         )
-        self.assertEqual(result["resultado_2026"]["A"]["meta2"], 104.67)
-        self.assertIsNone(result["resultado_2026"]["ANT"]["meta2"])
-        self.assertEqual(result["resultado_2026"]["ANT"]["status_validacao"], "pendente_validacao")
+        self.assertEqual(result["resultado_2026"]["A"]["meta2"], 105.36)
+        self.assertEqual(result["resultado_2026"]["ANT"]["meta2"], 105.82)
+        self.assertEqual(result["reproducao_original_2026"]["A"]["meta2"], 104.67)
+        self.assertEqual(result["reproducao_original_2026"]["ANT"]["meta2"], 104.76)
 
     def test_real_month_can_be_changed_as_validated(self):
         result = main.simulate_meta2_groups_endpoint(
@@ -116,7 +163,7 @@ class Meta2GroupsTestCase(unittest.TestCase):
         )
         january = next(row for row in result["serie_A"] if row["data"] == "2026-01")
         self.assertEqual(january["tipo"], "real")
-        self.assertEqual(january["julgados"], 190)
+        self.assertEqual(january["julgados"], 137)
 
     def test_nonpositive_denominators_return_null_without_nan(self):
         result = meta2_groups.simulate(

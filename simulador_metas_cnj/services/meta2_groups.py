@@ -12,12 +12,14 @@ CONSOLIDATED_LOAD = "carga_consolidada"
 MONTHLY_FLOW = "fluxo_mensal"
 UNDEFINED_SEMANTICS = "indefinida"
 ANT_2026_FACTOR = 1000 / 9.9
+A_2026_FACTOR = 1000 / 9.4
+ORIGINAL_ANT_FACTOR = 100
 
 GROUPS = {
     "A": {
         "D": 27548,
         "description": "Processos distribuídos até 31/12/2024",
-        "formula": "Meta 2-A = (Julgados_base + Julgados_ano) ÷ (D − Suspensos_dez) × (1000÷9,4)",
+        "formula": "Meta 2-A = (Julgados_base + Julgados_ano) ÷ (D − Suspensos_dez − Dessobrestados_ano) × (1000÷9,4)",
     },
     "ANT": {
         "D": 72,
@@ -26,16 +28,15 @@ GROUPS = {
     },
 }
 
-# As séries recebidas foram preservadas para comparação histórica. Elas não têm
-# extrato de origem, versão do modelo ARIMA ou homologação que permita tratá-las
-# como dados oficiais. A semântica de ANT permanece indefinida de propósito: o
-# código não tenta inferir se cada número é fluxo mensal ou carga consolidada.
+# Séries agregadas reconstruídas offline com os fontes e o ZIP da entrega. O ZIP
+# processual e os arquivos por processo permanecem fora do repositório; os hashes
+# permitem conferir novamente a mesma evidência sem publicar dados sensíveis.
 DATASET_METADATA = {
     "A": {
         "proveniencia": {
-            "fonte": "Série estática recebida da Equipe B",
-            "versao": None,
-            "referencia": "jan/2025 a dez/2026",
+            "fonte": "Entrega 06 / TRT18.csv, agregado pelo código original",
+            "versao": "sha256:7da8d2d89b7f2df078dbda2df38e68577a53f906d629baf90cbe11b7251065bd",
+            "referencia": "jan/2025 a fev/2026 observado; mar a dez/2026 ARIMA",
             "homologada": False,
         },
         "semantica_temporal": {
@@ -46,15 +47,15 @@ DATASET_METADATA = {
     },
     "ANT": {
         "proveniencia": {
-            "fonte": "Série estática recebida da Equipe B",
-            "versao": None,
-            "referencia": "jan/2025 a dez/2026",
+            "fonte": "Entrega 06 / TRT18.csv, agregado pelo código original",
+            "versao": "sha256:7da8d2d89b7f2df078dbda2df38e68577a53f906d629baf90cbe11b7251065bd",
+            "referencia": "jan/2025 a fev/2026 observado; mar a dez/2026 ARIMA",
             "homologada": False,
         },
         "semantica_temporal": {
-            "julgados": UNDEFINED_SEMANTICS,
-            "suspensos": UNDEFINED_SEMANTICS,
-            "dessobrestados": UNDEFINED_SEMANTICS,
+            "julgados": MONTHLY_FLOW,
+            "suspensos": CONSOLIDATED_LOAD,
+            "dessobrestados": MONTHLY_FLOW,
         },
     },
 }
@@ -62,16 +63,16 @@ DATASET_METADATA = {
 HISTORY = {
     "A": {
         "months": [f"2025-{month:02d}" for month in range(1, 13)] + ["2026-01", "2026-02"],
-        "julgados": [1820, 1680, 2050, 1920, 2100, 1850, 1750, 2200, 1980, 2050, 1900, 1735, 180, 137],
-        "suspensos": [95, 94, 93, 92, 91, 90, 89, 88, 87, 86, 85, 97, 92, 90],
-        "dessobrestados": [8, 7, 9, 6, 10, 8, 7, 9, 8, 7, 9, 8, 2, 0],
+        "julgados": [4284, 6700, 4038, 2829, 2300, 1547, 1277, 910, 728, 503, 336, 277, 127, 190],
+        "suspensos": [150, 147, 135, 132, 147, 158, 170, 176, 182, 187, 188, 198, 194, 192],
+        "dessobrestados": [31, 72, 37, 29, 46, 40, 19, 30, 19, 9, 14, 4, 22, 11],
         "prior_judgments": 25863,
     },
     "ANT": {
         "months": [f"2025-{month:02d}" for month in range(1, 13)] + ["2026-01", "2026-02"],
-        "julgados": [0] * 12 + [2, 0],
-        "suspensos": [0] * 12 + [1, 1],
-        "dessobrestados": [0] * 14,
+        "julgados": [0] * 13 + [2],
+        "suspensos": [7, 8, 8, 8, 10, 10, 12, 12, 13, 14, 14, 14, 15, 16],
+        "dessobrestados": [0, 0, 1, 2, 6, 11, 1, 4, 3, 2, 0, 0, 5, 1],
         "prior_judgments": 0,
     },
 }
@@ -79,15 +80,15 @@ HISTORY = {
 FORECAST = {
     "A": {
         "months": [f"2026-{month:02d}" for month in range(3, 13)],
-        "julgados": [75, 72, 78, 71, 69, 74, 73, 70, 68, 77],
-        "suspensos": [89, 88, 87, 86, 85, 84, 83, 82, 81, 190],
-        "dessobrestados": [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        "julgados": [155, 126, 103, 84, 68, 55, 45, 37, 30, 24],
+        "suspensos": [191, 191, 190, 190, 190, 190, 190, 190, 190, 190],
+        "dessobrestados": [17, 13, 16, 14, 15, 14, 15, 14, 15, 14],
     },
     "ANT": {
         "months": [f"2026-{month:02d}" for month in range(3, 13)],
         "julgados": [2] * 10,
-        "suspensos": [1] * 9 + [28],
-        "dessobrestados": [2, 2, 2, 2, 2, 2, 2, 3, 3, 24],
+        "suspensos": [17, 18, 19, 20, 21, 22, 23, 25, 26, 28],
+        "dessobrestados": [1, 1, 2, 2, 2, 2, 2, 2, 2, 2],
     },
 }
 
@@ -125,19 +126,40 @@ def calculate_meta_ant_2026(
     suspended: float,
     reopened: float,
 ) -> Optional[float]:
-    """Meta 2 ANT/TRTs conforme o Glossário CNJ 2026, versão 1."""
+    """Meta 2 ANT/TRTs conforme o Glossário CNJ 2026, versão 3."""
     return calculate_ant_percentage(
         judgments, distributed, suspended, reopened, ANT_2026_FACTOR
     )
 
 
-def _meta_a(judgments: float, distributed: float, suspended: float) -> Optional[float]:
+def _meta_a(
+    judgments: float,
+    distributed: float,
+    suspended: float,
+    reopened: float,
+) -> Optional[float]:
+    """Meta 2 A/TRTs conforme a versão 3, inclusive dessobrestados."""
+    if not _finite(judgments, distributed, suspended, reopened):
+        return None
+    denominator = distributed - suspended - reopened
+    if denominator <= 0:
+        return None
+    value = judgments / denominator * A_2026_FACTOR
+    return float(value) if math.isfinite(value) else None
+
+
+def _meta_a_original(
+    judgments: float,
+    distributed: float,
+    suspended: float,
+) -> Optional[float]:
+    """Reproduz a entrega, que não descontava dessobrestados em A."""
     if not _finite(judgments, distributed, suspended):
         return None
     denominator = distributed - suspended
     if denominator <= 0:
         return None
-    value = judgments / denominator * (1000 / 9.4)
+    value = judgments / denominator * A_2026_FACTOR
     return float(value) if math.isfinite(value) else None
 
 
@@ -207,6 +229,17 @@ def build_ant_series(
             else None
         )
         record["meta2"] = round(value, 2) if value is not None else None
+        original_value = (
+            calculate_ant_percentage(
+                judgments, distributed, suspended, reopened, ORIGINAL_ANT_FACTOR
+            )
+            if _finite(judgments, distributed, suspended, reopened)
+            else None
+        )
+        record["denominador_original"] = record["denominador"]
+        record["meta2_original"] = (
+            round(original_value, 2) if original_value is not None else None
+        )
     return result
 
 
@@ -245,11 +278,30 @@ def build_series(group: str, changes: Optional[Dict[str, dict]] = None) -> List[
         record["dessobrestados_acum_2026"] = accumulated_reopened if in_year else None
         record["status_validacao"] = status
         record["mensagem_validacao"] = message
-        value = (
-            _meta_a(HISTORY[group]["prior_judgments"] + accumulated_judgments, GROUPS[group]["D"], record["suspensos"])
+        judgments = HISTORY[group]["prior_judgments"] + accumulated_judgments
+        record["julgados_calculo"] = judgments if in_year else None
+        record["suspensos_calculo"] = record["suspensos"] if in_year else None
+        record["dessobrestados_calculo"] = accumulated_reopened if in_year else None
+        record["denominador"] = (
+            GROUPS[group]["D"] - record["suspensos"] - accumulated_reopened
             if in_year else None
         )
+        record["denominador_original"] = (
+            GROUPS[group]["D"] - record["suspensos"] if in_year else None
+        )
+        value = _meta_a(
+            judgments,
+            GROUPS[group]["D"],
+            record["suspensos"],
+            accumulated_reopened,
+        ) if in_year else None
+        original_value = _meta_a_original(
+            judgments, GROUPS[group]["D"], record["suspensos"]
+        ) if in_year else None
         record["meta2"] = round(value, 2) if value is not None else None
+        record["meta2_original"] = (
+            round(original_value, 2) if original_value is not None else None
+        )
     return records
 
 
@@ -265,7 +317,31 @@ def _final(group: str, series: List[dict]) -> dict:
         "formula": GROUPS[group]["formula"],
         "homologado": homologated,
         "status_validacao": status,
-        "mensagem_validacao": message,
+        "mensagem_validacao": (
+            "Metodologia oficial CNJ 2026 v3 aplicada a dados não homologados"
+            if status == "demonstrativo" else message
+        ),
+        "proveniencia": deepcopy(DATASET_METADATA[group]["proveniencia"]),
+        "semantica_temporal": deepcopy(DATASET_METADATA[group]["semantica_temporal"]),
+    }
+
+
+def _original_final(group: str, series: List[dict]) -> dict:
+    year_records = [record for record in series if record["data"].startswith(str(YEAR))]
+    return {
+        "grupo": group,
+        "ano": YEAR,
+        "meta2": year_records[-1]["meta2_original"] if year_records else None,
+        "distribuidos": GROUPS[group]["D"],
+        "descricao": "Reprodução histórica da entrega da equipe",
+        "formula": (
+            "Meta 2-A = Julgados ÷ (D − Suspensos_dez) × (1000÷9,4)"
+            if group == "A"
+            else "Meta 2-ANT = Julgados ÷ (D − Suspensos_dez − Dessobrestados_ano) × 100"
+        ),
+        "homologado": False,
+        "status_validacao": "demonstrativo",
+        "mensagem_validacao": "Reprodução não homologada; não corresponde à metodologia CNJ 2026 v3",
         "proveniencia": deepcopy(DATASET_METADATA[group]["proveniencia"]),
         "semantica_temporal": deepcopy(DATASET_METADATA[group]["semantica_temporal"]),
     }
@@ -277,6 +353,10 @@ def simulate(changes_a: Optional[Dict[str, dict]] = None, changes_ant: Optional[
     return {
         "resultado_2025": deepcopy(RESULT_2025),
         "resultado_2026": {"A": _final("A", series_a), "ANT": _final("ANT", series_ant)},
+        "reproducao_original_2026": {
+            "A": _original_final("A", series_a),
+            "ANT": _original_final("ANT", series_ant),
+        },
         "serie_A": series_a,
         "serie_ANT": series_ant,
     }

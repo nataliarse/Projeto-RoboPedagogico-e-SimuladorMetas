@@ -117,6 +117,7 @@ artifacts/
 # Material externo usado somente como fonte para integração local.
 # O conteúdo deve permanecer no disco, mas nunca ser versionado.
 /integracao_entrada/
+/06_entrega_codigo_meta2/
 
 # Artefatos de modelos de ML somente em destinos operacionais conhecidos.
 # Diretórios TypeScript `src/app/core/models/` são código-fonte e não devem ser ignorados.

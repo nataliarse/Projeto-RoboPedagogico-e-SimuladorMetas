@@ -37,4 +37,4 @@ Fixture reproduzível: `docs/integracao_equipe_b/fixtures/meta1_comparison.json`
 
 ## Meta 2
 
-O cálculo A/ANT não corresponde à Meta 2 agregada anterior. A base A permanece demonstrativa em `104,63%`. ANT permanece `null`, mas agora porque a semântica temporal e a proveniência das constantes não permitem um cálculo confiável; a aplicação não acumula nem converte silenciosamente esses dados. A fórmula disponível para datasets adequadamente classificados usa o fator oficial de 2026 `1000/9,9`. O comportamento histórico de denominador sensível e o valor reportado de `110%` estão explicados em `AUDITORIA_META2.md`.
+O cálculo A/ANT permanece independente da Meta 2 agregada anterior. A auditoria da entrega 06 recuperou a semântica e as séries agregadas originais sem versionar o ZIP processual. A aplicação agora separa a reprodução não homologada da equipe (`A=104,63%`, `ANT=110,00%`) da aplicação demonstrativa das fórmulas CNJ 2026 v3 aos mesmos dados (`A=105,32%`, `ANT=111,11%`). Valores, hashes, diferenças mensais e limitações estão em `AUDITORIA_META2.md`.

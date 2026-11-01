@@ -2,7 +2,6 @@ import { Component, inject, AfterViewInit, ElementRef, ViewChild, effect, Inject
 import { CommonModule } from '@angular/common';
 import type { Chart, ChartConfiguration } from 'chart.js';
 import { SimuladorService } from '../../core/services/simulador.service';
-import { ANO_SIM } from '../../core/models/simulador.model';
 
 @Component({
   selector: 'app-graficos',
@@ -13,7 +12,7 @@ import { ANO_SIM } from '../../core/models/simulador.model';
 
       <!-- Gráfico de linhas -->
       <div class="card">
-        <div class="card-title">Meta 1 — evolução mensal por cenário ({{ anoSim }})</div>
+        <div class="card-title">Evolução acumulada da meta 1 em 2026</div>
         <div class="legenda">
           @for (c of sim.cenariosCalculados(); track c.id) {
             <span class="leg-item">
@@ -87,7 +86,6 @@ import { ANO_SIM } from '../../core/models/simulador.model';
 export class GraficosComponent implements AfterViewInit, OnDestroy {
   sim = inject(SimuladorService);
   private injector = inject(Injector);
-  anoSim = ANO_SIM;
   graficoIndisponivel = signal(false);
 
   @ViewChild('linhaCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;

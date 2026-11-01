@@ -17,7 +17,7 @@ interface CenarioMeta2 { nome: string; grupo: Grupo; resposta: RespostaMeta2; }
     <section class="meta2" aria-labelledby="meta2-title">
       <header class="header">
         <div><h2 id="meta2-title">Meta 2 por grupo processual</h2>
-          <p>Resultados de protótipo: meses históricos e projeções são identificados separadamente.</p></div>
+          <p>Metodologia CNJ 2026 v3 e reprodução histórica não homologada são exibidas separadamente.</p></div>
         <span class="projection-label">Projeção estática · referência 2026</span>
       </header>
 
@@ -25,11 +25,14 @@ interface CenarioMeta2 { nome: string; grupo: Grupo; resposta: RespostaMeta2; }
       @if (base(); as data) {
         <div class="kpis">
           @for (grupo of grupos; track grupo) {
-            <article class="kpi"><span>Meta 2-{{ grupo }} · cenário exibido</span>
+            <article class="kpi"><span>Meta 2-{{ grupo }} · metodologia CNJ 2026 v3</span>
               <strong>{{ fmt(resultadoAtual().resultado_2026[grupo].meta2) }}</strong>
               <small>{{ data.resultado_2026[grupo].descricao }}</small>
               <small class="validation" [class.pending]="resultadoAtual().resultado_2026[grupo].status_validacao === 'pendente_validacao'">
                 {{ resultadoAtual().resultado_2026[grupo].mensagem_validacao }}
+              </small>
+              <small>Reprodução da equipe (não homologada):
+                {{ fmt(resultadoAtual().reproducao_original_2026[grupo].meta2) }}
               </small>
             </article>
           }
@@ -63,7 +66,7 @@ interface CenarioMeta2 { nome: string; grupo: Grupo; resposta: RespostaMeta2; }
         </div>
 
         <div class="card"><h3>Comparação de cenários</h3>
-          <div class="table-wrap"><table><thead><tr><th>Cenário</th><th>Grupo alterado</th><th>Meta 2-A</th><th>Meta 2-ANT</th></tr></thead>
+          <div class="table-wrap"><table><thead><tr><th>Cenário</th><th>Grupo alterado</th><th>Meta 2-A oficial v3</th><th>Meta 2-ANT oficial v3</th></tr></thead>
             <tbody><tr [class.selected]="selecionado() === -1" (click)="selecionado.set(-1)"><td>Base</td><td>—</td><td>{{ fmt(data.resultado_2026.A.meta2) }}</td><td>{{ fmt(data.resultado_2026.ANT.meta2) }}</td></tr>
               @for (cenario of cenarios(); track $index; let i = $index) {
                 <tr [class.selected]="selecionado() === i" (click)="selecionado.set(i)"><td>{{ cenario.nome }}</td><td>{{ cenario.grupo }}</td><td>{{ fmt(cenario.resposta.resultado_2026.A.meta2) }}</td><td>{{ fmt(cenario.resposta.resultado_2026.ANT.meta2) }}</td></tr>
@@ -72,8 +75,8 @@ interface CenarioMeta2 { nome: string; grupo: Grupo; resposta: RespostaMeta2; }
         </div>
 
         <div class="card"><h3>Evolução mensal · Grupo {{ grupoSelecionado }}</h3>
-          <div class="table-wrap"><table><thead><tr><th>Mês</th><th>Natureza</th><th>Julgados</th><th>Suspensos</th><th>Dessobrestados</th><th>Meta 2</th></tr></thead>
-            <tbody>@for (registro of serieAtual(); track registro.data) {<tr><td>{{ mesLabel(registro.data) }}/2026</td><td>{{ registro.tipo === 'real' ? 'Histórico' : 'Projeção' }}</td><td>{{ registro.julgados }}</td><td>{{ registro.suspensos }}</td><td>{{ registro.dessobrestados }}</td><td>{{ fmt(registro.meta2) }}</td></tr>}</tbody>
+          <div class="table-wrap"><table><thead><tr><th>Mês</th><th>Natureza</th><th>Julgados</th><th>Suspensos</th><th>Dessobrestados</th><th>Oficial v3</th><th>Reprodução</th></tr></thead>
+            <tbody>@for (registro of serieAtual(); track registro.data) {<tr><td>{{ mesLabel(registro.data) }}/2026</td><td>{{ registro.tipo === 'real' ? 'Histórico' : 'Projeção' }}</td><td>{{ registro.julgados }}</td><td>{{ registro.suspensos }}</td><td>{{ registro.dessobrestados }}</td><td>{{ fmt(registro.meta2) }}</td><td>{{ fmt(registro.meta2_original ?? null) }}</td></tr>}</tbody>
           </table></div>
         </div>
       } @else { <p class="loading">Carregando Meta 2...</p> }

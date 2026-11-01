@@ -126,14 +126,18 @@ describe('SimuladorApiService', () => {
     const response = {
       resultado_2025: { A: { meta: 106.22 }, ANT: { meta: 100 } },
       resultado_2026: {
-        A: { grupo: 'A', ano: 2026, meta2: 104.63, distribuidos: 27548, descricao: 'A', formula: 'A',
-          homologado: false, status_validacao: 'demonstrativo', mensagem_validacao: 'Simulação com dados não homologados',
-          proveniencia: { fonte: 'fixture', versao: null, referencia: '2026', homologada: false },
+        A: { grupo: 'A', ano: 2026, meta2: 105.32, distribuidos: 27548, descricao: 'A', formula: 'A',
+          homologado: false, status_validacao: 'demonstrativo', mensagem_validacao: 'Metodologia oficial CNJ 2026 v3 aplicada a dados não homologados',
+          proveniencia: { fonte: 'fixture', versao: 'teste-1', referencia: '2026', homologada: false },
           semantica_temporal: { julgados: 'fluxo_mensal', suspensos: 'carga_consolidada', dessobrestados: 'fluxo_mensal' } },
-        ANT: { grupo: 'ANT', ano: 2026, meta2: null, distribuidos: 72, descricao: 'ANT', formula: 'ANT',
-          homologado: false, status_validacao: 'pendente_validacao', mensagem_validacao: 'Indicador pendente de validação',
-          proveniencia: { fonte: 'fixture', versao: null, referencia: '2026', homologada: false },
-          semantica_temporal: { julgados: 'indefinida', suspensos: 'indefinida', dessobrestados: 'indefinida' } },
+        ANT: { grupo: 'ANT', ano: 2026, meta2: 111.11, distribuidos: 72, descricao: 'ANT', formula: 'ANT',
+          homologado: false, status_validacao: 'demonstrativo', mensagem_validacao: 'Metodologia oficial CNJ 2026 v3 aplicada a dados não homologados',
+          proveniencia: { fonte: 'fixture', versao: 'teste-1', referencia: '2026', homologada: false },
+          semantica_temporal: { julgados: 'fluxo_mensal', suspensos: 'carga_consolidada', dessobrestados: 'fluxo_mensal' } },
+      },
+      reproducao_original_2026: {
+        A: { grupo: 'A', ano: 2026, meta2: 104.63, distribuidos: 27548, descricao: 'Reprodução', formula: 'A' },
+        ANT: { grupo: 'ANT', ano: 2026, meta2: 110, distribuidos: 72, descricao: 'Reprodução', formula: 'ANT' },
       },
       serie_A: [], serie_ANT: [],
     };

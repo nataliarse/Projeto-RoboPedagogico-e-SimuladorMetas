@@ -181,7 +181,9 @@ export class SimuladorApiService {
       || typeof response.resultado_2026.ANT.status_validacao !== 'string'
       || typeof response.resultado_2026.ANT.mensagem_validacao !== 'string'
       || !response.resultado_2026.ANT.proveniencia
-      || !response.resultado_2026.ANT.semantica_temporal) {
+      || !response.resultado_2026.ANT.semantica_temporal
+      || !response.reproducao_original_2026?.A
+      || !response.reproducao_original_2026?.ANT) {
       throw new InvalidSimulatorResponseError();
     }
     return response;

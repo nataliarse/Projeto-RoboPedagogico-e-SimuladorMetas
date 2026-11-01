@@ -529,6 +529,7 @@ class SimularMeta2Request(ModeloEntrada):
 class Meta2GroupsResponse(BaseModel):
     resultado_2025: Dict[str, Dict[str, Any]]
     resultado_2026: Dict[str, Dict[str, Any]]
+    reproducao_original_2026: Dict[str, Dict[str, Any]]
     serie_A: List[Dict[str, Any]]
     serie_ANT: List[Dict[str, Any]]
 
