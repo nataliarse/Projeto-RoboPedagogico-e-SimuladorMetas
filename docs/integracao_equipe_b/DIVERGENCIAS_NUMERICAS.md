@@ -37,4 +37,4 @@ Fixture reproduzível: `docs/integracao_equipe_b/fixtures/meta1_comparison.json`
 
 ## Meta 2
 
-O cálculo A/ANT importado não corresponde à Meta 2 agregada anterior. A base A resulta em `104,63`; ANT em `null`, e alterações pequenas podem levar ANT a `2200,00%` quando o denominador passa de zero para um. Esses riscos permanecem documentados, mas o responsável validou as regras e séries como atualização da Equipe B em 23/10/2026 e autorizou a integração. GATE-M2 liberado por decisão humana; detalhes em `AUDITORIA_META2.md`.
+O cálculo A/ANT não corresponde à Meta 2 agregada anterior. A base A permanece demonstrativa em `104,63%`. ANT permanece `null`, mas agora porque a semântica temporal e a proveniência das constantes não permitem um cálculo confiável; a aplicação não acumula nem converte silenciosamente esses dados. A fórmula disponível para datasets adequadamente classificados usa o fator oficial de 2026 `1000/9,9`. O comportamento histórico de denominador sensível e o valor reportado de `110%` estão explicados em `AUDITORIA_META2.md`.

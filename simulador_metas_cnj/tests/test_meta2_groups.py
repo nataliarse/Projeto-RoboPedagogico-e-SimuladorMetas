@@ -7,12 +7,90 @@ from services import meta2_groups
 
 
 class Meta2GroupsTestCase(unittest.TestCase):
-    def test_base_matches_validated_snapshot(self):
+    def test_base_preserves_a_and_marks_ant_as_pending_validation(self):
         result = main.get_meta2_groups_base()
         self.assertEqual(result["resultado_2026"]["A"]["meta2"], 104.63)
         self.assertIsNone(result["resultado_2026"]["ANT"]["meta2"])
+        self.assertFalse(result["resultado_2026"]["A"]["homologado"])
+        self.assertEqual(result["resultado_2026"]["A"]["status_validacao"], "demonstrativo")
+        self.assertFalse(result["resultado_2026"]["ANT"]["homologado"])
+        self.assertEqual(result["resultado_2026"]["ANT"]["status_validacao"], "pendente_validacao")
         self.assertEqual(result["serie_A"][12]["tipo"], "real")
         self.assertEqual(result["serie_A"][14]["tipo"], "previsao")
+
+    def test_historical_110_case_is_reproducible_but_not_the_2026_rule(self):
+        historical = meta2_groups.calculate_ant_percentage(22, 72, 28, 24, 100)
+        official_2026 = meta2_groups.calculate_meta_ant_2026(22, 72, 28, 24)
+
+        self.assertEqual(round(historical, 2), 110.0)
+        self.assertEqual(round(official_2026, 2), 111.11)
+
+    def test_zero_denominator_returns_none(self):
+        self.assertIsNone(meta2_groups.calculate_meta_ant_2026(22, 72, 28, 44))
+
+    def test_consolidated_loads_are_not_summed_again(self):
+        records = [
+            self._ant_record("2026-01", 5, 1, 2),
+            self._ant_record("2026-02", 7, 2, 4),
+        ]
+        series = meta2_groups.build_ant_series(
+            records,
+            72,
+            self._metadata(meta2_groups.CONSOLIDATED_LOAD),
+        )
+
+        february = series[-1]
+        self.assertEqual(february["julgados_acum_2026"], 12)
+        self.assertEqual(february["julgados_calculo"], 7)
+        self.assertEqual(february["suspensos_calculo"], 2)
+        self.assertEqual(february["dessobrestados_calculo"], 4)
+        self.assertEqual(february["denominador"], 66)
+        self.assertEqual(february["meta2"], 10.71)
+
+    def test_monthly_flows_are_accumulated_only_when_explicit(self):
+        records = [
+            self._ant_record("2026-01", 5, 1, 2),
+            self._ant_record("2026-02", 2, 1, 2),
+        ]
+        series = meta2_groups.build_ant_series(
+            records,
+            72,
+            self._metadata(meta2_groups.MONTHLY_FLOW),
+        )
+
+        february = series[-1]
+        self.assertEqual(february["julgados_acum_2026"], 7)
+        self.assertEqual(february["julgados_calculo"], 7)
+        self.assertEqual(february["suspensos_calculo"], 2)
+        self.assertEqual(february["dessobrestados_calculo"], 4)
+        self.assertEqual(february["denominador"], 66)
+        self.assertEqual(february["meta2"], 10.71)
+
+    def test_undefined_semantics_prevent_a_calculated_or_homologated_result(self):
+        series = meta2_groups.build_ant_series(
+            [self._ant_record("2026-12", 22, 28, 24)],
+            72,
+            self._metadata(meta2_groups.UNDEFINED_SEMANTICS),
+        )
+
+        self.assertIsNone(series[0]["meta2"])
+        self.assertIsNone(series[0]["denominador"])
+        self.assertEqual(series[0]["status_validacao"], "pendente_validacao")
+
+    def test_missing_provenance_prevents_homologated_classification(self):
+        metadata = self._metadata(meta2_groups.CONSOLIDATED_LOAD)
+        metadata["proveniencia"] = {
+            "fonte": "",
+            "versao": None,
+            "referencia": "2026",
+            "homologada": True,
+        }
+
+        status, message, homologated = meta2_groups.classify_dataset(metadata)
+
+        self.assertEqual(status, "demonstrativo")
+        self.assertEqual(message, "Simulação com dados não homologados")
+        self.assertFalse(homologated)
 
     def test_empty_scenario_matches_base(self):
         base = main.get_meta2_groups_base()
@@ -27,7 +105,8 @@ class Meta2GroupsTestCase(unittest.TestCase):
             })
         )
         self.assertEqual(result["resultado_2026"]["A"]["meta2"], 104.67)
-        self.assertEqual(result["resultado_2026"]["ANT"]["meta2"], 2200.0)
+        self.assertIsNone(result["resultado_2026"]["ANT"]["meta2"])
+        self.assertEqual(result["resultado_2026"]["ANT"]["status_validacao"], "pendente_validacao")
 
     def test_real_month_can_be_changed_as_validated(self):
         result = main.simulate_meta2_groups_endpoint(
@@ -66,6 +145,32 @@ class Meta2GroupsTestCase(unittest.TestCase):
         )
         after = main.get_meta2_groups_base()
         self.assertEqual(after, before)
+
+    @staticmethod
+    def _ant_record(month, judgments, suspended, reopened):
+        return {
+            "data": month,
+            "tipo": "real",
+            "julgados": judgments,
+            "suspensos": suspended,
+            "dessobrestados": reopened,
+        }
+
+    @staticmethod
+    def _metadata(semantics):
+        return {
+            "proveniencia": {
+                "fonte": "fixture sintética",
+                "versao": "teste-1",
+                "referencia": "2026",
+                "homologada": False,
+            },
+            "semantica_temporal": {
+                "julgados": semantics,
+                "suspensos": semantics,
+                "dessobrestados": semantics,
+            },
+        }
 
 
 if __name__ == "__main__":

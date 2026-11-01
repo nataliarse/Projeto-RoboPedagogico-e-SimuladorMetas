@@ -16,9 +16,13 @@ import {
 import { DadosService } from './dados.service';
 import { SimuladorApiService } from './simulador-api.service';
 
+export function formatarPercentual(valor: number | null, casasDecimais = 2): string {
+  return valor == null ? '—' : valor.toFixed(casasDecimais).replace('.', ',') + '%';
+}
+
 @Injectable({ providedIn: 'root' })
 export class SimuladorService {
-  // â”€â”€ Estado reativo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Estado reativo
   cenarios = signal<Cenario[]>([
     { id: 1, nome: 'Base', alteracoes: {}, cor: CORES_CENARIOS[0], resposta: null },
   ]);
@@ -26,7 +30,7 @@ export class SimuladorService {
 
   abaSelecionada = signal<'meta1' | 'quanto-falta' | 'meta2' | 'graficos' | 'otimizador'>('meta1');
 
-  // â”€â”€ Base consolidada (montada uma vez) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Base consolidada (montada uma vez)
   readonly baseGlobal: RegistroBase[];
 
   constructor(
@@ -50,7 +54,7 @@ export class SimuladorService {
   }
 
   // ============================================================
-  // ETL â€” consolida as sÃ©ries em uma base Ãºnica
+  // ETL — consolida as séries em uma base única
   // ============================================================
   private montarBase(): RegistroBase[] {
     const idx: Record<string, Partial<RegistroBase>> = {};
@@ -68,7 +72,7 @@ export class SimuladorService {
     this.dados.suspensos.forEach((r) => {
       if (!idx[r.d]) idx[r.d] = { data: r.d };
       idx[r.d].suspensos = r.v;
-      // dessobrestados â‰ˆ 8% dos novos (estimativa baseada nos dados histÃ³ricos)
+      // dessobrestados ≈ 8% dos novos (estimativa baseada nos dados históricos)
       const nov = idx[r.d].novos ?? 0;
       idx[r.d].dessobrestados = Math.round(nov * 0.08);
     });
@@ -79,7 +83,7 @@ export class SimuladorService {
   }
 
   // ============================================================
-  // FÃ“RMULAS OFICIAIS CNJ
+  // FÓRMULAS OFICIAIS CNJ
   // Meta 1 = julgados / max(novos + dessobr - suspensos, novos + dessobr) * 100
   // Meta 2 = julgados / (novos_acum - suspensos) * (1000/9.4)
   // ============================================================
@@ -97,7 +101,7 @@ export class SimuladorService {
   }
 
   // ============================================================
-  // calcular_meta_acumulada() â€” acumula por ano e calcula metas
+  // calcular_meta_acumulada() — acumula por ano e calcula metas
   // ============================================================
   calcularMetas(base: RegistroBase[]): RegistroCalculado[] {
     const resultado: RegistroCalculado[] = [];
@@ -132,7 +136,7 @@ export class SimuladorService {
   }
 
   // ============================================================
-  // simular_cenario() â€” aplica incrementos e recalcula
+  // simular_cenario() — aplica incrementos e recalcula
   // ============================================================
   simularCenario(alteracoes: AlteracoesCenario): RegistroCalculado[] {
     const sim = this.baseGlobal.map((row) => {
@@ -149,7 +153,7 @@ export class SimuladorService {
   }
 
   // ============================================================
-  // Computed: cenÃ¡rios calculados com meta final
+  // Computed: cenários calculados com meta final
   // ============================================================
   readonly cenariosCalculados = computed<CenarioCalculado[]>(() =>
     this.cenarios().flatMap((c) => {
@@ -177,7 +181,7 @@ export class SimuladorService {
     return base?.registros.filter((r) => r.data.startsWith(`${ANO_SIM}-`)).map((r) => r.data) ?? [];
   });
 
-  // Computed: dados para o grÃ¡fico de linhas
+  // Computed: dados para o gráfico de linhas
   readonly dadosGrafico = computed<PontoGrafico[]>(() =>
     this.mesesDisponiveis().map((mes) => {
       const ponto: PontoGrafico = { mes: this.mesLabel(mes) };
@@ -189,7 +193,7 @@ export class SimuladorService {
     }),
   );
 
-  // Computed: dados para o grÃ¡fico de barras
+  // Computed: dados para o gráfico de barras
   readonly dadosBarras = computed<PontoBarra[]>(() =>
     this.cenariosCalculados().map((c) => ({
       nome: c.nome,
@@ -200,7 +204,7 @@ export class SimuladorService {
   );
 
   // ============================================================
-  // OperaÃ§Ãµes sobre cenÃ¡rios
+  // Operações sobre cenários
   // ============================================================
   adicionarCenario(nome: string, alteracoes: AlteracoesCenario, resposta: RespostaSimulacao): void {
     const id = Date.now();
@@ -217,7 +221,7 @@ export class SimuladorService {
   }
 
   // ============================================================
-  // encontrar_ajuste_minimo() â€” busca binÃ¡ria
+  // encontrar_ajuste_minimo() — busca binária
   // ============================================================
   encontrarAjusteMinimo(
     variavel: 'julgados' | 'dessobrestados' | 'suspensos',
@@ -231,14 +235,14 @@ export class SimuladorService {
       const ultimo = rows[rows.length - 1];
       return meta === 'meta2' ? (ultimo?.meta2 ?? 0) : (ultimo?.meta1 ?? 0);
     };
-    // resto do mÃ©todo permanece igual...
+    // resto do método permanece igual...
 
     const metaAtual = testar(0);
 
     if (metaAtual >= metaAlvo) {
       return {
         ok: true,
-        mensagem: `Meta de ${metaAlvo}% jÃ¡ atingida (${metaAtual.toFixed(2)}%). Nenhum ajuste necessÃ¡rio.`,
+        mensagem: `Meta de ${metaAlvo}% já atingida (${metaAtual.toFixed(2)}%). Nenhum ajuste necessário.`,
         metaAtual: metaAtual.toFixed(2),
         metaResultante: metaAtual.toFixed(2),
         incremento: 0,
@@ -261,7 +265,7 @@ export class SimuladorService {
     const varLabel: Record<string, string> = {
       julgados: 'julgamentos',
       dessobrestados: 'dessobrestamentos',
-      suspensos: 'suspensÃµes',
+      suspensos: 'suspensões',
     };
 
     return {
@@ -269,12 +273,12 @@ export class SimuladorService {
       incremento: incNec,
       metaAtual: metaAtual.toFixed(2),
       metaResultante: metaResult.toFixed(2),
-      mensagem: `Para atingir ${metaAlvo}% em ${ANO_SIM}, sÃ£o necessÃ¡rios ${incNec.toLocaleString('pt-BR')} ${varLabel[variavel]} adicionais em ${this.mesLabel(mes)}/${ANO_SIM}.`,
+      mensagem: `Para atingir ${metaAlvo}% em ${ANO_SIM}, são necessários ${incNec.toLocaleString('pt-BR')} ${varLabel[variavel]} adicionais em ${this.mesLabel(mes)}/${ANO_SIM}.`,
     };
   }
 
   // ============================================================
-  // UtilitÃ¡rios
+  // Utilitários
   // ============================================================
   mesLabel(data: string): string {
     const [, m] = data.split('-');
@@ -282,11 +286,11 @@ export class SimuladorService {
   }
 
   fmt(v: number | null, dec = 2): string {
-    return v == null ? 'â€”' : v.toFixed(dec).replace('.', ',') + '%';
+    return formatarPercentual(v, dec);
   }
 
   fmtN(v: number | null): string {
-    return v?.toLocaleString('pt-BR') ?? 'â€”';
+    return v?.toLocaleString('pt-BR') ?? '—';
   }
 
   corMeta(v: number | null): string {

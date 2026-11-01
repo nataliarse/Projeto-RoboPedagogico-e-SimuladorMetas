@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SimuladorService } from '../../core/services/simulador.service';
 import { CenariosComponent } from '../cenarios/cenarios.component';
@@ -6,6 +6,15 @@ import { GraficosComponent } from '../graficos/graficos.component';
 import { SimuladorApiService } from '../../core/services/simulador-api.service';
 import { QuantoFaltaComponent } from '../quanto-falta/quanto-falta.component';
 import { Meta2Component } from '../meta2/meta2.component';
+import { CenarioCalculado, RespostaMeta2 } from '../../core/models/simulador.model';
+
+export function montarKpisCabecalho(base: CenarioCalculado | undefined, meta2: RespostaMeta2 | null) {
+  return [
+    { label: 'Meta 1 Base', valor: base?.meta1Final ?? null },
+    { label: 'Meta 2 A', valor: meta2?.resultado_2026.A.meta2 ?? null },
+    { label: 'Meta 2 ANT', valor: meta2?.resultado_2026.ANT.meta2 ?? null },
+  ];
+}
 
 @Component({
   selector: 'app-simulador-shell',
@@ -28,6 +37,9 @@ import { Meta2Component } from '../meta2/meta2.component';
         }
       </div>
     </header>
+    @if (meta2Erro()) {
+      <div class="header-warning" role="alert">Indicadores Meta 2 A/ANT indisponíveis: {{ meta2Erro() }}</div>
+    }
 
     <!-- ABAS -->
     <nav class="nav-abas">
@@ -96,6 +108,7 @@ import { Meta2Component } from '../meta2/meta2.component';
     .kpi            { text-align: right; }
     .kpi-label      { font-size: 11px; color: #93C5FD; display: block; }
     .kpi-valor      { font-size: 22px; font-weight: 700; }
+    .header-warning { padding: 8px 32px; background: #FEF3C7; color: #92400E; font-size: 12px; }
 
     .nav-abas {
       background: #fff;
@@ -170,6 +183,20 @@ export class SimuladorShellComponent implements OnInit {
   sim = inject(SimuladorService);
   api = inject(SimuladorApiService);
   anoSim = 2026;
+  readonly meta2Base = signal<RespostaMeta2 | null>(null);
+  readonly meta2Erro = signal<string | null>(null);
+  private meta2CarregamentoIniciado = false;
+
+  constructor() {
+    effect(() => {
+      if (!this.sim.basePronta() || this.meta2CarregamentoIniciado) return;
+      this.meta2CarregamentoIniciado = true;
+      this.api.carregarMeta2().subscribe({
+        next: (resposta) => this.meta2Base.set(resposta),
+        error: () => this.meta2Erro.set(this.api.erro() ?? 'falha inesperada'),
+      });
+    });
+  }
 
   abas = [
     { id: 'meta1' as const, label: '📋 Meta 1', desabilitada: false },
@@ -184,11 +211,7 @@ export class SimuladorShellComponent implements OnInit {
   }
 
   get kpis() {
-    const base = this.sim.cenariosCalculados()[0];
-    return [
-      { label: 'Meta 1 Base', valor: base?.meta1Final ?? null },
-      { label: 'Meta 2 Base', valor: base?.meta2Final ?? null },
-    ];
+    return montarKpisCabecalho(this.sim.cenariosCalculados()[0], this.meta2Base());
   }
 
   corMeta(v: number | null): string {

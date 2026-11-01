@@ -124,6 +124,8 @@ export interface RespostaQuantoFalta {
 }
 
 export type TipoRegistroMeta2 = 'real' | 'previsao';
+export type SemanticaTemporalMeta2 = 'carga_consolidada' | 'fluxo_mensal' | 'indefinida';
+export type StatusValidacaoMeta2 = 'homologado' | 'demonstrativo' | 'pendente_validacao';
 export interface RegistroMeta2 {
   data: string;
   tipo: TipoRegistroMeta2;
@@ -132,7 +134,19 @@ export interface RegistroMeta2 {
   dessobrestados: number;
   julgados_acum_2026: number | null;
   dessobrestados_acum_2026: number | null;
+  julgados_calculo?: number | null;
+  suspensos_calculo?: number | null;
+  dessobrestados_calculo?: number | null;
+  denominador?: number | null;
+  status_validacao?: StatusValidacaoMeta2;
+  mensagem_validacao?: string;
   meta2: number | null;
+}
+export interface ProvenienciaMeta2 {
+  fonte: string;
+  versao: string | null;
+  referencia: string;
+  homologada: boolean;
 }
 export interface ResultadoGrupoMeta2 {
   grupo: 'A' | 'ANT';
@@ -141,6 +155,11 @@ export interface ResultadoGrupoMeta2 {
   distribuidos: number;
   descricao: string;
   formula: string;
+  homologado?: boolean;
+  status_validacao?: StatusValidacaoMeta2;
+  mensagem_validacao?: string;
+  proveniencia?: ProvenienciaMeta2;
+  semantica_temporal?: Record<'julgados' | 'suspensos' | 'dessobrestados', SemanticaTemporalMeta2>;
 }
 export interface RespostaMeta2 {
   resultado_2025: Record<'A' | 'ANT', Record<string, number>>;

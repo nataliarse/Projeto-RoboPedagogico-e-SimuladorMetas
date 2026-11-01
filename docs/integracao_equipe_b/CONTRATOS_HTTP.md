@@ -32,7 +32,7 @@ O navegador usa `/api/simulador/*`. O proxy Angular encaminha para `127.0.0.1:80
 - Externa: `GET /api/simulador/meta2/base` e `POST /api/simulador/meta2/simular`.
 - Interna: `GET /api/meta2/base` e `POST /api/meta2/simular`.
 - Corpo de simulação: `{alteracoes_A: Record<YYYY-MM, AlteracaoMes>, alteracoes_ANT: Record<YYYY-MM, AlteracaoMes>}`.
-- Resposta candidata: `{resultado_2025, resultado_2026: {A, ANT}, serie_A[], serie_ANT[]}`; cada série informa `tipo` (`real`/`previsao`) e `meta2` anulável.
+- Resposta: `{resultado_2025, resultado_2026: {A, ANT}, serie_A[], serie_ANT[]}`; cada série informa `tipo` (`real`/`previsao`) e `meta2` anulável. Cada resultado A/ANT acrescenta `homologado`, `status_validacao`, `mensagem_validacao`, `proveniencia` e `semantica_temporal`; os campos anteriores foram preservados.
 - Erros: 422 para schema/mês fora da série; 500 sanitizado para falha inesperada.
 - Condição de publicação: GATE-M2 liberado e projeções claramente rotuladas. Contrato preparado não equivale a homologação do cálculo.
 

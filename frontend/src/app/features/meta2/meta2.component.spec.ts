@@ -6,19 +6,27 @@ import { SimuladorApiService } from '../../core/services/simulador-api.service';
 import { SimuladorService } from '../../core/services/simulador.service';
 import { Meta2Component } from './meta2.component';
 
+const metadata = {
+  homologado: false,
+  proveniencia: { fonte: 'fixture', versao: null, referencia: '2026', homologada: false },
+  semantica_temporal: { julgados: 'indefinida', suspensos: 'indefinida', dessobrestados: 'indefinida' } as const,
+};
+
 const base: RespostaMeta2 = {
   resultado_2025: { A: { meta: 106.22 }, ANT: { meta: 100 } },
   resultado_2026: {
-    A: { grupo: 'A', ano: 2026, meta2: 104.63, distribuidos: 27548, descricao: 'Coorte A', formula: 'A' },
-    ANT: { grupo: 'ANT', ano: 2026, meta2: null, distribuidos: 72, descricao: 'Coorte ANT', formula: 'ANT' },
+    A: { grupo: 'A', ano: 2026, meta2: 104.63, distribuidos: 27548, descricao: 'Coorte A', formula: 'A',
+      ...metadata, status_validacao: 'demonstrativo', mensagem_validacao: 'Simulação com dados não homologados' },
+    ANT: { grupo: 'ANT', ano: 2026, meta2: null, distribuidos: 72, descricao: 'Coorte ANT', formula: 'ANT',
+      ...metadata, status_validacao: 'pendente_validacao', mensagem_validacao: 'Indicador pendente de validação' },
   },
   serie_A: [
-    { data: '2026-01', tipo: 'real', julgados: 180, suspensos: 92, dessobrestados: 2, julgados_acum_2026: 180, dessobrestados_acum_2026: 2, meta2: 101 },
-    { data: '2026-03', tipo: 'previsao', julgados: 75, suspensos: 89, dessobrestados: 1, julgados_acum_2026: 392, dessobrestados_acum_2026: 3, meta2: 102 },
+    { data: '2026-01', tipo: 'real', julgados: 180, suspensos: 92, dessobrestados: 2, julgados_acum_2026: 180, dessobrestados_acum_2026: 2, meta2: 101, status_validacao: 'demonstrativo', mensagem_validacao: 'Simulação com dados não homologados' },
+    { data: '2026-03', tipo: 'previsao', julgados: 75, suspensos: 89, dessobrestados: 1, julgados_acum_2026: 392, dessobrestados_acum_2026: 3, meta2: 102, status_validacao: 'demonstrativo', mensagem_validacao: 'Simulação com dados não homologados' },
   ],
   serie_ANT: [
-    { data: '2026-01', tipo: 'real', julgados: 2, suspensos: 1, dessobrestados: 0, julgados_acum_2026: 2, dessobrestados_acum_2026: 0, meta2: 2.82 },
-    { data: '2026-03', tipo: 'previsao', julgados: 2, suspensos: 1, dessobrestados: 2, julgados_acum_2026: 4, dessobrestados_acum_2026: 2, meta2: 5.8 },
+    { data: '2026-01', tipo: 'real', julgados: 2, suspensos: 1, dessobrestados: 0, julgados_acum_2026: 2, dessobrestados_acum_2026: 0, meta2: null, status_validacao: 'pendente_validacao', mensagem_validacao: 'Indicador pendente de validação' },
+    { data: '2026-03', tipo: 'previsao', julgados: 2, suspensos: 1, dessobrestados: 2, julgados_acum_2026: 4, dessobrestados_acum_2026: 2, meta2: null, status_validacao: 'pendente_validacao', mensagem_validacao: 'Indicador pendente de validação' },
   ],
 };
 
@@ -40,6 +48,8 @@ describe('Meta2Component', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('—');
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Histórico');
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Projeção');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Simulação com dados não homologados');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Indicador pendente de validação');
   });
 
   it('mantém alterações A e ANT independentes e envia ambas ao backend', () => {

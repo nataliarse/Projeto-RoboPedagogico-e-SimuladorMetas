@@ -1,5 +1,6 @@
 import { Component, inject, AfterViewInit, ElementRef, ViewChild, effect, Injector, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import type { Chart, ChartConfiguration } from 'chart.js';
 import { SimuladorService } from '../../core/services/simulador.service';
 import { ANO_SIM } from '../../core/models/simulador.model';
 
@@ -90,7 +91,8 @@ export class GraficosComponent implements AfterViewInit, OnDestroy {
   graficoIndisponivel = signal(false);
 
   @ViewChild('linhaCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
-  private chart: any;
+  private chart: Chart<'line', (number | null)[], string> | null = null;
+  private tentativaRenderizacao = 0;
 
   ngAfterViewInit() {
     effect((onCleanup) => {
@@ -102,32 +104,33 @@ export class GraficosComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.tentativaRenderizacao++;
     this.chart?.destroy();
     this.chart = null;
   }
 
   private async desenharGrafico() {
     if (!this.canvasRef) return;
+    const tentativa = ++this.tentativaRenderizacao;
     const dados   = this.sim.dadosGrafico();
     const cenarios = this.sim.cenariosCalculados();
 
-    // Chart.js via CDN (carregado no index.html)
-    const Chart = (window as any).Chart;
-    if (!Chart) {
-      this.graficoIndisponivel.set(true);
-      return;
-    }
-
     if (this.chart) { this.chart.destroy(); this.chart = null; }
 
-    const ctx = this.canvasRef.nativeElement.getContext('2d');
-    if (!ctx) {
+    const valores = dados.flatMap((ponto) =>
+      cenarios.map((cenario) => ponto[cenario.nome]),
+    );
+    const dadosInvalidos = valores.some((valor) =>
+      valor != null && (typeof valor !== 'number' || !Number.isFinite(valor)),
+    );
+    const temValor = valores.some((valor) => typeof valor === 'number' && Number.isFinite(valor));
+    if (!dados.length || !cenarios.length || dadosInvalidos || !temValor) {
       this.graficoIndisponivel.set(true);
       return;
     }
     const labels = dados.map(p => p['mes'] as string);
 
-    const datasets = cenarios.map(c => ({
+    const datasets: ChartConfiguration<'line', (number | null)[], string>['data']['datasets'] = cenarios.map(c => ({
       label: c.nome,
       data: dados.map(p => p[c.nome] as number | null),
       borderColor: c.cor,
@@ -137,9 +140,32 @@ export class GraficosComponent implements AfterViewInit, OnDestroy {
       tension: 0.3,
       spanGaps: true,
     }));
+    datasets.push(
+      {
+        label: 'Meta 100%',
+        data: labels.map(() => 100),
+        borderColor: '#B91C1C',
+        borderDash: [4, 2],
+        borderWidth: 1,
+        pointRadius: 0,
+      },
+      {
+        label: 'Referência 95%',
+        data: labels.map(() => 95),
+        borderColor: '#92400E',
+        borderDash: [4, 2],
+        borderWidth: 1,
+        pointRadius: 0,
+      },
+    );
 
     try {
-      this.chart = new Chart(ctx, {
+      const {
+        CategoryScale, Chart, LinearScale, LineController, LineElement, PointElement, Tooltip,
+      } = await import('chart.js');
+      if (tentativa !== this.tentativaRenderizacao) return;
+      Chart.register(CategoryScale, LinearScale, LineController, LineElement, PointElement, Tooltip);
+      this.chart = new Chart<'line', (number | null)[], string>(this.canvasRef.nativeElement, {
       type: 'line',
       data: { labels, datasets },
       options: {
@@ -147,14 +173,6 @@ export class GraficosComponent implements AfterViewInit, OnDestroy {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          annotation: {
-            annotations: {
-              meta100: { type: 'line', yMin: 100, yMax: 100, borderColor: '#B91C1C',
-                borderDash: [4, 2], borderWidth: 1 },
-              meta95:  { type: 'line', yMin: 95,  yMax: 95,  borderColor: '#92400E',
-                borderDash: [4, 2], borderWidth: 1 },
-            }
-          }
         },
         scales: {
           x: { grid: { color: '#E5E7EB' } },

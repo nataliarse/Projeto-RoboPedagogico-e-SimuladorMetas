@@ -171,7 +171,17 @@ export class SimuladorApiService {
 
   private validarMeta2(response: RespostaMeta2): RespostaMeta2 {
     if (!response || !Array.isArray(response.serie_A) || !Array.isArray(response.serie_ANT)
-      || !response.resultado_2026?.A || !response.resultado_2026?.ANT) {
+      || !response.resultado_2026?.A || !response.resultado_2026?.ANT
+      || typeof response.resultado_2026.A.homologado !== 'boolean'
+      || typeof response.resultado_2026.A.status_validacao !== 'string'
+      || typeof response.resultado_2026.A.mensagem_validacao !== 'string'
+      || !response.resultado_2026.A.proveniencia
+      || !response.resultado_2026.A.semantica_temporal
+      || typeof response.resultado_2026.ANT.homologado !== 'boolean'
+      || typeof response.resultado_2026.ANT.status_validacao !== 'string'
+      || typeof response.resultado_2026.ANT.mensagem_validacao !== 'string'
+      || !response.resultado_2026.ANT.proveniencia
+      || !response.resultado_2026.ANT.semantica_temporal) {
       throw new InvalidSimulatorResponseError();
     }
     return response;
