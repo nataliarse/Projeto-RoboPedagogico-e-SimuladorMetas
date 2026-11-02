@@ -1,0 +1,12 @@
+<header class="app-nav">
+  <a class="brand" routerLink="/">Robô Pedagógico CNJ</a>
+  <nav aria-label="Navegação principal">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      Chat processual <span class="status" [class.offline]="processualStatus() === 'indisponivel'">{{ processualStatus() }}</span>
+    </a>
+    <a routerLink="/simulador" routerLinkActive="active">
+      Simulador de metas <span class="status" [class.offline]="simulatorStatus() === 'indisponivel'">{{ simulatorStatus() }}</span>
+    </a>
+  </nav>
+</header>
+<main><router-outlet /></main>

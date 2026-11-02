@@ -1,0 +1,56 @@
+{
+  "numero": "0011000-82.1981.5.18.0051",
+  "numero_normalizado": "00110008219815180051",
+  "url": "https://pje.trt18.jus.br/consultaprocessual/captcha/detalhe-processo/00110008219815180051/1",
+  "capturado_em": "2026-06-02T10:15:00",
+  "versao_coletor": "1.0.0",
+  "tempo_execucao_seg": 7.42,
+  "tentativas_captcha": 2,
+  "status_coleta": "SUCESSO",
+  "warnings": [],
+  "erros": [],
+  "status_cnj_planilha": "Pendente",
+  "texto_pagina": null,
+  "html": null,
+  "respostas_api": [
+    {
+      "url": "https://pje.trt18.jus.br/consultaprocessual/api/processos/00110008219815180051",
+      "payload": {
+        "numero": "0011000-82.1981.5.18.0051",
+        "classeJudicial": "Ação Trabalhista - Rito Ordinário",
+        "assuntos": [{"codigo": 55220, "nome": "Verbas Rescisórias"}],
+        "orgaoJulgador": "1ª Vara do Trabalho de Anápolis",
+        "jurisdicao": "Anápolis",
+        "dataAutuacao": "12/03/1981",
+        "valorCausa": "R$ 15.430,75",
+        "poloAtivo": [
+          {
+            "nome": "  JOÃO   DA SILVA  ",
+            "tipo": "Reclamante",
+            "cpfCnpj": "123.456.789-00",
+            "advogados": [{"nome": "Dra. Maria Souza"}]
+          }
+        ],
+        "poloPassivo": [
+          {
+            "nome": "INDÚSTRIA EXEMPLO LTDA",
+            "tipo": "Reclamado",
+            "cpfCnpj": "12.345.678/0001-99",
+            "advogados": ["Dr. Carlos Lima"]
+          }
+        ],
+        "movimentos": [
+          {"dataHora": "12/03/1981 14:30:00", "descricao": "Distribuído por dependência"},
+          {"dataHora": "20/05/1981", "descricao": "Audiência designada"},
+          {"dataHora": "15/08/1982", "descricao": "Sentença proferida"},
+          {"dataHora": "10/10/1983", "descricao": "Trânsito em julgado", "complemento": "Sem recursos"},
+          {"dataHora": "05/02/1984", "descricao": "Arquivado definitivamente"}
+        ],
+        "documentos": [
+          {"dataJuntada": "12/03/1981", "titulo": "Petição Inicial", "tipo": "Petição", "id": "DOC-1"},
+          {"dataJuntada": "15/08/1982", "titulo": "Sentença", "tipo": "Decisão", "id": "DOC-2"}
+        ]
+      }
+    }
+  ]
+}

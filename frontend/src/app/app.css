@@ -1,0 +1,82 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  font-family: Inter, "Segoe UI", sans-serif;
+  --app-nav-height: 58px;
+}
+
+.app-nav {
+  min-height: var(--app-nav-height);
+  padding: 10px clamp(12px, 4vw, 32px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #fff;
+  background: #123f6d;
+  box-sizing: border-box;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.brand {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+nav {
+  display: flex;
+  gap: 8px;
+}
+
+nav a {
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #dcecff;
+  text-decoration: none;
+}
+
+nav a:hover,
+nav a.active {
+  color: #123f6d;
+  background: #fff;
+}
+
+.status {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 10px;
+  opacity: .8;
+}
+
+.status.offline {
+  color: #ffd3d3;
+  font-weight: 700;
+}
+
+main {
+  min-width: 0;
+  min-height: calc(100dvh - var(--app-nav-height));
+}
+
+@media (max-width: 600px) {
+  :host {
+    --app-nav-height: 112px;
+  }
+
+  .app-nav {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  nav a {
+    text-align: center;
+  }
+}

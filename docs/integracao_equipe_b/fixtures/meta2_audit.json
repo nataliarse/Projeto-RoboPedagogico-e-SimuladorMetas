@@ -1,0 +1,23 @@
+{
+  "base_2026": {
+    "oficial_v3": {"A": 105.32, "ANT": 111.11},
+    "reproducao_original": {"A": 104.63, "ANT": 110.0}
+  },
+  "real_month_change": {
+    "input": {"A": {"2026-01": {"julgados": 10}}},
+    "result": {"A": 105.36, "ANT": 111.11}
+  },
+  "forecast_change": {
+    "input": {"A": {"2026-03": {"julgados": 10}}},
+    "result": {"A": 105.36, "ANT": 111.11}
+  },
+  "sensitive_ant_case": {
+    "input": {"ANT": {"2026-03": {"dessobrestados": -1}}},
+    "final_denominator": 21,
+    "result_oficial_v3": 105.82,
+    "result_reproducao_original": 104.76
+  },
+  "nonpositive_denominator": {"A": null, "ANT": null},
+  "real_window": ["2025-01", "2026-02"],
+  "forecast_window": ["2026-03", "2026-12"]
+}

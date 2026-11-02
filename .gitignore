@@ -1,0 +1,155 @@
+# -----------------------------------------------------------------------------
+# Python
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+
+# Virtual environments
+.venv/
+.venv*/
+venv/
+env/
+ENV/
+
+# Packaging and build outputs
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg
+*.egg-info/
+pip-wheel-metadata/
+wheelhouse/
+MANIFEST
+
+# Test, coverage and tool caches
+.pytest_cache/
+pytest-cache-files-*/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.hypothesis/
+.pyre/
+.pytype/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.ipynb_checkpoints/
+
+# -----------------------------------------------------------------------------
+# Node.js / Angular / TypeScript
+# -----------------------------------------------------------------------------
+node_modules/
+.angular/
+.cache/
+.parcel-cache/
+.vite/
+out-tsc/
+bazel-out/
+coverage/
+*.tsbuildinfo
+
+# Package-manager caches and diagnostic logs
+.npm/
+.tools/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Frontend test and tooling outputs
+.sass-cache/
+.history/
+__screenshots__/
+connect.lock
+libpeerconnection.log
+testem.log
+typings/
+
+# -----------------------------------------------------------------------------
+# Environment files, credentials and local secrets
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.crt
+*.cer
+
+# -----------------------------------------------------------------------------
+# Local data and generated application artifacts
+# -----------------------------------------------------------------------------
+chatbot_processual_ai/data/*
+!chatbot_processual_ai/data/
+!chatbot_processual_ai/data/sample_processes.json
+!chatbot_processual_ai/data/README.md
+!chatbot_processual_ai/data/normas/
+
+logs/
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+tmp/
+temp/
+.p5-tmp/
+outputs/
+artifacts/
+
+# Material externo usado somente como fonte para integração local.
+# O conteúdo deve permanecer no disco, mas nunca ser versionado.
+/integracao_entrada/
+/06_entrega_codigo_meta2/
+
+# Artefatos de modelos de ML somente em destinos operacionais conhecidos.
+# Diretórios TypeScript `src/app/core/models/` são código-fonte e não devem ser ignorados.
+/models/
+chatbot_processual_ai/models/
+simulador_metas_cnj/models/
+checkpoints/
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# -----------------------------------------------------------------------------
+# Editors, operating systems and local agent configuration
+# -----------------------------------------------------------------------------
+.vscode/
+.idea/
+.project
+.classpath
+.settings/
+.c9/
+*.launch
+*.sublime-workspace
+.agents/
+.codex/*
+!.codex/rules/
+.codex/rules/*
+!.codex/rules/safety.rules
+.DS_Store
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini

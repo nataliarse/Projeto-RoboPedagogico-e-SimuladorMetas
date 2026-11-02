@@ -1,0 +1,44 @@
+{
+  "tolerance": 0.01,
+  "scalar_cases": [
+    {
+      "input": {"novos": 100, "julgados": 100, "dessobrestados": 0, "suspensao": 0},
+      "canonical": 100.0,
+      "equipe_b": 100.0
+    },
+    {
+      "input": {"novos": 100, "julgados": 100, "dessobrestados": 20, "suspensao": 30},
+      "canonical": 83.33333333333334,
+      "equipe_b": 111.11111111111111
+    },
+    {
+      "input": {"novos": 0, "julgados": 5, "dessobrestados": 0, "suspensao": 0},
+      "canonical": null,
+      "equipe_b": null
+    },
+    {
+      "input": {"novos": 100, "julgados": null, "dessobrestados": 0, "suspensao": 0},
+      "canonical": null,
+      "equipe_b": null
+    }
+  ],
+  "december_2026": {
+    "canonical": {
+      "records": 86,
+      "novos_acum": 162058.373743,
+      "julgados_acum": 179212.53054,
+      "dessobrestados_acum": 1073.3547822893588,
+      "suspensos_acum": 512155.5065908779,
+      "meta1": 109.86
+    },
+    "equipe_b": {
+      "records": 84,
+      "novos_acum": 110213.0,
+      "julgados_acum": 105350.0,
+      "dessobrestados_acum": 1607.0,
+      "susm1_acum": 2609.7000000000044,
+      "suspensos_acum": 512155.4,
+      "meta1": 96.47
+    }
+  }
+}

@@ -1,0 +1,9 @@
+# Runtime do backend FastAPI. Dependências de coleta pertencem ao package
+# ``trt18_collector``; testes pertencem a requirements-dev.txt.
+requests
+python-dotenv
+rich
+psutil
+fastapi
+uvicorn
+pydantic>=2

@@ -1,0 +1,23 @@
+{
+  "tolerance": 0.01,
+  "records": 84,
+  "base": {
+    "meta1_final": 96.47,
+    "meta2_final": 169.68
+  },
+  "scenarios": {
+    "empty": {"changes": {}, "meta1_final": 96.47, "meta2_final": 169.68},
+    "plus_100_julgados_oct": {
+      "changes": {"2026-10": {"julgados": 100}},
+      "meta1_final": 96.56,
+      "meta2_final": 169.84,
+      "oct_julgados": 8959.0
+    },
+    "plus_100_suspensos_oct": {
+      "changes": {"2026-10": {"suspensos": 100}},
+      "meta1_final": 96.55,
+      "meta2_final": 169.68,
+      "oct_susm1": 114.90000000000146
+    }
+  }
+}
