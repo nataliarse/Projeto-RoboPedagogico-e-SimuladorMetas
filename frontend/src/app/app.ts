@@ -13,16 +13,11 @@ type ServiceStatus = 'verificando' | 'disponivel' | 'indisponivel';
 export class App implements OnInit {
   private readonly health = inject(ApiHealthService);
   readonly processualStatus = signal<ServiceStatus>('verificando');
-  readonly simulatorStatus = signal<ServiceStatus>('verificando');
 
   ngOnInit(): void {
     this.health.checkProcessual().subscribe({
       next: () => this.processualStatus.set('disponivel'),
       error: () => this.processualStatus.set('indisponivel'),
-    });
-    this.health.checkSimulator().subscribe({
-      next: () => this.simulatorStatus.set('disponivel'),
-      error: () => this.simulatorStatus.set('indisponivel'),
     });
   }
 }

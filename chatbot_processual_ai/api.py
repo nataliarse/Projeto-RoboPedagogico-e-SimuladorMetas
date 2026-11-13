@@ -10,16 +10,7 @@ from pydantic import BaseModel, Field, field_validator
 from agents.agent2_context_collection import MAX_CONVERSATION_ENTRIES
 from orchestrators.hybrid_orchestrator import run_process_meta_impact
 from orchestrators.processual_chat_orchestrator import run_processual_chat_step
-from schemas.meta_contracts import MetaSimulationRequest
-from services.meta_explanation_service import (
-    explain_meta_simulation,
-    explain_process_meta_impact,
-)
-from services.meta_simulator_adapter import (
-    InvalidSimulatorSchemaError,
-    SimulatorUnavailableError,
-    simulate_meta,
-)
+from services.meta_explanation_service import explain_process_meta_impact
 from session_state import create_session_state
 
 
@@ -56,15 +47,6 @@ class ProcessualChatHTTPResponse(BaseModel):
     resultado: ProcessualChatHTTPResult
 
 
-class MetaSimulationHTTPRequest(BaseModel):
-    session_id: str | None = None
-    pergunta_usuario: str | None = None
-    meta_id: str
-    ano: int
-    unidade: str | None = None
-    cenario: dict[str, Any] = Field(default_factory=dict)
-
-
 class ProcessMetaImpactHTTPRequest(BaseModel):
     session_id: str | None = None
     pergunta_usuario: str | None = None
@@ -90,41 +72,6 @@ def chat_processual(request: ProcessualChatHTTPRequest) -> ProcessualChatHTTPRes
         session_id=session_id,
         resultado=ProcessualChatHTTPResult.model_validate(asdict(result.response)),
     )
-
-
-@app.post("/api/metas/simular")
-def simular_meta(request: MetaSimulationHTTPRequest) -> dict[str, Any]:
-    session_id = _normalize_session_id(request.session_id)
-    _get_session_state(session_id)
-
-    simulation_request = MetaSimulationRequest(
-        meta_id=request.meta_id,
-        ano=request.ano,
-        unidade=request.unidade,
-        cenario=request.cenario,
-    )
-    try:
-        simulation_response = simulate_meta(simulation_request)
-    except SimulatorUnavailableError as exc:
-        raise HTTPException(
-            status_code=503,
-            detail="Motor de metas indisponível; nenhum resultado foi calculado.",
-        ) from exc
-    except InvalidSimulatorSchemaError as exc:
-        raise HTTPException(
-            status_code=502,
-            detail="Resposta inválida do motor de metas; nenhum resultado foi calculado.",
-        ) from exc
-    explanation = explain_meta_simulation(
-        request.pergunta_usuario or "",
-        simulation_response,
-    )
-
-    return {
-        "session_id": session_id,
-        "resultado": asdict(simulation_response),
-        "explicacao": explanation,
-    }
 
 
 @app.post("/api/metas/impacto-processo")

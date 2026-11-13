@@ -1,69 +1,9 @@
-from schemas.meta_contracts import MetaSimulationResponse, ProcessMetaImpactResponse
+from schemas.meta_contracts import ProcessMetaImpactResponse
 
 
 PROVISIONAL_META_NOTICE = (
     "Essa análise é provisória e depende da validação dos critérios oficiais da meta."
 )
-NO_OFFICIAL_RULE_NOTICE = (
-    "Essa leitura não afirma regra oficial e depende da validação dos critérios da meta."
-)
-INTERNAL_TERMS = ("json", "agente", "prompt", "pipeline", "backend", "ollama")
-
-
-def explain_meta_simulation(
-    pergunta_usuario: str,
-    simulation_response: MetaSimulationResponse,
-) -> str:
-    _ = pergunta_usuario
-
-    status = _clean_text(simulation_response.status).casefold()
-    values_text = _simulation_values_text(simulation_response)
-    premises_text = _simulation_premises_text(simulation_response)
-    observation_text = _first_safe_observation_text(simulation_response.observacoes)
-
-    if values_text:
-        response = (
-            f"Cálculo do motor de metas para {simulation_response.meta_id}, "
-            f"ano {simulation_response.ano}. {values_text} {premises_text}"
-        )
-    else:
-        response = (
-            "A simulação de metas ainda não trouxe um resultado numérico confiável "
-            f"para apresentar. {NO_OFFICIAL_RULE_NOTICE}"
-        )
-
-    if observation_text:
-        response = f"{response} Observação: {observation_text}"
-
-    return response
-
-
-def _simulation_premises_text(response: MetaSimulationResponse) -> str:
-    indicators = response.indicadores if isinstance(response.indicadores, dict) else {}
-    scenario = indicators.get("cenario")
-    if not isinstance(scenario, dict) or not scenario:
-        return "Premissas: nenhuma alteração de cenário informada."
-
-    alterations = scenario.get("alteracoes", scenario)
-    if not isinstance(alterations, dict) or not alterations:
-        return "Premissas: nenhuma alteração de cenário informada."
-
-    parts: list[str] = []
-    for month in sorted(alterations):
-        values = alterations[month]
-        if not isinstance(values, dict):
-            continue
-        fields = []
-        for name in ("julgados", "dessobrestados", "suspensos"):
-            value = values.get(name)
-            if isinstance(value, (int, float)) and not isinstance(value, bool):
-                fields.append(f"{name} {_format_number(value)}")
-        if fields:
-            parts.append(f"{month}: " + ", ".join(fields))
-
-    if not parts:
-        return "Premissas: nenhuma alteração numérica reconhecida."
-    return "Premissas: " + "; ".join(parts) + "."
 
 
 def explain_process_meta_impact(
@@ -104,18 +44,6 @@ def explain_process_meta_impact(
     )
 
 
-def _simulation_values_text(response: MetaSimulationResponse) -> str:
-    parts = []
-
-    if response.resultado is not None:
-        parts.append(f"Resultado estimado: {_format_number(response.resultado)}.")
-
-    if response.meta_alvo is not None:
-        parts.append(f"Meta de referência: {_format_number(response.meta_alvo)}.")
-
-    return " ".join(parts)
-
-
 def _risk_reason(response: ProcessMetaImpactResponse) -> str:
     if response.conta_como_novo is True and response.conta_como_julgado is False:
         return (
@@ -151,36 +79,5 @@ def _contribution_reason(response: ProcessMetaImpactResponse) -> str:
     )
 
 
-def _first_safe_observation_text(observations: list[str]) -> str:
-    if not isinstance(observations, list):
-        return ""
-
-    for observation in observations:
-        text = _clean_text(observation)
-        if text and not _mentions_internal_detail(text):
-            return _ensure_sentence(text)
-
-    return ""
-
-
-def _mentions_internal_detail(text: str) -> bool:
-    normalized_text = text.casefold()
-    return any(term in normalized_text for term in INTERNAL_TERMS)
-
-
 def _clean_text(value: object) -> str:
     return " ".join(str(value or "").split())
-
-
-def _ensure_sentence(text: str) -> str:
-    if text.endswith((".", "!", "?")):
-        return text
-    return f"{text}."
-
-
-def _format_number(value: float) -> str:
-    if isinstance(value, int):
-        return str(value)
-
-    formatted = f"{value:.2f}".rstrip("0").rstrip(".")
-    return formatted.replace(".", ",")

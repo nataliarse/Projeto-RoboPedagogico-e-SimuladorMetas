@@ -2,26 +2,6 @@ from dataclasses import dataclass
 
 
 @dataclass
-class MetaSimulationRequest:
-    meta_id: str
-    ano: int
-    unidade: str | None
-    cenario: dict
-
-
-@dataclass
-class MetaSimulationResponse:
-    tipo: str
-    meta_id: str
-    ano: int
-    status: str
-    resultado: float | None
-    meta_alvo: float | None
-    indicadores: dict
-    observacoes: list[str]
-
-
-@dataclass
 class ProcessMetaImpactRequest:
     numero_processo: str
     meta_id: str

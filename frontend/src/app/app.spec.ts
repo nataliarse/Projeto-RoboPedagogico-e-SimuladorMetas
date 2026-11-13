@@ -14,7 +14,6 @@ describe('App', () => {
           provide: ApiHealthService,
           useValue: {
             checkProcessual: () => of({ status: 'ok' }),
-            checkSimulator: () => of({ status: 'ok', registros: 86 }),
           },
         },
       ],
@@ -34,7 +33,7 @@ describe('App', () => {
     expect(compiled.querySelector('router-outlet')).not.toBeNull();
   });
 
-  it('oferece navegação global para chat e simulador', () => {
+  it('oferece navegação apenas para o chat processual', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const links = Array.from(
@@ -43,7 +42,6 @@ describe('App', () => {
 
     expect(links).toEqual([
       { text: 'Chat processual', href: '/' },
-      { text: 'Simulador de metas', href: '/simulador' },
     ]);
   });
 

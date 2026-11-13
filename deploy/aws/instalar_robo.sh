@@ -53,11 +53,16 @@ server {
     root /home/ubuntu/robo/web;
     index index.html;
 
+    proxy_read_timeout 300s;
+    proxy_send_timeout 300s;
+
+    # mesmas rotas do proxy do Angular (frontend/proxy.conf.json)
+    location = /api/processos/health {
+        proxy_pass http://127.0.0.1:8000/api/health;
+    }
     location /api/ {
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
-        proxy_read_timeout 300s;
-        proxy_send_timeout 300s;
     }
     location / {
         try_files $uri $uri/ /index.html;
@@ -77,5 +82,5 @@ echo "== verificação"
 systemctl is-active robo-backend nginx
 curl -s -m 10 http://127.0.0.1:8000/api/health; echo
 curl -s -m 10 -o /dev/null -w "interface via 7860: %{http_code}\n" http://127.0.0.1:7860/
-curl -s -m 10 http://127.0.0.1:7860/api/health; echo
+curl -s -m 10 http://127.0.0.1:7860/api/processos/health; echo
 free -h | head -2

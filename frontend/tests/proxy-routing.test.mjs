@@ -25,30 +25,18 @@ test('chat e metas integradas chegam ao backend processual', () => {
     'http://127.0.0.1:8000/api/processos/chat',
   );
   assert.equal(
-    resolveProxy('/api/metas/simular'),
-    'http://127.0.0.1:8000/api/metas/simular',
+    resolveProxy('/api/metas/impacto-processo'),
+    'http://127.0.0.1:8000/api/metas/impacto-processo',
   );
 });
 
-test('rotas antigas e novas do simulador chegam ao backend na porta 8001', () => {
-  for (const endpoint of [
-    'base', 'simular', 'comparar', 'otimizador',
-    'meta1/quanto-falta', 'meta2/base', 'meta2/simular',
-  ]) {
-    assert.equal(
-      resolveProxy(`/api/simulador/${endpoint}`),
-      `http://127.0.0.1:8001/api/${endpoint}`,
-    );
-  }
-});
-
-test('healthchecks distintos não colidem', () => {
+test('healthcheck do backend processual é reescrito para /api/health', () => {
   assert.equal(
     resolveProxy('/api/processos/health'),
     'http://127.0.0.1:8000/api/health',
   );
-  assert.equal(
-    resolveProxy('/api/simulador/health'),
-    'http://127.0.0.1:8001/api/health',
-  );
+});
+
+test('o simulador de metas não faz mais parte da aplicação', () => {
+  assert.equal(Object.keys(config).some((rota) => rota.startsWith('/api/simulador')), false);
 });
