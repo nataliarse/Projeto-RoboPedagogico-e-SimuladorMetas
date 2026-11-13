@@ -4,6 +4,10 @@ Indexa o Glossário das Metas Nacionais do Poder Judiciário (Justiça do Trabal
 em uma coleção própria do banco vetorial e devolve os trechos mais próximos de
 uma pergunta, com a página de origem, para que a orientação cite a norma.
 
+Dois armazenamentos são suportados (``NORMAS_BACKEND``): o Qdrant local, com embeddings
+do Ollama, e o PostgreSQL com pgvector do banco da IESB, com embeddings do Amazon Bedrock
+(Titan v2).
+
 Indexação (uma vez, ou quando o glossário mudar):
 
     python -m services.norma_rag
@@ -15,6 +19,9 @@ import re
 from pathlib import Path
 from typing import Any
 
+import bedrock_client
+from config import NORMAS_BACKEND, NORMAS_MIN_SCORE
+from services import normas_pgvector
 from services.embedding_service import EmbeddingError, generate_embedding
 from services.qdrant_vector_store import QdrantError, _request_json, deterministic_point_id
 
@@ -140,6 +147,9 @@ def index_normas(path: Path = GLOSSARIO_PATH) -> int:
     chunks = build_chunks(path.read_text(encoding="utf-8"))
     if not chunks:
         return 0
+    if NORMAS_BACKEND == "pgvector":
+        vectors = [bedrock_client.embed_text(chunk["texto"]) for chunk in chunks]
+        return normas_pgvector.indexar(chunks, vectors, GLOSSARIO_FONTE)
     first_vector = generate_embedding(chunks[0]["texto"])
     try:
         _request_json("DELETE", f"/collections/{NORMAS_COLLECTION}")
@@ -164,6 +174,12 @@ def index_normas(path: Path = GLOSSARIO_PATH) -> int:
 
 def search_normas(query: str, metas: list[str] | None = None, top_k: int = 2) -> list[dict[str, Any]]:
     """Trechos da norma mais próximos da pergunta. Lista vazia se a busca não estiver disponível."""
+    if NORMAS_BACKEND == "pgvector":
+        try:
+            vector = bedrock_client.embed_text(query)
+            return normas_pgvector.buscar(vector, metas, top_k, NORMAS_MIN_SCORE)
+        except (bedrock_client.BedrockError, normas_pgvector.NormasDBError):
+            return []
     try:
         vector = generate_embedding(query)
         body: dict[str, Any] = {
@@ -184,4 +200,5 @@ def search_normas(query: str, metas: list[str] | None = None, top_k: int = 2) ->
 
 
 if __name__ == "__main__":
-    print(f"{index_normas()} trechos indexados na coleção {NORMAS_COLLECTION}.")
+    destino = "tabela normas (pgvector)" if NORMAS_BACKEND == "pgvector" else f"coleção {NORMAS_COLLECTION}"
+    print(f"{index_normas()} trechos indexados na {destino}.")

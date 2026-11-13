@@ -7,3 +7,5 @@ psutil
 fastapi
 uvicorn
 pydantic>=2
+boto3>=1.35
+psycopg[binary]>=3.2

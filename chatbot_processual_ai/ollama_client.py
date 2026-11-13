@@ -3,7 +3,10 @@ from typing import Any
 
 import requests
 
+import bedrock_client
 from config import (
+    LLM_FALLBACK_OLLAMA,
+    LLM_PROVIDER,
     OLLAMA_BASE_URL,
     OLLAMA_MODEL,
     OLLAMA_TEMPERATURE,
@@ -145,6 +148,22 @@ def check_ollama_availability() -> OllamaAvailability:
 
 
 def generate_text(prompt: str, system_prompt: str | None = None) -> str:
+    """Gera texto no provedor configurado (``LLM_PROVIDER``).
+
+    Com o Bedrock, uma falha recorre ao Ollama local quando ``LLM_FALLBACK_OLLAMA`` está
+    ativo; senão, é convertida em ``OllamaError``, que os chamadores já tratam com a
+    resposta determinística.
+    """
+    if LLM_PROVIDER == "bedrock":
+        try:
+            return bedrock_client.generate_text(prompt, system_prompt=system_prompt)
+        except bedrock_client.BedrockError as exc:
+            if not LLM_FALLBACK_OLLAMA:
+                raise OllamaError(f"Modelo de linguagem indisponível: {exc}") from exc
+    return _generate_with_ollama(prompt, system_prompt)
+
+
+def _generate_with_ollama(prompt: str, system_prompt: str | None = None) -> str:
     options: dict[str, Any] = {
         "temperature": OLLAMA_TEMPERATURE,
     }

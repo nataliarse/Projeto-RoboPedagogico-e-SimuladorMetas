@@ -157,12 +157,23 @@ def _facts_for_llm(diagnosis) -> str:
     return "\n".join(lines)
 
 
+# Hipóteses de julgamento do glossário que o cálculo determinístico não modela. Se aparecem na
+# redação, o modelo tirou o "o que fazer" dos trechos da norma, e não da lista calculada.
+_NAO_MODELADO = ("medida protetiva", "medidas protetivas", "procedimento resolvido", "mpum")
+
+
 def _consistent_with(text: str, diagnosis) -> bool:
-    """Descarta a redação que afirma peso nas duas metas quando o cálculo diz o contrário."""
+    """Descarta a redação que contradiz o cálculo.
+
+    Casos: afirmar peso nas duas metas quando o cálculo diz o contrário, ou indicar como saída
+    da meta um ato que não está na lista calculada pelas regras.
+    """
+    normalized = _normalize(text)
+    if any(termo in normalized for termo in _NAO_MODELADO):
+        return False
     pending = [m for m in diagnosis.metas if m.status == "PENDENTE"]
     if len(pending) == len(diagnosis.metas):
         return True
-    normalized = _normalize(text)
     return not re.search(r"(pesa|impacta|consta)[^.]{0,40}metas 1 e 2", normalized)
 
 
@@ -187,7 +198,9 @@ def _llm_orientation(message: str, facts: str, passages: list[dict] | None = Non
         "Escreva três frases curtas. Na primeira, diga em qual meta o processo pesa e em qual "
         "não pesa, repetindo a conclusão dos FATOS, sem comparar datas por conta própria. Na "
         "segunda, cite o movimento determinante. Na terceira, diga o que precisa acontecer para "
-        "ele deixar de constar.\n\nRESPOSTA:"
+        "ele deixar de constar, usando somente os registros listados nos FATOS; os TRECHOS DA "
+        "NORMA servem apenas de fundamento e não acrescentam registros a essa lista."
+        "\n\nRESPOSTA:"
     )
     try:
         text = generate_text(prompt, system_prompt=META_SYSTEM_PROMPT)
