@@ -91,7 +91,8 @@ def answer_meta_question(message: str, process: dict | None) -> str:
 
     facts = diagnosis.texto()
     passages = _norm_passages(message, diagnosis)
-    orientation = _llm_orientation(message, _facts_for_llm(diagnosis), passages)
+    orientation = _llm_orientation(message, _facts_for_llm(diagnosis), passages,
+                                   pending=diagnosis.consta_em_alguma_meta)
     if orientation and not _consistent_with(orientation, diagnosis):
         orientation = None
     citation = _citation(passages)
@@ -165,13 +166,17 @@ _NAO_MODELADO = ("medida protetiva", "medidas protetivas", "procedimento resolvi
 def _consistent_with(text: str, diagnosis) -> bool:
     """Descarta a redação que contradiz o cálculo.
 
-    Casos: afirmar peso nas duas metas quando o cálculo diz o contrário, ou indicar como saída
-    da meta um ato que não está na lista calculada pelas regras.
+    Casos: afirmar peso nas duas metas quando o cálculo diz o contrário, indicar como saída
+    da meta um ato que não está na lista calculada pelas regras, ou falar em "deixar de
+    constar" quando o processo não pesa contra nenhuma meta.
     """
     normalized = _normalize(text)
     if any(termo in normalized for termo in _NAO_MODELADO):
         return False
     pending = [m for m in diagnosis.metas if m.status == "PENDENTE"]
+    # sem meta pendente, falar em "deixar de constar" sugere uma providência que não existe
+    if not pending and re.search(r"deix(ar|e|a) de constar|para sair da meta", normalized):
+        return False
     if len(pending) == len(diagnosis.metas):
         return True
     return not re.search(r"(pesa|impacta|consta)[^.]{0,40}metas 1 e 2", normalized)
@@ -188,18 +193,31 @@ def _citation(passages: list[dict]) -> str:
     return f"\nNorma consultada: {GLOSSARIO_FONTE}: " + "; ".join(refs) + "."
 
 
-def _llm_orientation(message: str, facts: str, passages: list[dict] | None = None) -> str | None:
+def _llm_orientation(message: str, facts: str, passages: list[dict] | None = None,
+                     pending: bool = True) -> str | None:
     norm_text = "\n".join(f"- {p['texto']}" for p in (passages or []))
     norm_block = f"TRECHOS DA NORMA (Glossário das Metas):\n{norm_text}\n\n" if norm_text else ""
+    if pending:
+        third = (
+            "Na terceira, diga o que precisa acontecer para ele deixar de constar, usando somente "
+            "os registros listados nos FATOS; os TRECHOS DA NORMA servem apenas de fundamento e "
+            "não acrescentam registros a essa lista."
+        )
+    else:
+        # sem meta pendente não há o que "deixar de constar": a orientação é não registrar
+        # nada só por causa das metas
+        third = (
+            "Na terceira, diga que não há providência necessária em relação às metas e que "
+            "qualquer novo registro, inclusive a baixa, só deve ser lançado quando o ato "
+            "correspondente for de fato praticado. Não use a expressão 'deixar de constar'."
+        )
     prompt = (
         f"PERGUNTA DO SERVIDOR: {message.strip()}\n\n"
         f"FATOS:\n{facts}\n\n"
         f"{norm_block}"
         "Escreva três frases curtas. Na primeira, diga em qual meta o processo pesa e em qual "
         "não pesa, repetindo a conclusão dos FATOS, sem comparar datas por conta própria. Na "
-        "segunda, cite o movimento determinante. Na terceira, diga o que precisa acontecer para "
-        "ele deixar de constar, usando somente os registros listados nos FATOS; os TRECHOS DA "
-        "NORMA servem apenas de fundamento e não acrescentam registros a essa lista."
+        f"segunda, cite o movimento determinante. {third}"
         "\n\nRESPOSTA:"
     )
     try:
