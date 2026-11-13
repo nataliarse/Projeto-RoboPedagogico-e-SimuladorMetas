@@ -184,6 +184,8 @@ def _looks_like_movement_structured_question(normalized: str) -> bool:
     movement_markers = (
         "movimentacao",
         "movimentacoes",
+        "movimentos",
+        "andamentos",
         "historico do processo",
         "linha do tempo",
         "o que aconteceu nesse processo",

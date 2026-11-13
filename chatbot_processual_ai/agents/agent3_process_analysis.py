@@ -462,10 +462,10 @@ def _process_question_analysis(
     if "arquiv" in normalized:
         return _archive_question_analysis(process)
 
-    if "moviment" in normalized and _is_first_and_latest_movement_question(normalized):
+    if _mentions_movement(normalized) and _is_first_and_latest_movement_question(normalized):
         return _first_and_latest_movement_question_analysis(process)
 
-    if "moviment" in normalized and _is_movement_list_question(normalized):
+    if _mentions_movement(normalized) and _is_movement_list_question(normalized):
         return _movement_list_question_analysis(process, normalized)
 
     if "moviment" in normalized and _is_latest_movement_question(normalized):
@@ -504,7 +504,7 @@ def _looks_like_active_process_question(message: Any) -> bool:
         or _is_current_status_question(normalized)
         or _is_timeline_before_event_question(normalized)
         or _is_movement_timeline_question(normalized)
-        or ("moviment" in normalized and _is_movement_list_question(normalized))
+        or (_mentions_movement(normalized) and _is_movement_list_question(normalized))
         or _is_legal_concept_with_case_context_question(normalized)
         or _is_document_content_question(normalized)
     ):
@@ -592,6 +592,10 @@ def _is_movement_timeline_question(normalized_message: str) -> bool:
     )
 
 
+def _mentions_movement(normalized_message: str) -> bool:
+    return "moviment" in normalized_message or "andamento" in normalized_message
+
+
 def _is_movement_list_question(normalized_message: str) -> bool:
     if _is_first_and_latest_movement_question(normalized_message):
         return False
@@ -599,13 +603,20 @@ def _is_movement_list_question(normalized_message: str) -> bool:
         return True
     if _movement_count_from_message(normalized_message) is not None:
         return True
-    if "movimentacoes" in normalized_message:
+    # "movimentos" e "andamentos" são sinônimos usuais de "movimentações" no PJe
+    if re.search(r"\b(movimentacoes|movimentos|andamentos)\b", normalized_message):
         return True
     return False
 
 
 def _is_all_movements_question(normalized_message: str) -> bool:
-    return "todas" in normalized_message or "todos" in normalized_message
+    if "todas" in normalized_message or "todos" in normalized_message:
+        return True
+    # "até hoje" e equivalentes pedem o histórico inteiro, não só os mais recentes
+    return any(
+        marker in normalized_message
+        for marker in ("ate hoje", "ate agora", "ate o momento", "desde o inicio", "historico completo")
+    )
 
 
 def _movement_count_from_message(normalized_message: str) -> int | None:
