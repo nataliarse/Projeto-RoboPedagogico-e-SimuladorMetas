@@ -22,6 +22,14 @@ class MetaIntentRoutingTestCase(unittest.TestCase):
             "O que preciso fazer para parar de constar na meta?"))
         self.assertTrue(is_process_meta_impact_question("Como tirar o processo da Meta 2?"))
 
+    def test_follow_up_questions_about_listed_movements_match(self):
+        # perguntas reais feitas logo depois da lista de movimentações
+        self.assertTrue(is_process_meta_impact_question(
+            "algum deles impacta negativamente em alguma das metas?"))
+        self.assertTrue(is_process_meta_impact_question(
+            "Algum desses movimentos prejudica as metas?"))
+        self.assertFalse(is_process_meta_impact_question("O que prejudica a Meta 1 em geral?"))
+
     def test_ordinary_process_question_is_not_diverted_to_meta_diagnosis(self):
         state = create_session_state()
         state["active_process"] = {"processo": {"numero": "001"}}

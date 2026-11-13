@@ -78,7 +78,7 @@ FACT_SOURCE_RE = re.compile(
 )
 MAX_CONVERSATION_FOR_MODEL = 8
 INTERNAL_TERMS = {"agente", "prompt", "ollama", "json"}
-DEFAULT_RECENT_MOVEMENT_COUNT = 3
+DEFAULT_RECENT_MOVEMENT_COUNT = 10
 MAX_STRUCTURED_MOVEMENTS = 20
 
 
@@ -1177,6 +1177,12 @@ def _movement_list_question_analysis(process: dict, normalized_message: str) -> 
         if requested_count > MAX_STRUCTURED_MOVEMENTS:
             limitations.append(
                 f"O pedido indicou {requested_count} movimentacoes; foram listadas no maximo {MAX_STRUCTURED_MOVEMENTS}."
+            )
+        elif len(movements) > len(selected):
+            # sem dizer o total, a lista curta parece o histórico inteiro
+            limitations.append(
+                f"Ha {len(movements)} movimentacoes; foram listadas as {len(selected)} mais recentes. "
+                f"Para ver mais, peca, por exemplo, \"todas as movimentacoes\" ou \"as 15 ultimas movimentacoes\"."
             )
 
     _add_movement_facts(facts, selected)

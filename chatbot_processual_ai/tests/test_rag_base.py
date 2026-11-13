@@ -620,12 +620,12 @@ class RagBaseTestCase(unittest.TestCase):
         )
 
         self.assertEqual(result.analysis["question_focus"], "movement_list")
-        self.assertEqual(self._movement_fact_count(result), 3)
+        # o padrão lista até 10; este processo de teste tem 5 movimentações
+        self.assertEqual(self._movement_fact_count(result), 5)
         self.assertIn("Arquivado definitivamente", result.response.resposta)
         self.assertIn("10/10/1983", result.response.resposta)
         self.assertIn("15/08/1982", result.response.resposta)
-        self.assertNotIn("20/05/1981", result.response.resposta)
-        self.assertNotIn("12/03/1981", result.response.resposta)
+        self.assertIn("12/03/1981", result.response.resposta)
 
     def test_chat_answers_requested_recent_movement_count_without_model(self) -> None:
         result = self._run_active_process_question_without_model(

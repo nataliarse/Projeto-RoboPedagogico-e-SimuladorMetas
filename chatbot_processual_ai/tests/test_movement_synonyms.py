@@ -29,6 +29,16 @@ class SinonimosDeMovimentacaoTestCase(unittest.TestCase):
         normalizada = normalize_text_for_match("Quais são os movimentos?")
         self.assertFalse(agent3._is_all_movements_question(normalizada))
 
+    def test_lista_padrao_informa_o_total_e_como_ver_mais(self):
+        processo = {"movimentacoes": [
+            {"ordem": i, "data": f"2026-01-{i:02d}T10:00:00", "descricao": f"Movimento {i}"}
+            for i in range(1, 31)
+        ]}
+        analise = agent3._movement_list_question_analysis(
+            processo, normalize_text_for_match("quais são os movimentos deste processo?"))
+        self.assertEqual(len([f for f in analise["facts"] if "Movimento" in str(f)]), 10)
+        self.assertTrue(any("Ha 30 movimentacoes" in item for item in analise["limitations"]))
+
     def test_ultimo_movimento_nao_vira_lista(self):
         self.assertFalse(self._lista("Qual foi o último movimento?"))
 

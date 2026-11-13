@@ -46,10 +46,15 @@ def is_process_meta_impact_question(message: str) -> bool:
     tokens = set(re.findall(r"[a-z0-9]+", _normalize(message)))
     if not tokens & {"meta", "metas"}:
         return False
-    process_references = {"processo", "este", "esse", "ele", "movimento", "movimentos", "movimentacao"}
+    process_references = {
+        "processo", "este", "esse", "ele", "dele", "deles", "desses", "destes", "algum", "alguma",
+        "movimento", "movimentos", "movimentacao", "movimentacoes",
+    }
     impact_terms = {
         "impacta", "impactam", "impactando", "impactar", "impacto",
-        "pesa", "pesando", "conta", "pendente", "cumpre",
+        "pesa", "pesam", "pesando", "conta", "pendente", "cumpre",
+        "prejudica", "prejudicam", "prejudicando", "atrapalha", "atrapalham", "afeta", "afetam",
+        "negativamente",
     }
     # pedidos para sair da meta já pressupõem o processo ativo ("o que fazer para deixar de constar?")
     exit_terms = {"consta", "constar", "constando", "sair", "tirar", "retirar"}
