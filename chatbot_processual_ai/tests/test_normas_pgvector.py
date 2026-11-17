@@ -53,6 +53,17 @@ class SecretDoBancoTestCase(unittest.TestCase):
             url = normas_pgvector._url_do_secret()
         self.assertEqual(url, "postgresql://aluno:s3nh%40/x@db.exemplo:5432/iesb")
 
+    def test_host_interno_substitui_o_do_secret(self):
+        class _Cliente:
+            def get_secret_value(self, SecretId):
+                return {"SecretString": '{"username": "aluno", "password": "x", '
+                                        '"host": "bigdata.exemplo", "port": 5432, "dbname": "iesb"}'}
+
+        with patch("boto3.client", return_value=_Cliente()), \
+                patch.object(normas_pgvector, "NORMAS_PG_HOST", "rds-interno.exemplo"):
+            url = normas_pgvector._url_do_secret()
+        self.assertEqual(url, "postgresql://aluno:x@rds-interno.exemplo:5432/iesb")
+
     def test_literal_do_vetor_usa_colchetes(self):
         self.assertEqual(normas_pgvector._literal([1, 0.5]), "[1.0000000,0.5000000]")
 

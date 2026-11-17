@@ -28,7 +28,7 @@ import urllib.request
 from dataclasses import dataclass, field
 
 # processos públicos do TRT18 usados nos testes do TCC
-PENDENTE_META1 = "0000713-35.2026.5.18.0002"       # caso novo de 2026 sem sentença
+PENDENTE_META1 = "0001595-70.2026.5.18.0010"       # caso novo de 2026 sem sentença (o 0000713-35 foi julgado em 23/10/2026)
 JULGADO_NO_PERIODO = "0001583-78.2025.5.18.0111"   # acordo homologado em 2026, em liquidação
 TRANSITADO = "0002006-59.2025.5.18.0201"           # julgado em 2026, transitado, em execução
 REMESSA_RECURSO = "0000683-95.2025.5.18.0014"      # remessa para recurso: baixado no 1º grau

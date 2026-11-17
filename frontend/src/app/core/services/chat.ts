@@ -49,7 +49,7 @@ export class ChatService {
       : { session_id: sessionId, mensagem };
 
     return this.http
-      .post<unknown>('/api/processos/chat', request)
+      .post<unknown>('api/processos/chat', request)
       .pipe(
         timeout(HTTP_TIMEOUT_MS.processualChat),
         map(response => {

@@ -1,0 +1,124 @@
+# Robô Orientador de Entrada de Dados (TCC Leonardo Araujo Pereira) no dataiesb-cluster.
+# Público em https://app.dataiesb.com/robo-orientador/
+#
+# Um pod com dois containers: "web" (nginx com a interface, porta 80) e "api" (FastAPI +
+# coletor, só em 127.0.0.1:8000). Sem chaves no container: o Bedrock e o secret do banco
+# são acessados pela role robo-orientador-pod, ligada a este ServiceAccount por EKS Pod
+# Identity (ver deploy/eks/README.md).
+#
+# Aplicar: kubectl --context iesb apply -f deploy/eks/k8s/robo-orientador.yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: robo-orientador
+  namespace: dashs
+  labels:
+    app: robo-orientador
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: robo-orientador
+  namespace: dashs
+  labels:
+    app: robo-orientador
+spec:
+  # 1 réplica: as sessões do chat ficam na memória do processo
+  replicas: 1
+  selector:
+    matchLabels:
+      app: robo-orientador
+  template:
+    metadata:
+      labels:
+        app: robo-orientador
+    spec:
+      serviceAccountName: robo-orientador
+      containers:
+        - name: web
+          image: 248189947068.dkr.ecr.us-east-1.amazonaws.com/robo-orientador:web-20261117-1910
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /robo-orientador/api/processos/health
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            periodSeconds: 30
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits: { cpu: 200m, memory: 128Mi }
+        - name: api
+          image: 248189947068.dkr.ecr.us-east-1.amazonaws.com/robo-orientador:api-20261117-1920
+          env:
+            - { name: AWS_REGION, value: us-east-1 }
+            - { name: AWS_DEFAULT_REGION, value: us-east-1 }
+            - { name: LLM_PROVIDER, value: bedrock }
+            - { name: LLM_FALLBACK_OLLAMA, value: "false" }
+            - { name: BEDROCK_REGION, value: us-east-1 }
+            - { name: BEDROCK_MODEL_ID, value: us.anthropic.claude-haiku-4-5-20251001-v1:0 }
+            - { name: NORMAS_BACKEND, value: pgvector }
+            - { name: TCC_SECRET_ID, value: tcc/leonardo-a-pereira/db }
+            - { name: NORMAS_PG_SCHEMA, value: tcc_leonardo_a_pereira }
+            # endereço interno do RDS: o público (bigdata.dataiesb.com) fica fora da NetworkPolicy
+            - { name: NORMAS_PG_HOST, value: rds-prod.cmt2mu288c4s.us-east-1.rds.amazonaws.com }
+            - { name: NORMAS_MIN_SCORE, value: "0.30" }
+            - { name: RAG_ENABLED, value: "false" }
+            - { name: LLM_AUDIT_LOG, value: data/logs/llm_auditoria.jsonl }
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+          resources:
+            requests: { cpu: 250m, memory: 768Mi }
+            limits: { cpu: "2", memory: 2Gi }
+          volumeMounts:
+            - { name: dshm, mountPath: /dev/shm }
+      volumes:
+        # o Chromium do coletor precisa de /dev/shm maior que o padrão de 64 MB
+        - name: dshm
+          emptyDir: { medium: Memory, sizeLimit: 512Mi }
+---
+# A dash-home-policy do namespace bloqueia a saída para a rede interna. Esta regra libera só
+# a porta 5432 do RDS (mesmo padrão de dash-procuradoria-postgres-egress).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: robo-orientador-postgres-egress
+  namespace: dashs
+  labels:
+    app: robo-orientador
+spec:
+  podSelector:
+    matchLabels:
+      app: robo-orientador
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 10.0.1.46/32
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: robo-orientador
+  namespace: dashs
+  labels:
+    app: robo-orientador
+spec:
+  type: ClusterIP
+  selector:
+    app: robo-orientador
+  ports:
+    - port: 80
+      targetPort: 80

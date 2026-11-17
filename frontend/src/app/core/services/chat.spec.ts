@@ -48,7 +48,7 @@ describe('ChatService', () => {
   it('envia POST sem session_id quando não há sessão', () => {
     service.enviar('Olá').subscribe();
 
-    const request = httpTesting.expectOne('/api/processos/chat');
+    const request = httpTesting.expectOne('api/processos/chat');
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({ mensagem: 'Olá' });
     expect(request.request.body).not.toHaveProperty('session_id');
@@ -61,7 +61,7 @@ describe('ChatService', () => {
 
     service.enviar('Qual foi a última movimentação?').subscribe();
 
-    const request = httpTesting.expectOne('/api/processos/chat');
+    const request = httpTesting.expectOne('api/processos/chat');
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({
       session_id: 'sessao-123',
@@ -76,7 +76,7 @@ describe('ChatService', () => {
 
     service.enviar('Continue', { sessionId: 'sessao-explicita' }).subscribe();
 
-    const request = httpTesting.expectOne('/api/processos/chat');
+    const request = httpTesting.expectOne('api/processos/chat');
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({
       session_id: 'sessao-explicita',
@@ -89,12 +89,12 @@ describe('ChatService', () => {
     service.enviar('Primeira pergunta').subscribe(response => {
       sessionId = response.session_id;
     });
-    const first = httpTesting.expectOne('/api/processos/chat');
+    const first = httpTesting.expectOne('api/processos/chat');
     expect(first.request.body).toEqual({ mensagem: 'Primeira pergunta' });
     first.flush(validResponse);
 
     service.enviar('Segunda pergunta').subscribe();
-    const second = httpTesting.expectOne('/api/processos/chat');
+    const second = httpTesting.expectOne('api/processos/chat');
     expect(second.request.body).toEqual({
       session_id: validResponse.session_id,
       mensagem: 'Segunda pergunta'
@@ -106,7 +106,7 @@ describe('ChatService', () => {
     let emitted: ProcessualChatHttpResponse | undefined;
 
     service.enviar('Olá').subscribe(value => emitted = value);
-    const request = httpTesting.expectOne('/api/processos/chat');
+    const request = httpTesting.expectOne('api/processos/chat');
     request.flush(validResponse);
 
     expect(emitted).toEqual(validResponse);
@@ -120,7 +120,7 @@ describe('ChatService', () => {
       next: value => emitted = value,
       error: error => observedError = error
     });
-    httpTesting.expectOne('/api/processos/chat').flush({ session_id: 'sessao-123' });
+    httpTesting.expectOne('api/processos/chat').flush({ session_id: 'sessao-123' });
 
     expect(emitted).toBeUndefined();
     expect(observedError).toBeInstanceOf(InvalidApiResponseError);
@@ -130,7 +130,7 @@ describe('ChatService', () => {
     let observedError: unknown;
     service.enviar('Olá').subscribe({ error: error => observedError = error });
 
-    httpTesting.expectOne('/api/processos/chat').flush({
+    httpTesting.expectOne('api/processos/chat').flush({
       ...validResponse,
       resultado: { ...validResponse.resultado, resposta: '   ' }
     });
@@ -144,7 +144,7 @@ describe('ChatService', () => {
     vi.useFakeTimers();
     try {
       service.enviar('Olá').subscribe({ error: error => observedError = error });
-      const request = httpTesting.expectOne('/api/processos/chat');
+      const request = httpTesting.expectOne('api/processos/chat');
 
       vi.advanceTimersByTime(119_999);
       expect(observedError).toBeUndefined();
@@ -165,7 +165,7 @@ describe('ChatService', () => {
       next: value => emitted = value,
       error: error => observedError = error
     });
-    const request = httpTesting.expectOne('/api/processos/chat');
+    const request = httpTesting.expectOne('api/processos/chat');
     request.flush(
       { detail: 'falha técnica' },
       { status: 500, statusText: 'Internal Server Error' }

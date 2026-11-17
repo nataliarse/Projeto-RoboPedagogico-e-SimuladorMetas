@@ -14,7 +14,7 @@ describe('ApiHealthService', () => {
     let status: string | undefined;
 
     service.checkProcessual().subscribe(value => status = value.status);
-    http.expectOne('/api/processos/health').flush({ status: 'ok' });
+    http.expectOne('api/processos/health').flush({ status: 'ok' });
 
     expect(status).toBe('ok');
     http.verify();
@@ -29,7 +29,7 @@ describe('ApiHealthService', () => {
     let failed = false;
 
     service.checkProcessual().subscribe({ error: () => failed = true });
-    http.expectOne('/api/processos/health').flush(
+    http.expectOne('api/processos/health').flush(
       { detail: 'offline' }, { status: 503, statusText: 'Unavailable' },
     );
 

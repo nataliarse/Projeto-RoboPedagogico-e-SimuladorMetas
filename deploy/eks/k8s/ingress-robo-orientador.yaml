@@ -1,0 +1,29 @@
+# Rota pública app.dataiesb.com/robo-orientador. Cópia do documento acrescentado ao
+# ingress.yaml do repositório Data-iesb/infra-network (padrão: um Ingress por app no ns dashs).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: robo-orientador-ingress
+  namespace: dashs
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # a coleta ao vivo e a redação podem levar dezenas de segundos
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    # limite por IP: protege o portal do TRT18 (coleta) e o custo do Bedrock
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: "5"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: app.dataiesb.com
+      http:
+        paths:
+          - path: /robo-orientador
+            pathType: Prefix
+            backend:
+              service:
+                name: robo-orientador
+                port:
+                  number: 80

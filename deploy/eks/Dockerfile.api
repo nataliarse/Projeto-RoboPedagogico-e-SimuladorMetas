@@ -1,0 +1,39 @@
+# Backend do Robô Orientador: FastAPI + coletor do TRT18 (Chromium do Playwright com tela virtual).
+# Contexto de build: raiz do repositório.
+FROM public.ecr.aws/docker/library/python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
+    PIP_NO_CACHE_DIR=1
+
+# xvfb: o coletor abre o navegador com janela (o portal recusa o modo headless)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends xvfb xauth libgl1 libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY chatbot_processual_ai/requirements.txt chatbot_processual_ai/requirements.txt
+RUN pip install -r chatbot_processual_ai/requirements.txt
+
+COPY entrada-de-dados entrada-de-dados
+# instalação editável: os caminhos de dados do coletor ficam em /app/entrada-de-dados/data
+RUN pip install -e "entrada-de-dados[collect]" \
+    && python -m playwright install --with-deps chromium \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY chatbot_processual_ai chatbot_processual_ai
+COPY deploy/eks/iniciar-api.sh /usr/local/bin/iniciar-api
+RUN sed -i 's/\r$//' /usr/local/bin/iniciar-api && chmod 755 /usr/local/bin/iniciar-api
+
+# usuário sem privilégios, dono só das pastas de dados
+RUN useradd --create-home --uid 10001 robo \
+    && mkdir -p entrada-de-dados/data/brutos chatbot_processual_ai/data/logs \
+    && chown -R robo:robo entrada-de-dados/data chatbot_processual_ai/data \
+    # o decifrador do captcha grava imagens temporárias na própria pasta
+    && chown -R robo:robo entrada-de-dados/trt18_collector/captcha
+USER robo
+
+WORKDIR /app/chatbot_processual_ai
+EXPOSE 8000
+CMD ["/usr/local/bin/iniciar-api"]

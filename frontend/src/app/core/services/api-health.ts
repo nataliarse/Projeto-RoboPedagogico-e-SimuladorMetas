@@ -15,6 +15,6 @@ export class ApiHealthService {
   }
 
   checkProcessual(): Observable<ApiHealthResponse> {
-    return this.http.get<ApiHealthResponse>('/api/processos/health');
+    return this.http.get<ApiHealthResponse>('api/processos/health');
   }
 }

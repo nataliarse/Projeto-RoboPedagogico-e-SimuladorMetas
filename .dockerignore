@@ -1,0 +1,21 @@
+# Nada de dados coletados, credenciais ou ambientes locais na imagem.
+**/.venv
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+**/.angular
+**/dist
+**/.env
+**/*.sqlite3
+**/*.pem
+**/data/brutos
+**/data/saida
+**/data/debug
+**/data/logs
+**/data/entrada
+**/*.egg-info
+.git
+.claude
+simulador_metas_cnj
+simulador-de-metas
+docs

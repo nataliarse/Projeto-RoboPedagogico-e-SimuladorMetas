@@ -33,6 +33,9 @@ NORMAS_BACKEND = os.getenv("NORMAS_BACKEND", "qdrant").strip().lower()
 NORMAS_PG_URL = os.getenv("NORMAS_PG_URL", "").strip()
 TCC_SECRET_ID = os.getenv("TCC_SECRET_ID", "tcc/leonardo-a-pereira/db").strip()
 NORMAS_PG_SCHEMA = os.getenv("NORMAS_PG_SCHEMA", "tcc_leonardo_a_pereira").strip()
+# Host do banco que substitui o do secret. No cluster EKS, o endereço interno do RDS
+# (o nome público resolve para o IP público, fora da regra de rede do namespace).
+NORMAS_PG_HOST = os.getenv("NORMAS_PG_HOST", "").strip()
 # Similaridade mínima no pgvector (Titan v2): trechos pertinentes ficaram entre 0,43 e 0,67
 # e um texto sem relação, abaixo de 0,15, na calibração com o glossário de 2026.
 NORMAS_MIN_SCORE = float(os.getenv("NORMAS_MIN_SCORE", "0.30"))

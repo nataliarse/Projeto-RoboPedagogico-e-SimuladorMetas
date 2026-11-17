@@ -11,7 +11,7 @@ import json
 from typing import Any
 from urllib.parse import quote
 
-from config import BEDROCK_REGION, NORMAS_PG_SCHEMA, NORMAS_PG_URL, TCC_SECRET_ID
+from config import BEDROCK_REGION, NORMAS_PG_HOST, NORMAS_PG_SCHEMA, NORMAS_PG_URL, TCC_SECRET_ID
 
 
 class NormasDBError(Exception):
@@ -48,7 +48,7 @@ def _url_do_secret() -> str:
             return dados[chave]
     usuario = dados.get("username") or dados.get("user") or dados.get("role")
     senha = dados.get("password")
-    host = dados.get("host")
+    host = NORMAS_PG_HOST or dados.get("host")
     banco = dados.get("dbname") or dados.get("database") or "iesb"
     porta = dados.get("port") or 5432
     if not (usuario and senha and host):
